@@ -1,0 +1,74 @@
+## Правила работы с проектом
+
+### Перед началом
+
+- Сначала прочитай `README.md` и `docs/architecture.md`.
+- Проверь `git status` и не затирай чужие незакоммиченные изменения.
+- Перед изменением Next.js-кода прочитай релевантную документацию из
+  `node_modules/next/dist/docs/`. В проекте используется Next.js 16.4.3, его API и
+  соглашения важнее старых примеров из интернета.
+- Не меняй настройки, зависимости или архитектуру «на всякий случай». Если это
+  нужно, объясни причину в описании задачи.
+
+### Архитектура
+
+- Используй App Router внутри `src/app`.
+- Server Components — выбор по умолчанию. Добавляй `"use client"` только для state,
+  обработчиков событий, browser API или клиентской библиотеки.
+- Запросы к .NET API держи в `src/lib/api`, а не в случайных UI-компонентах.
+- Не клади секреты в `NEXT_PUBLIC_*`. Для серверных запросов используй `API_URL`.
+- Не обращайся к базе данных из frontend и не дублируй бизнес-правила backend.
+- Новую функциональность группируй по domain/feature (`catalog`, `cart`, `auth`,
+  `checkout`), а не складывай всё в один `components` или `page.tsx`.
+- API-контракт сначала сверяй с backend-разработчиком: endpoint, DTO, ошибки,
+  auth, cookies, пагинация и форматы денег/дат должны быть согласованы.
+
+### Код и UI
+
+- Используй TypeScript и не отключай `strict` без отдельного решения.
+- Переиспользуй компоненты из `src/components/ui`; не копируй одинаковую разметку.
+- Для навигации используй `next/link`, для изображений — `next/image`.
+- Каждая серверная страница с данными должна иметь loading, error и empty-состояния.
+- У интерактивных элементов должны быть focus-состояния, keyboard-доступность и
+  понятный accessible name.
+- Не добавляй новую библиотеку, если задачу можно решить существующим стеком.
+
+### Команды проверки
+
+Перед передачей работы запусти:
+
+```bash
+pnpm lint
+pnpm exec tsc --noEmit
+pnpm build
+```
+
+Если команда не запускается из-за окружения (например, недоступны внешние шрифты),
+зафиксируй это явно в описании результата. Не скрывай ошибки отключением проверки.
+
+### Границы задачи
+
+- Делай небольшие изменения, относящиеся к текущей задаче.
+- Не переписывай существующий код и не форматируй весь проект без необходимости.
+- Не удаляй файлы, зависимости или настройки без явного обоснования.
+- Не коммить секреты, `.env.local`, токены, ключи и реальные пользовательские данные.
+- Перед завершением проверь `git diff` и убедись, что в изменениях нет случайных файлов.
+
+### Передача работы
+
+В описании PR или сообщения о готовности укажи:
+
+1. Что изменено.
+2. Как это проверить локально.
+3. Какие команды проверки прошли.
+4. Какие ограничения, mock-данные или несогласованные API-контракты остались.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
