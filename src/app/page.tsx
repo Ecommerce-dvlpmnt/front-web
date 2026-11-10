@@ -1,10 +1,16 @@
-
 import { HeroBanner } from "@/components/home/HeroBanner"
 import { ProductGrid } from "@/components/catalog/ProductGrid"
-import { mockProducts } from "@/lib/mock/products"
+import { Pagination } from "@/components/catalog/Pagination"
+import { getProducts } from "@/lib/api/products"
 import { shopConfig } from "@/lib/config/shop"
 
-export default function Home() {
+export default async function Home({ searchParams }: PageProps<"/">) {
+  const { page } = await searchParams
+  const raw = Array.isArray(page) ? page[0] : page
+  const pageNumber = Math.max(1, Number(raw) || 1)
+
+  const { products, totalPages } = await getProducts(pageNumber)
+
   return (
     <div className="bg-background">
       <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
@@ -31,7 +37,8 @@ export default function Home() {
           </div>
 
           <div className="mt-8">
-            <ProductGrid products={mockProducts} />
+            <ProductGrid products={products} />
+            <Pagination page={pageNumber} totalPages={totalPages} />
           </div>
         </section>
       </div>
