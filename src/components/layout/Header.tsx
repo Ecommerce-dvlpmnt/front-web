@@ -19,13 +19,21 @@ import { CartDrawer } from "@/components/cart/CartDrawer"
 import { useCart } from "@/components/cart/CartContext"
 import { shopConfig } from "@/lib/config/shop"
 import { cn } from "@/lib/utils"
+import type { CategoryTreeNode } from "@/types/category"
 
-export function Header() {
+interface HeaderProps {
+  categories: CategoryTreeNode[]
+}
+
+export function Header({ categories }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false)
   const [isCartOpen, setIsCartOpen] = useState(false)
 
   const { itemCount } = useCart()
+  const topLevelCategories = categories.filter(
+    (category) => category.parentId === null
+  )
 
   return (
     <>
@@ -81,15 +89,25 @@ export function Header() {
             className="hidden items-center gap-5 lg:flex"
             aria-label="Категорії"
           >
-            {shopConfig.navigation.map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                {item.label}
-              </Link>
-            ))}
+            {topLevelCategories.length > 0
+              ? topLevelCategories.map((category) => (
+                  <Link
+                    key={category.id}
+                    href={`/catalog/${category.slug}`}
+                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    {category.name}
+                  </Link>
+                ))
+              : shopConfig.navigation.map((item) => (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
           </nav>
 
           <div className="ml-auto flex items-center gap-1">
@@ -159,16 +177,43 @@ export function Header() {
             className="flex flex-col gap-1"
             aria-label="Мобільна навігація"
           >
-            {shopConfig.navigation.map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {topLevelCategories.length > 0
+              ? topLevelCategories.map((category) => (
+                  <div key={category.id}>
+                    <Link
+                      href={`/catalog/${category.slug}`}
+                      className="block rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      {category.name}
+                    </Link>
+
+                    {category.children.length > 0 && (
+                      <div className="ml-3 border-l border-border pl-3">
+                        {category.children.map((child) => (
+                          <Link
+                            key={child.id}
+                            href={`/catalog/${child.slug}`}
+                            className="block rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            onClick={() => setIsMenuOpen(false)}
+                          >
+                            {child.name}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))
+              : shopConfig.navigation.map((item) => (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className="rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
           </nav>
         </div>
       </header>

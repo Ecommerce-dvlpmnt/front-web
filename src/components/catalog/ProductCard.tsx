@@ -2,6 +2,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Link from "next/link"
 import Image from "next/image"
 
 import type { Product } from "@/types/product"
@@ -9,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/components/cart/CartContext"
 import { Skeleton } from "@/components/ui/skeleton"
+import { formatPrice } from "@/lib/formatters/price"
 
 interface ProductCardProps {
   product: Product
@@ -38,11 +40,6 @@ export function ProductCard({
     cartItem !== undefined &&
     cartItem.quantity >= product.stock
 
-  const formatPrice = (price: number) =>
-    `${new Intl.NumberFormat("uk-UA", {
-      maximumFractionDigits: 0,
-    }).format(price)} ₴`
-
   const formattedPrice = formatPrice(product.price)
 
   const formattedOldPrice =
@@ -69,12 +66,15 @@ export function ProductCard({
 
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground">
-      <div className="group relative aspect-square overflow-hidden bg-muted">
+      <Link
+        href={`/product/${product.slug}`}
+        className="group relative aspect-square overflow-hidden bg-muted"
+        aria-label={`Переглянути товар: ${product.name}`}
+      >
         <Image
           src={product.mainImageUrl}
           alt={product.name}
           fill
-          unoptimized
           loading={priority ? "eager" : "lazy"}
           sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
           className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -85,11 +85,16 @@ export function ProductCard({
             {badgeLabels[product.badge]}
           </Badge>
         )}
-      </div>
+      </Link>
 
       <div className="flex flex-1 flex-col p-4">
         <h3 className="min-h-12 line-clamp-2 font-medium">
-          {product.name}
+          <Link
+            href={`/product/${product.slug}`}
+            className="rounded-sm outline-none transition-colors hover:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            {product.name}
+          </Link>
         </h3>
 
         <div className="mt-3 flex min-h-7 flex-wrap items-center gap-2">

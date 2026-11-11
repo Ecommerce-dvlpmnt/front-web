@@ -2,20 +2,17 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
 import { X, Trash2, Plus, Minus, ShoppingBag } from "lucide-react"
 
 import { useCart } from "@/components/cart/CartContext"
 import { Button } from "@/components/ui/button"
+import { formatPrice } from "@/lib/formatters/price"
 
 interface CartDrawerProps {
   isOpen: boolean
   onClose: () => void
 }
-
-const formatPrice = (price: number) =>
-  `${new Intl.NumberFormat("uk-UA", {
-    maximumFractionDigits: 0,
-  }).format(price)} ₴`
 
 export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const {
@@ -39,7 +36,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="cart-title"
-        className="absolute right-0 top-0 flex h-full w-full max-w-lg flex-col overflow-hidden border-l border-border bg-white text-slate-950 shadow-2xl dark:bg-slate-950 dark:text-slate-50"
+        className="absolute right-0 top-0 flex h-full w-full max-w-lg flex-col overflow-hidden border-l border-border bg-card text-card-foreground shadow-2xl"
         onClick={(event) => event.stopPropagation()}
       >
         {/* Заголовок */}
@@ -66,7 +63,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
         {/* Содержимое корзины */}
         {items.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
+      <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
             <div className="mb-5 flex size-20 items-center justify-center rounded-full bg-muted">
               <ShoppingBag className="size-9 text-muted-foreground" />
             </div>
@@ -79,8 +76,10 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               Додайте товари з каталогу, щоб вони з’явилися тут.
             </p>
 
-            <Button className="mt-6" onClick={onClose}>
-              Перейти до покупок
+            <Button className="mt-6" asChild>
+              <Link href="/#catalog" onClick={onClose}>
+                До каталогу
+              </Link>
             </Button>
           </div>
         ) : (
@@ -98,7 +97,6 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       alt={product.name}
       fill
       loading="eager"
-      unoptimized
       sizes="(min-width: 640px) 112px, 80px"
       className="object-cover"
     />
@@ -164,7 +162,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             </div>
 
             {/* Нижняя панель */}
-            <div className="shrink-0 space-y-4 border-t border-border bg-white p-5 dark:bg-slate-950">
+            <div className="shrink-0 space-y-4 border-t border-border bg-card p-5">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">
                   Товарів у кошику
@@ -180,8 +178,10 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 <span>{formatPrice(totalPrice)}</span>
               </div>
 
-              <Button className="w-full" size="lg" disabled>
-                Оформлення замовлення — скоро
+              <Button className="w-full" size="lg" asChild>
+                <Link href="/checkout" onClick={onClose}>
+                  Оформити замовлення
+                </Link>
               </Button>
 
               <Button

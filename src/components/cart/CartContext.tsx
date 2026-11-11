@@ -2,11 +2,17 @@
 
 import {
   createContext,
+  useEffect,
   useContext,
   useState,
   type ReactNode,
 } from "react"
 
+import {
+  pushAddToCart,
+  pushRemoveFromCart,
+} from "@/lib/analytics/data-layer"
+import { CART_STORAGE_KEY } from "@/lib/cart/constants"
 import type { Product } from "@/types/product"
 
 export interface CartItem {
@@ -16,61 +22,115 @@ export interface CartItem {
 
 interface CartContextType {
   items: CartItem[]
+  isHydrated: boolean
   itemCount: number
   totalPrice: number
-  addItem: (product: Product) => void
+  addItem: (product: Product, quantity?: number) => void
   updateQuantity: (productId: string, quantity: number) => void
   removeItem: (productId: string) => void
   clearCart: () => void
 }
 
+export { CART_STORAGE_KEY }
+
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
+  const [isHydrated, setIsHydrated] = useState(false)
 
-  function addItem(product: Product) {
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      try {
+        const storedItems = window.localStorage.getItem(CART_STORAGE_KEY)
+
+        if (storedItems) {
+          const parsedItems: unknown = JSON.parse(storedItems)
+
+          if (Array.isArray(parsedItems)) {
+            setItems(parsedItems.filter(isCartItem))
+          }
+        }
+      } catch {
+        window.localStorage.removeItem(CART_STORAGE_KEY)
+      } finally {
+        setIsHydrated(true)
+      }
+
+    }, 0)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [])
+
+  useEffect(() => {
+    if (!isHydrated) return
+
+    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items))
+  }, [isHydrated, items])
+
+  function addItem(product: Product, requestedQuantity = 1) {
     if (product.stock <= 0) return
 
+    const safeRequestedQuantity = Math.max(
+      1,
+      Math.floor(Number.isFinite(requestedQuantity) ? requestedQuantity : 1)
+    )
+    const existingItem = items.find((item) => item.product.id === product.id)
+    const availableQuantity = Math.max(
+      product.stock - (existingItem?.quantity ?? 0),
+      0
+    )
+    const addedQuantity = Math.min(safeRequestedQuantity, availableQuantity)
+
+    if (addedQuantity <= 0) return
+
     setItems((currentItems) => {
-      const existingItem = currentItems.find(
+      const currentItem = currentItems.find(
         (item) => item.product.id === product.id
       )
 
-      if (existingItem) {
+      if (currentItem) {
         return currentItems.map((item) =>
           item.product.id === product.id
             ? {
                 ...item,
-                quantity: Math.min(item.quantity + 1, product.stock),
+                quantity: Math.min(item.quantity + addedQuantity, product.stock),
               }
             : item
         )
       }
 
-      return [...currentItems, { product, quantity: 1 }]
+      return [...currentItems, { product, quantity: addedQuantity }]
     })
+
+    pushAddToCart(product, addedQuantity)
   }
 
   function updateQuantity(productId: string, quantity: number) {
+    const safeQuantity = Number.isFinite(quantity) ? Math.floor(quantity) : 1
+
     setItems((currentItems) =>
       currentItems.flatMap((item) => {
         if (item.product.id !== productId) return [item]
 
-        if (quantity <= 0) return []
+        if (safeQuantity <= 0) return []
 
         return [{
           ...item,
-          quantity: Math.min(quantity, item.product.stock),
+          quantity: Math.min(safeQuantity, item.product.stock),
         }]
       })
     )
   }
 
   function removeItem(productId: string) {
+    const item = items.find((currentItem) => currentItem.product.id === productId)
+
     setItems((currentItems) =>
-      currentItems.filter((item) => item.product.id !== productId)
+      currentItems.filter((currentItem) => currentItem.product.id !== productId)
     )
+
+    if (item) pushRemoveFromCart(item.product, item.quantity)
   }
 
   function clearCart() {
@@ -91,6 +151,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     <CartContext.Provider
       value={{
         items,
+        isHydrated,
         itemCount,
         totalPrice,
         addItem,
@@ -101,6 +162,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
     >
       {children}
     </CartContext.Provider>
+  )
+}
+
+function isCartItem(value: unknown): value is CartItem {
+  if (!value || typeof value !== "object") return false
+
+  const item = value as Partial<CartItem>
+
+  return (
+    typeof item.quantity === "number" &&
+    Number.isInteger(item.quantity) &&
+    item.quantity > 0 &&
+    Boolean(item.product) &&
+    typeof item.product === "object" &&
+    typeof item.product.id === "string" &&
+    typeof item.product.slug === "string" &&
+    typeof item.product.name === "string" &&
+    typeof item.product.price === "number" &&
+    typeof item.product.stock === "number" &&
+    typeof item.product.mainImageUrl === "string"
   )
 }
 

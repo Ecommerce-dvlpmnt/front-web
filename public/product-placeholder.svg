@@ -1,0 +1,10 @@
+<svg width="800" height="800" viewBox="0 0 800 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="800" rx="48" fill="#F3F0EA"/>
+  <circle cx="400" cy="348" r="132" fill="#E4DED3"/>
+  <path d="M322 458C322 414.922 356.922 380 400 380C443.078 380 478 414.922 478 458V496H322V458Z" fill="#B8AB99"/>
+  <path d="M285 496H515L548 574H252L285 496Z" fill="#8E7E6A"/>
+  <path d="M366 280C366 261.222 381.222 246 400 246C418.778 246 434 261.222 434 280V380H366V280Z" fill="#8E7E6A"/>
+  <path d="M400 178C407.732 178 414 171.732 414 164C414 156.268 407.732 150 400 150C392.268 150 386 156.268 386 164C386 171.732 392.268 178 400 178Z" fill="#B8AB99"/>
+  <text x="400" y="646" text-anchor="middle" fill="#6E6255" font-family="Arial, sans-serif" font-size="28" letter-spacing="5">LUMIÈRE</text>
+  <text x="400" y="686" text-anchor="middle" fill="#8E7E6A" font-family="Arial, sans-serif" font-size="18" letter-spacing="2">ЗОБРАЖЕННЯ НЕЗАБАРОМ</text>
+</svg>

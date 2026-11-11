@@ -46,9 +46,8 @@ pnpm build               # production-сборка
 pnpm start               # запуск production-сборки
 ```
 
-Примечание: текущий шаблон использует `next/font/google`. В окружении без доступа
-к `fonts.googleapis.com` команда `pnpm build` может завершиться ошибкой загрузки
-шрифтов; для CI и offline-сборок шрифты нужно будет перенести в `next/font/local`.
+Шрифты подключаются через системный offline-совместимый стек, поэтому production-сборка
+не зависит от доступа к `fonts.googleapis.com`.
 
 ## Подключение к .NET API
 

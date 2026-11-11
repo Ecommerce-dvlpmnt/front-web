@@ -7,15 +7,7 @@ import { shopConfig } from "@/lib/config/shop"
 
 export function HeroBanner() {
   return (
-    <section className="relative isolate min-h-[540px] overflow-hidden rounded-[2rem] bg-neutral-900 text-white shadow-sm sm:min-h-[600px]">
-      <div
-        className="absolute inset-0 -z-20 bg-cover bg-center"
-        style={{
-          backgroundImage:
-            "url(https://images.unsplash.com/photo-1512389142860-9c449e58a543?auto=format&fit=crop&w=2200&q=85)",
-        }}
-        aria-hidden="true"
-      />
+    <section className="relative isolate min-h-[540px] overflow-hidden rounded-[2rem] bg-gradient-to-br from-neutral-950 via-rose-950 to-amber-800 text-white shadow-sm sm:min-h-[600px]">
       <div
         className="absolute inset-0 -z-10 bg-gradient-to-r from-black/75 via-black/45 to-black/20"
         aria-hidden="true"

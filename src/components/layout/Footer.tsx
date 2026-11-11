@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Clock3, Globe, MessageCircle } from "lucide-react"
+import { Clock3, Globe, Mail, MessageCircle, Phone } from "lucide-react"
 
 import { shopConfig } from "@/lib/config/shop"
 
@@ -39,31 +39,45 @@ export function Footer() {
           <h2 className="text-sm font-semibold">Ми на зв’язку</h2>
           <div className="mt-4 flex items-start gap-2 text-sm text-muted-foreground">
             <Clock3 className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-            <p>
-              Пн–Пт: 09:00–19:00
-              <br />
-              Сб–Нд: 10:00–18:00
-            </p>
+            <p className="whitespace-pre-line">{shopConfig.contact.hours.replace("; ", "\n")}</p>
           </div>
+          {shopConfig.contact.phone && (
+            <a
+              href={`tel:${shopConfig.contact.phone.replace(/[^+\d]/g, "")}`}
+              className="mt-3 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+            >
+              <Phone className="size-4" aria-hidden="true" />
+              {shopConfig.contact.phone}
+            </a>
+          )}
+          {shopConfig.contact.email && (
+            <a
+              href={`mailto:${shopConfig.contact.email}`}
+              className="mt-3 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+            >
+              <Mail className="size-4" aria-hidden="true" />
+              {shopConfig.contact.email}
+            </a>
+          )}
           <div className="mt-5 flex items-center gap-2">
-            <a
-              href="https://instagram.com"
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-full border border-border p-2 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
-              aria-label="Instagram"
-            >
-              <Globe className="size-4" />
-            </a>
-            <a
-              href="https://t.me"
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-full border border-border p-2 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
-              aria-label="Telegram"
-            >
-              <MessageCircle className="size-4" />
-            </a>
+            {shopConfig.contact.telegram ? (
+              <a
+                href={shopConfig.contact.telegram}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full border border-border p-2 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
+                aria-label="Telegram"
+              >
+                <MessageCircle className="size-4" />
+              </a>
+            ) : (
+              <span
+                className="rounded-full border border-border p-2 text-muted-foreground/50"
+                aria-hidden="true"
+              >
+                <Globe className="size-4" />
+              </span>
+            )}
           </div>
         </div>
       </div>
