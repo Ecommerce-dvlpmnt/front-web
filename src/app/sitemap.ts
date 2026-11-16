@@ -3,16 +3,14 @@ import type { MetadataRoute } from "next"
 import { getCategories } from "@/lib/api/categories"
 import { getProducts } from "@/lib/api/products"
 
-function escapeXmlUrl(value: string): string {
-  return value.replaceAll("&", "&amp;")
-}
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "") ||
+  "http://localhost:3000"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const origin =
-    process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "") ||
-    "http://localhost:3000"
-
-  const sitemapUrl = (path: string) => escapeXmlUrl(`${origin}${path}`)
+  const sitemapUrl = (path: string) => new URL(path, `${SITE_URL}/`).toString()
+  const absoluteImageUrl = (imageUrl: string) =>
+    new URL(imageUrl, `${SITE_URL}/`).toString()
 
   const [products, categories] = await Promise.all([
     getProducts({ pageSize: 100 }).catch(() => []),
@@ -68,8 +66,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: product.updatedAt,
         changeFrequency: "daily" as const,
         priority: 0.8,
-        images: product.mainImageUrl.startsWith("http")
-          ? [escapeXmlUrl(product.mainImageUrl)]
+        images: product.mainImageUrl
+          ? [absoluteImageUrl(product.mainImageUrl)]
           : undefined,
       })),
   ]

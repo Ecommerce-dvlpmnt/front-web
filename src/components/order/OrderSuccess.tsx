@@ -5,43 +5,62 @@ import { useEffect, useRef, useState } from "react"
 import { Check, Clipboard, CreditCard, Landmark, PackageCheck } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { getLastOrder, type LocalOrder } from "@/lib/api/orders"
+import { getLastOrder, getOrderByPublicId, type BackendOrder, type LocalOrder } from "@/lib/api/orders"
 import { pushPurchase } from "@/lib/analytics/data-layer"
 import { formatPrice } from "@/lib/formatters/price"
 import { shopConfig } from "@/lib/config/shop"
 
 export function OrderSuccess() {
-  const [order, setOrder] = useState<LocalOrder | null | undefined>(undefined)
+  const [order, setOrder] = useState<(BackendOrder | LocalOrder) | null | undefined>(undefined)
   const [isCopied, setIsCopied] = useState(false)
   const hasReportedPurchase = useRef(false)
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => setOrder(getLastOrder()), 0)
-
-    return () => window.clearTimeout(timeoutId)
+    let active = true
+    const publicId = new URLSearchParams(window.location.search).get("publicId")
+    if (!publicId) {
+      Promise.resolve().then(() => { if (active) setOrder(getLastOrder()) })
+      return () => { active = false }
+    }
+    getOrderByPublicId(publicId)
+      .then(result => { if (active) setOrder(result) })
+      .catch(() => { if (active) setOrder(getLastOrder(publicId)) })
+    return () => { active = false }
   }, [])
 
   useEffect(() => {
     if (!order || hasReportedPurchase.current) return
 
-    const reportKey = `lumiere:purchase-reported:${order.id}`
+    const reportKey = `lumiere:purchase-reported:${order.publicId}`
     if (window.sessionStorage.getItem(reportKey)) {
       hasReportedPurchase.current = true
       return
     }
 
     hasReportedPurchase.current = true
-    pushPurchase(order.id, order.analyticsItems, order.total)
+    const analyticsItems = getLastOrder(order.publicId)?.analyticsItems ??
+      ("analyticsItems" in order ? order.analyticsItems : order.items.map(item => ({
+        item_id: item.productId,
+        item_name: item.productName,
+        price: item.unitPrice,
+        quantity: item.quantity,
+      })))
+    pushPurchase(
+      order.publicId,
+      "orderNumber" in order ? order.orderNumber : Number(order.id),
+      analyticsItems,
+      "totalPrice" in order ? order.totalPrice : order.total
+    )
     window.sessionStorage.setItem(reportKey, "1")
   }, [order])
 
   async function copyPaymentDetails() {
-    if (!order || order.paymentMethod !== "iban") return
+    if (!order || !isOnlinePayment(order)) return
 
     const details = [
       `Отримувач: ${shopConfig.payment.ibanRecipient || "Не налаштовано"}`,
       `IBAN: ${shopConfig.payment.iban || "Не налаштовано"}`,
-      `Призначення: Оплата замовлення №${order.id}`,
+      `Призначення: Оплата замовлення №${orderNumber(order)}`,
     ].join("\n")
 
     try {
@@ -82,7 +101,7 @@ export function OrderSuccess() {
     )
   }
 
-  const isIban = order.paymentMethod === "iban"
+  const isIban = isOnlinePayment(order)
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:py-20">
@@ -97,14 +116,14 @@ export function OrderSuccess() {
           Замовлення прийнято
         </h1>
         <p className="mt-4 text-muted-foreground">
-          Номер замовлення: <strong className="text-foreground">{order.id}</strong>
+          Номер замовлення: <strong className="text-foreground">{orderNumber(order)}</strong>
         </p>
       </div>
 
       <div className="mt-10 rounded-2xl border border-border bg-card p-5 sm:p-7">
         <div className="flex items-center justify-between gap-4 border-b border-border pb-5">
           <span className="text-muted-foreground">Сума замовлення</span>
-          <strong className="text-xl">{formatPrice(order.total)}</strong>
+          <strong className="text-xl">{formatPrice("totalPrice" in order ? order.totalPrice : order.total)}</strong>
         </div>
 
         <div className="mt-5 flex items-start gap-3">
@@ -142,7 +161,7 @@ export function OrderSuccess() {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Призначення платежу</p>
-                <p className="mt-1 font-medium">Оплата замовлення №{order.id}</p>
+                <p className="mt-1 font-medium">Оплата замовлення №{orderNumber(order)}</p>
               </div>
             </div>
             <Button className="mt-5 w-full sm:w-auto" variant="outline" onClick={copyPaymentDetails}>
@@ -177,4 +196,12 @@ export function OrderSuccess() {
       </div>
     </div>
   )
+}
+
+function isOnlinePayment(order: BackendOrder | LocalOrder) {
+  return order.paymentMethod === "Online"
+}
+
+function orderNumber(order: BackendOrder | LocalOrder) {
+  return "orderNumber" in order ? String(order.orderNumber) : order.id
 }

@@ -15,14 +15,14 @@ const supplierFetchOptions = {
 function isSupplier(value: unknown): value is Supplier {
   if (!value || typeof value !== "object") return false
 
-  const supplier = value as Partial<Supplier>
+  const supplier = value as Record<string, unknown>
 
   return (
     typeof supplier.id === "string" &&
     typeof supplier.name === "string" &&
-    typeof supplier.contact === "string" &&
-    typeof supplier.city === "string" &&
-    (supplier.notes === undefined || typeof supplier.notes === "string") &&
+    (supplier.contact == null || typeof supplier.contact === "string") &&
+    (supplier.city == null || typeof supplier.city === "string") &&
+    (supplier.notes == null || typeof supplier.notes === "string") &&
     typeof supplier.isActive === "boolean"
   )
 }
@@ -32,7 +32,12 @@ function parseSupplier(value: unknown): Supplier {
     throw new Error("Backend returned an invalid supplier response")
   }
 
-  return value
+  return {
+    ...value,
+    contact: value.contact ?? "",
+    city: value.city ?? "",
+    notes: value.notes ?? "",
+  }
 }
 
 export async function getSuppliers(
@@ -48,7 +53,7 @@ export async function getSuppliers(
     throw new Error("Backend returned an invalid suppliers response")
   }
 
-  return payload
+  return payload.map(parseSupplier)
 }
 
 export async function getSupplier(id: string): Promise<Supplier | null> {
@@ -75,23 +80,4 @@ export async function createSupplier(
       body: JSON.stringify(input),
     })
   )
-}
-
-export async function updateSupplier(
-  id: string,
-  input: SupplierInput
-): Promise<Supplier> {
-  return parseSupplier(
-    await apiFetch<unknown>(`suppliers/${encodeURIComponent(id)}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
-    })
-  )
-}
-
-export async function deleteSupplier(id: string): Promise<void> {
-  await apiFetch<unknown>(`suppliers/${encodeURIComponent(id)}`, {
-    method: "DELETE",
-  })
 }

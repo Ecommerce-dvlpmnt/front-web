@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
@@ -14,7 +14,6 @@ import {
 import type { Supplier } from "@/types/supplier"
 
 interface SupplierFormProps {
-  supplier?: Supplier | null
   onCancel: () => void
   onSaved: (supplier: Supplier) => void
 }
@@ -25,18 +24,6 @@ const emptyValues: SupplierFormValues = {
   city: "",
   notes: "",
   isActive: true,
-}
-
-function getFormValues(supplier?: Supplier | null): SupplierFormValues {
-  if (!supplier) return { ...emptyValues }
-
-  return {
-    name: supplier.name,
-    contact: supplier.contact,
-    city: supplier.city,
-    notes: supplier.notes ?? "",
-    isActive: supplier.isActive,
-  }
 }
 
 function getErrorMessage(payload: unknown): string {
@@ -64,34 +51,24 @@ function getErrorMessage(payload: unknown): string {
 }
 
 export function SupplierForm({
-  supplier,
   onCancel,
   onSaved,
 }: SupplierFormProps) {
   const [serverError, setServerError] = useState<string | null>(null)
   const form = useForm<SupplierFormValues>({
     resolver: zodResolver(supplierSchema),
-    defaultValues: getFormValues(supplier),
+    defaultValues: { ...emptyValues },
   })
-
-  useEffect(() => {
-    form.reset(getFormValues(supplier))
-  }, [form, supplier])
 
   async function handleSubmit(values: SupplierFormValues) {
     setServerError(null)
 
     try {
-      const response = await fetch(
-        supplier
-          ? `/api/admin/suppliers/${encodeURIComponent(supplier.id)}`
-          : "/api/admin/suppliers",
-        {
-          method: supplier ? "PUT" : "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(toSupplierInput(values)),
-        }
-      )
+      const response = await fetch("/api/admin/suppliers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(toSupplierInput(values)),
+      })
       const payload: unknown = await response.json().catch(() => null)
 
       if (!response.ok || !payload || typeof payload !== "object") {
@@ -220,11 +197,7 @@ export function SupplierForm({
           Скасувати
         </Button>
         <Button type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting
-            ? "Збереження..."
-            : supplier
-              ? "Зберегти зміни"
-              : "Додати постачальника"}
+          {form.formState.isSubmitting ? "Збереження..." : "Додати постачальника"}
         </Button>
       </div>
     </form>

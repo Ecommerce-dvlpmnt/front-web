@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { MapPin, Pencil, Plus, Search, Trash2, Users, X } from "lucide-react"
+import { MapPin, Plus, Search, Users, X } from "lucide-react"
 
 import { SupplierForm } from "@/components/admin/suppliers/SupplierForm"
 import { Badge } from "@/components/ui/badge"
@@ -15,19 +15,6 @@ interface SuppliersAdminProps {
 
 type StatusFilter = "all" | "active"
 
-function getErrorMessage(payload: unknown): string {
-  if (!payload || typeof payload !== "object") {
-    return "Не вдалося виконати операцію. Спробуйте ще раз."
-  }
-
-  const error = payload as {
-    detail?: string
-    title?: string
-  }
-
-  return error.detail ?? error.title ?? "Не вдалося виконати операцію."
-}
-
 export function SuppliersAdmin({
   initialSuppliers,
 }: SuppliersAdminProps) {
@@ -35,8 +22,6 @@ export function SuppliersAdmin({
   const [query, setQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
   const [isFormOpen, setIsFormOpen] = useState(false)
-  const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null)
-  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [operationError, setOperationError] = useState<string | null>(null)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
 
@@ -73,85 +58,20 @@ export function SuppliersAdmin({
   }, [query, statusFilter, suppliers])
 
   function openCreateForm() {
-    setEditingSupplier(null)
-    setOperationError(null)
-    setIsFormOpen(true)
-  }
-
-  function openEditForm(supplier: Supplier) {
-    setEditingSupplier(supplier)
     setOperationError(null)
     setIsFormOpen(true)
   }
 
   function closeForm() {
     setIsFormOpen(false)
-    setEditingSupplier(null)
   }
 
   function handleSaved(supplier: Supplier) {
     setSuppliers((currentSuppliers) => {
-      const exists = currentSuppliers.some((item) => item.id === supplier.id)
-
-      return exists
-        ? currentSuppliers.map((item) =>
-            item.id === supplier.id ? supplier : item
-          )
-        : [supplier, ...currentSuppliers]
+      return [supplier, ...currentSuppliers]
     })
-    setStatusMessage(
-      editingSupplier
-        ? "Дані постачальника оновлено."
-        : "Постачальника додано."
-    )
+    setStatusMessage("Постачальника додано.")
     closeForm()
-  }
-
-  async function handleDelete(supplier: Supplier) {
-    const confirmed = window.confirm(
-      `Видалити постачальника «${supplier.name}»?`
-    )
-
-    if (!confirmed) return
-
-    setDeletingId(supplier.id)
-    setOperationError(null)
-    setStatusMessage(null)
-
-    try {
-      const response = await fetch(
-        `/api/admin/suppliers/${encodeURIComponent(supplier.id)}`,
-        { method: "DELETE" }
-      )
-      const payload: unknown = await response.json().catch(() => null)
-
-      if (!response.ok) throw new Error(getErrorMessage(payload))
-
-      const refreshedResponse = await fetch(
-        "/api/admin/suppliers?onlyActive=false"
-      )
-      const refreshedPayload: unknown = await refreshedResponse
-        .json()
-        .catch(() => null)
-
-      if (refreshedResponse.ok && Array.isArray(refreshedPayload)) {
-        setSuppliers(refreshedPayload as Supplier[])
-      } else {
-        setSuppliers((currentSuppliers) =>
-          currentSuppliers.filter((item) => item.id !== supplier.id)
-        )
-      }
-
-      setStatusMessage("Постачальника видалено або деактивовано.")
-    } catch (error) {
-      setOperationError(
-        error instanceof Error
-          ? error.message
-          : "Не вдалося видалити постачальника."
-      )
-    } finally {
-      setDeletingId(null)
-    }
   }
 
   return (
@@ -264,7 +184,6 @@ export function SuppliersAdmin({
                   <th className="px-4 py-3 font-medium">Місто</th>
                   <th className="px-4 py-3 font-medium">Статус</th>
                   <th className="max-w-xs px-4 py-3 font-medium">Нотатки</th>
-                  <th className="px-4 py-3 text-right font-medium">Дії</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -288,29 +207,6 @@ export function SuppliersAdmin({
                       <span className="line-clamp-2">
                         {supplier.notes || "—"}
                       </span>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          aria-label={`Редагувати ${supplier.name}`}
-                          onClick={() => openEditForm(supplier)}
-                        >
-                          <Pencil />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          aria-label={`Видалити ${supplier.name}`}
-                          disabled={deletingId === supplier.id}
-                          onClick={() => handleDelete(supplier)}
-                        >
-                          <Trash2 />
-                        </Button>
-                      </div>
                     </td>
                   </tr>
                 ))}
@@ -339,9 +235,7 @@ export function SuppliersAdmin({
                   Постачальник
                 </p>
                 <h2 id="supplier-form-title" className="mt-1 text-xl font-semibold">
-                  {editingSupplier
-                    ? "Редагувати дані"
-                    : "Новий постачальник"}
+                  Новий постачальник
                 </h2>
               </div>
               <Button
@@ -356,7 +250,6 @@ export function SuppliersAdmin({
             </div>
 
             <SupplierForm
-              supplier={editingSupplier}
               onCancel={closeForm}
               onSaved={handleSaved}
             />

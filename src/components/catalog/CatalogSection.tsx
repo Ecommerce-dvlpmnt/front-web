@@ -78,7 +78,7 @@ export function CatalogSection({
       )}
 
       <div className="mt-8">
-        <ProductGrid products={products} searchQuery={searchQuery} />
+        <ProductGrid products={products} searchQuery={searchQuery} itemListName={title} />
       </div>
     </section>
   )

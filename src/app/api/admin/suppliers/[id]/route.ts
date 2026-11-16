@@ -1,15 +1,6 @@
-import { revalidatePath } from "next/cache"
-
-import {
-  deleteSupplier,
-  getSupplier,
-  updateSupplier,
-} from "@/lib/api/admin/suppliers"
+import { getSupplier } from "@/lib/api/admin/suppliers"
 import { apiErrorResponse } from "@/lib/api/admin/route-error"
-import {
-  supplierSchema,
-  toSupplierInput,
-} from "@/features/admin/suppliers/supplier-schema"
+import { requireAdminApiAccess } from "@/lib/api/admin/auth"
 
 interface SupplierRouteContext {
   params: Promise<{
@@ -21,6 +12,8 @@ export async function GET(
   _request: Request,
   { params }: SupplierRouteContext
 ) {
+  const unauthorized = await requireAdminApiAccess()
+  if (unauthorized) return unauthorized
   try {
     const { id } = await params
     const supplier = await getSupplier(id)
@@ -35,49 +28,5 @@ export async function GET(
     return Response.json(supplier)
   } catch (error) {
     return apiErrorResponse(error, "Не вдалося завантажити постачальника")
-  }
-}
-
-export async function PUT(
-  request: Request,
-  { params }: SupplierRouteContext
-) {
-  try {
-    const { id } = await params
-    const parsed = supplierSchema.safeParse(await request.json())
-
-    if (!parsed.success) {
-      return Response.json(
-        {
-          title: "Validation failed",
-          detail: "Перевірте заповнення форми",
-          status: 400,
-          errors: parsed.error.flatten().fieldErrors,
-        },
-        { status: 400 }
-      )
-    }
-
-    const supplier = await updateSupplier(id, toSupplierInput(parsed.data))
-    revalidatePath("/admin/suppliers")
-
-    return Response.json(supplier)
-  } catch (error) {
-    return apiErrorResponse(error, "Не вдалося оновити постачальника")
-  }
-}
-
-export async function DELETE(
-  _request: Request,
-  { params }: SupplierRouteContext
-) {
-  try {
-    const { id } = await params
-    await deleteSupplier(id)
-    revalidatePath("/admin/suppliers")
-
-    return Response.json({ success: true })
-  } catch (error) {
-    return apiErrorResponse(error, "Не вдалося видалити постачальника")
   }
 }

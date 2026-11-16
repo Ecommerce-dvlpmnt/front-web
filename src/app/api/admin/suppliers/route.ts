@@ -5,12 +5,15 @@ import {
   getSuppliers,
 } from "@/lib/api/admin/suppliers"
 import { apiErrorResponse } from "@/lib/api/admin/route-error"
+import { requireAdminApiAccess } from "@/lib/api/admin/auth"
 import {
   supplierSchema,
   toSupplierInput,
 } from "@/features/admin/suppliers/supplier-schema"
 
 export async function GET(request: Request) {
+  const unauthorized = await requireAdminApiAccess()
+  if (unauthorized) return unauthorized
   try {
     const onlyActive =
       new URL(request.url).searchParams.get("onlyActive") === "true"
@@ -22,6 +25,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const unauthorized = await requireAdminApiAccess()
+  if (unauthorized) return unauthorized
   try {
     const parsed = supplierSchema.safeParse(await request.json())
 

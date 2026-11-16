@@ -7,6 +7,7 @@ import { CartProvider } from "@/components/cart/CartContext";
 import { buildCategoryTree, getCategories } from "@/lib/api/categories";
 
 import "./globals.css";
+import "leaflet/dist/leaflet.css";
 
 export const metadata: Metadata = {
   title: "Lumière — речі для теплих моментів",

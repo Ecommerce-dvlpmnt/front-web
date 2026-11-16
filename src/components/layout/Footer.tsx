@@ -41,7 +41,7 @@ export function Footer() {
             <Clock3 className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
             <p className="whitespace-pre-line">{shopConfig.contact.hours.replace("; ", "\n")}</p>
           </div>
-          {shopConfig.contact.phone && (
+          {shopConfig.contact.phone ? (
             <a
               href={`tel:${shopConfig.contact.phone.replace(/[^+\d]/g, "")}`}
               className="mt-3 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
@@ -49,8 +49,13 @@ export function Footer() {
               <Phone className="size-4" aria-hidden="true" />
               {shopConfig.contact.phone}
             </a>
+          ) : (
+            <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+              <Phone className="size-4" aria-hidden="true" />
+              {shopConfig.contact.fallback}
+            </p>
           )}
-          {shopConfig.contact.email && (
+          {shopConfig.contact.email ? (
             <a
               href={`mailto:${shopConfig.contact.email}`}
               className="mt-3 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
@@ -58,6 +63,11 @@ export function Footer() {
               <Mail className="size-4" aria-hidden="true" />
               {shopConfig.contact.email}
             </a>
+          ) : (
+            <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+              <Mail className="size-4" aria-hidden="true" />
+              {shopConfig.contact.fallback}
+            </p>
           )}
           <div className="mt-5 flex items-center gap-2">
             {shopConfig.contact.telegram ? (

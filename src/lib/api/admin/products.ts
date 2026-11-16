@@ -1,4 +1,5 @@
-import { ApiError, apiFetch } from "@/lib/api/client"
+import { ApiError } from "@/lib/api/client"
+import { adminApiFetch } from "@/lib/api/admin/auth"
 import type {
   AdminProduct,
   ProductImage,
@@ -204,8 +205,8 @@ async function getProductsPage(
   const search = options.search?.trim()
   if (search) query.set("Search", search)
 
-  const payload = await apiFetch<unknown>(
-    `products?${query.toString()}`,
+  const payload = await adminApiFetch<unknown>(
+    `admin/products?${query.toString()}`,
     productFetchOptions
   )
 
@@ -240,7 +241,7 @@ export async function getAdminProducts(
 }
 
 async function getProductByPath(path: string): Promise<AdminProduct> {
-  const payload = await apiFetch<unknown>(path, productFetchOptions)
+  const payload = await adminApiFetch<unknown>(`admin/${path}`, productFetchOptions)
 
   if (!isProductDto(payload)) {
     throw new Error("Backend returned an invalid product response")
@@ -268,7 +269,7 @@ function parseProduct(value: unknown): AdminProduct {
 
 export async function createProduct(input: ProductInput): Promise<AdminProduct> {
   return parseProduct(
-    await apiFetch<unknown>("products", {
+    await adminApiFetch<unknown>("admin/products", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(input),
@@ -281,7 +282,7 @@ export async function updateProduct(
   input: ProductInput
 ): Promise<AdminProduct> {
   return parseProduct(
-    await apiFetch<unknown>(`products/${encodeURIComponent(id)}`, {
+    await adminApiFetch<unknown>(`admin/products/${encodeURIComponent(id)}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(input),
@@ -290,7 +291,7 @@ export async function updateProduct(
 }
 
 export async function deleteProduct(id: string): Promise<void> {
-  await apiFetch<unknown>(`products/${encodeURIComponent(id)}`, {
+  await adminApiFetch<unknown>(`admin/products/${encodeURIComponent(id)}`, {
     method: "DELETE",
   })
 }

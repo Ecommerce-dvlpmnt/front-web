@@ -4,9 +4,11 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 
 import { ProductDetails } from "@/components/product/ProductDetails"
+import { ProductViewTracker } from "@/components/product/ProductViewTracker"
 import { getCategories } from "@/lib/api/categories"
 import { getProductBySlug } from "@/lib/api/products"
 import { getProductGalleryImages, getProductMetaDescription } from "@/features/product/product-utils"
+import { shopConfig } from "@/lib/config/shop"
 
 interface ProductPageProps {
   params: Promise<{
@@ -46,6 +48,18 @@ async function getProductUrl(slug: string) {
   return new URL(`/product/${encodeURIComponent(slug)}`, origin).toString()
 }
 
+function absoluteUrl(value: string, origin: string): string {
+  try {
+    return new URL(value, `${origin}/`).toString()
+  } catch {
+    return ""
+  }
+}
+
+function stripHtml(value: string): string {
+  return value.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
+}
+
 export async function generateMetadata({
   params,
 }: ProductPageProps): Promise<Metadata> {
@@ -59,10 +73,11 @@ export async function generateMetadata({
     `${product.name} — купити в інтернет-магазині`
   const description = getProductMetaDescription(product)
   const productUrl = await getProductUrl(product.slug)
-  const images = getProductGalleryImages(product).map((image) => ({
-    url: image.src,
-    alt: image.alt,
-  }))
+  const origin = await getSiteOrigin()
+  const images = getProductGalleryImages(product).flatMap((image) => {
+    const url = absoluteUrl(image.src, origin)
+    return url ? [{ url, alt: image.alt }] : []
+  })
 
   return {
     title,
@@ -98,19 +113,24 @@ export default async function ProductPage({
   const category = categories.find((item) => item.id === product.categoryId)
   const productUrl = await getProductUrl(product.slug)
   const galleryImages = getProductGalleryImages(product)
+  const description =
+    stripHtml(product.description?.trim() || "") || getProductMetaDescription(product)
+  const origin = new URL(productUrl).origin
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    image: galleryImages.map((image) => image.src),
-    description:
-      product.description?.trim() || getProductMetaDescription(product),
+    image: galleryImages
+      .map((image) => absoluteUrl(image.src, origin))
+      .filter(Boolean),
+    description,
     sku: product.sku,
-    identifier_exists: false,
+    brand: { "@type": "Brand", name: shopConfig.brand },
     offers: {
       "@type": "Offer",
       price: product.price,
       priceCurrency: "UAH",
+      itemCondition: "https://schema.org/NewCondition",
       availability:
         product.stock > 0
           ? "https://schema.org/InStock"
@@ -147,6 +167,7 @@ export default async function ProductPage({
         </nav>
 
         <div className="py-8 sm:py-12">
+          <ProductViewTracker product={product} />
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{

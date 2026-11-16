@@ -1,5 +1,6 @@
 export const shopConfig = {
   name: "Lumière",
+  brand: process.env.NEXT_PUBLIC_SHOP_BRAND?.trim() || "Lumière",
   description: "Речі для теплих моментів",
   contact: {
     phone: process.env.NEXT_PUBLIC_SHOP_PHONE ?? "",
@@ -7,6 +8,7 @@ export const shopConfig = {
     telegram: process.env.NEXT_PUBLIC_SHOP_TELEGRAM ?? "",
     hours:
       process.env.NEXT_PUBLIC_SHOP_HOURS ?? "Пн–Пт: 09:00–19:00; Сб–Нд: 10:00–18:00",
+    fallback: "Контактні дані уточнюйте на сторінці контактів",
   },
   payment: {
     ibanRecipient: process.env.NEXT_PUBLIC_IBAN_RECIPIENT ?? "",
@@ -32,8 +34,8 @@ export const shopConfig = {
     { label: "Подарунки", href: "/#catalog" },
   ],
   footerLinks: [
-    { label: "Доставка й оплата", href: "/delivery-and-payment" },
-    { label: "Обмін і повернення", href: "/returns" },
+    { label: "Оплата і доставка", href: "/delivery-and-payment" },
+    { label: "Обмін та повернення", href: "/returns" },
     { label: "Контакти", href: "/contacts" },
     { label: "Політика конфіденційності", href: "/privacy-policy" },
     { label: "Публічна оферта", href: "/terms" },

@@ -2,9 +2,9 @@
 
 import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ArrowLeft, CreditCard, Landmark, PackageCheck } from "lucide-react"
+import { ArrowLeft, CreditCard, Landmark, PackageCheck, MapPin } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 import { useCart } from "@/components/cart/CartContext"
@@ -14,13 +14,18 @@ import { Input } from "@/components/ui/input"
 import {
   checkoutDetailsSchema,
   createOrder,
+  clearCartStorage,
   type CheckoutDetails,
 } from "@/lib/api/orders"
 import {
   getEcommerceItem,
+  pushAddPaymentInfo,
+  pushAddShippingInfo,
   pushBeginCheckout,
 } from "@/lib/analytics/data-layer"
 import { formatPrice } from "@/lib/formatters/price"
+import type { NovaPoshtaWarehouse } from "./NovaPoshtaMap"
+import { NovaPoshtaPickerModal } from "./NovaPoshtaPickerModal"
 
 function FieldError({ message }: { message?: string }) {
   if (!message) return null
@@ -36,24 +41,107 @@ export function CheckoutForm() {
   const router = useRouter()
   const { items, isHydrated, totalPrice, clearCart } = useCart()
   const [serverError, setServerError] = useState<string | null>(null)
+  const [citySearch, setCitySearch] = useState("")
+  const [cities, setCities] = useState<Array<{ Ref: string; Description: string; AreaDescription?: string | null }>>([])
+  const [warehouses, setWarehouses] = useState<NovaPoshtaWarehouse[]>([])
+  const [warehouseSearch, setWarehouseSearch] = useState("")
+  const [isMapOpen, setIsMapOpen] = useState(false)
+  const [courierAddress, setCourierAddress] = useState({ street: "", building: "", apartment: "" })
+  const [lookupError, setLookupError] = useState<string | null>(null)
+  const [isLoadingCities, setIsLoadingCities] = useState(false)
+  const [isLoadingWarehouses, setIsLoadingWarehouses] = useState(false)
   const hasReportedBeginCheckout = useRef(false)
+  const previousDeliveryType = useRef<CheckoutDetails["deliveryType"]>("Warehouse")
+  const previousPaymentMethod = useRef<CheckoutDetails["paymentMethod"]>("CashOnDelivery")
   const form = useForm<CheckoutDetails>({
     resolver: zodResolver(checkoutDetailsSchema),
     defaultValues: {
-      customer: {
-        name: "",
-        phone: "+380",
-        email: "",
-      },
-      delivery: {
-        service: "nova_poshta",
-        type: "warehouse",
-        city: "",
-        warehouse: "",
-      },
-      paymentMethod: "cod",
-      comment: "",
+      customerFirstName: "",
+      customerLastName: "",
+      customerPhone: "+380",
+      customerEmail: "",
+      customerComment: "",
+      deliveryType: "Warehouse",
+      deliveryCityRef: "",
+      deliveryCityName: "",
+      deliveryWarehouseRef: "",
+      deliveryWarehouseName: "",
+      courierStreet: "",
+      courierBuilding: "",
+      courierApartment: "",
+      paymentMethod: "CashOnDelivery",
     },
+  })
+  const deliveryType = useWatch({ control: form.control, name: "deliveryType" })
+  const cityRef = useWatch({ control: form.control, name: "deliveryCityRef" })
+  const paymentMethod = useWatch({ control: form.control, name: "paymentMethod" })
+
+  useEffect(() => {
+    if (deliveryType === previousDeliveryType.current) return
+    previousDeliveryType.current = deliveryType
+    if (!isHydrated || items.length === 0) return
+    const shippingTiers: Record<CheckoutDetails["deliveryType"], string> = {
+      Warehouse: "Nova Poshta warehouse",
+      Postomat: "Nova Poshta parcel locker",
+      Courier: "Nova Poshta courier",
+    }
+    pushAddShippingInfo(items, totalPrice, shippingTiers[deliveryType])
+  }, [deliveryType, isHydrated, items, totalPrice])
+
+  useEffect(() => {
+    if (paymentMethod === previousPaymentMethod.current) return
+    previousPaymentMethod.current = paymentMethod
+    if (!isHydrated || items.length === 0) return
+    const paymentTypes: Record<CheckoutDetails["paymentMethod"], string> = {
+      CashOnDelivery: "Cash on delivery",
+      Online: "IBAN bank transfer",
+    }
+    pushAddPaymentInfo(items, totalPrice, paymentTypes[paymentMethod])
+  }, [paymentMethod, isHydrated, items, totalPrice])
+
+  useEffect(() => {
+    if (citySearch.trim().length < 2 || form.getValues("deliveryCityRef")) {
+      return
+    }
+    const controller = new AbortController()
+    const timer = window.setTimeout(async () => {
+      setIsLoadingCities(true)
+      try {
+        const response = await fetch(`/api/novaposhta/cities?search=${encodeURIComponent(citySearch.trim())}`, { signal: controller.signal })
+        const result = await response.json()
+        if (!response.ok || !result.success) throw new Error(result.errors?.join(" ") || "Не вдалося знайти міста")
+        setCities(result.data ?? [])
+        setLookupError(null)
+      } catch (error) {
+        if (!controller.signal.aborted) setLookupError(error instanceof Error ? error.message : "Помилка пошуку міст")
+      } finally {
+        if (!controller.signal.aborted) setIsLoadingCities(false)
+      }
+    }, 300)
+    return () => { window.clearTimeout(timer); controller.abort() }
+  }, [citySearch, form])
+
+  useEffect(() => {
+    if (!cityRef) return
+    const controller = new AbortController()
+    const loadingTimer = window.setTimeout(() => setIsLoadingWarehouses(true), 0)
+    fetch(`/api/novaposhta/warehouses?cityRef=${encodeURIComponent(cityRef)}`, { signal: controller.signal })
+      .then(async response => {
+        const result = await response.json()
+        if (!response.ok || !result.success) throw new Error(result.errors?.join(" ") || "Не вдалося завантажити відділення")
+        setWarehouses(result.data ?? [])
+        setLookupError(null)
+      })
+      .catch(error => { if (!controller.signal.aborted) setLookupError(error instanceof Error ? error.message : "Помилка завантаження відділень") })
+      .finally(() => { if (!controller.signal.aborted) setIsLoadingWarehouses(false) })
+    return () => { window.clearTimeout(loadingTimer); controller.abort() }
+  }, [cityRef])
+
+  const filteredWarehouses = warehouses.filter(item => {
+    const isPostomat = item.CategoryOfWarehouse?.toLowerCase().includes("postomat") || item.Description.toLowerCase().includes("поштомат")
+    const matchesType = deliveryType === "Postomat" ? isPostomat : !isPostomat
+    const query = warehouseSearch.trim().toLocaleLowerCase("uk")
+    return matchesType && (!query || `${item.Description} ${item.Number ?? ""} ${item.ShortAddress ?? ""}`.toLocaleLowerCase("uk").includes(query))
   })
 
   useEffect(() => {
@@ -77,18 +165,16 @@ export function CheckoutForm() {
       const order = await createOrder(
         {
           ...values,
-          customer: {
-            ...values.customer,
-            email: values.customer.email?.trim() || undefined,
-          },
-          comment: values.comment?.trim() || undefined,
+          deliveryWarehouseRef: values.deliveryType === "Courier" ? "" : values.deliveryWarehouseRef,
+          deliveryWarehouseName: values.deliveryType === "Courier"
+            ? `вул. ${values.courierStreet?.trim()}, буд. ${values.courierBuilding?.trim()}${values.courierApartment?.trim() ? `, кв. ${values.courierApartment.trim()}` : ""}`
+            : values.deliveryWarehouseName,
           items: items.map(({ product, quantity }) => ({
             productId: product.id,
             quantity,
           })),
         },
         {
-          total: totalPrice,
           analyticsItems: items.map(({ product, quantity }) =>
             getEcommerceItem(product, quantity)
           ),
@@ -96,7 +182,8 @@ export function CheckoutForm() {
       )
 
       clearCart()
-      router.push(`/order/success?order=${encodeURIComponent(order.id)}`)
+      clearCartStorage()
+      router.push(`/order/success?publicId=${encodeURIComponent(order.publicId)}`)
     } catch (error) {
       setServerError(
         error instanceof Error
@@ -129,8 +216,7 @@ export function CheckoutForm() {
     )
   }
 
-  const customerErrors = form.formState.errors.customer
-  const deliveryErrors = form.formState.errors.delivery
+  const customerErrors = form.formState.errors
 
   return (
     <form
@@ -164,16 +250,21 @@ export function CheckoutForm() {
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
             <div className="space-y-2 sm:col-span-2">
               <label htmlFor="checkout-name" className="text-sm font-medium">
-                Ім’я та прізвище <span aria-hidden="true">*</span>
+                Ім’я <span aria-hidden="true">*</span>
               </label>
               <Input
                 id="checkout-name"
                 autoComplete="name"
                 placeholder="Олена Коваль"
-                aria-invalid={Boolean(customerErrors?.name)}
-                {...form.register("customer.name")}
+                aria-invalid={Boolean(customerErrors.customerFirstName)}
+                {...form.register("customerFirstName")}
               />
-              <FieldError message={customerErrors?.name?.message} />
+              <FieldError message={customerErrors.customerFirstName?.message} />
+            </div>
+            <div className="space-y-2 sm:col-span-2">
+              <label htmlFor="checkout-last-name" className="text-sm font-medium">Прізвище <span aria-hidden="true">*</span></label>
+              <Input id="checkout-last-name" autoComplete="family-name" placeholder="Коваль" aria-invalid={Boolean(customerErrors.customerLastName)} {...form.register("customerLastName")} />
+              <FieldError message={customerErrors.customerLastName?.message} />
             </div>
             <div className="space-y-2">
               <label htmlFor="checkout-phone" className="text-sm font-medium">
@@ -184,10 +275,10 @@ export function CheckoutForm() {
                 type="tel"
                 autoComplete="tel"
                 placeholder="+380XXXXXXXXX"
-                aria-invalid={Boolean(customerErrors?.phone)}
-                {...form.register("customer.phone")}
+                aria-invalid={Boolean(customerErrors.customerPhone)}
+                {...form.register("customerPhone")}
               />
-              <FieldError message={customerErrors?.phone?.message} />
+              <FieldError message={customerErrors.customerPhone?.message} />
             </div>
             <div className="space-y-2">
               <label htmlFor="checkout-email" className="text-sm font-medium">
@@ -198,10 +289,10 @@ export function CheckoutForm() {
                 type="email"
                 autoComplete="email"
                 placeholder="you@example.com"
-                aria-invalid={Boolean(customerErrors?.email)}
-                {...form.register("customer.email")}
+                aria-invalid={Boolean(customerErrors.customerEmail)}
+                {...form.register("customerEmail")}
               />
-              <FieldError message={customerErrors?.email?.message} />
+              <FieldError message={customerErrors.customerEmail?.message} />
             </div>
           </div>
         </section>
@@ -216,13 +307,17 @@ export function CheckoutForm() {
             </h2>
           </div>
 
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
             <label className="flex cursor-pointer gap-3 rounded-xl border border-border p-4 has-[:checked]:border-foreground">
               <input
                 type="radio"
-                value="warehouse"
+                value="Warehouse"
                 className="mt-1 accent-primary"
-                {...form.register("delivery.type")}
+                {...form.register("deliveryType", { onChange: () => {
+                  form.setValue("deliveryWarehouseRef", "", { shouldValidate: true })
+                  form.setValue("deliveryWarehouseName", "", { shouldValidate: true })
+                  setWarehouseSearch("")
+                } })}
               />
               <span>
                 <span className="block text-sm font-medium">Відділення</span>
@@ -234,9 +329,13 @@ export function CheckoutForm() {
             <label className="flex cursor-pointer gap-3 rounded-xl border border-border p-4 has-[:checked]:border-foreground">
               <input
                 type="radio"
-                value="postomat"
+                value="Postomat"
                 className="mt-1 accent-primary"
-                {...form.register("delivery.type")}
+                {...form.register("deliveryType", { onChange: () => {
+                  form.setValue("deliveryWarehouseRef", "", { shouldValidate: true })
+                  form.setValue("deliveryWarehouseName", "", { shouldValidate: true })
+                  setWarehouseSearch("")
+                } })}
               />
               <span>
                 <span className="block text-sm font-medium">Поштомат</span>
@@ -245,6 +344,14 @@ export function CheckoutForm() {
                 </span>
               </span>
             </label>
+            <label className="flex cursor-pointer gap-3 rounded-xl border border-border p-4 has-[:checked]:border-foreground">
+              <input type="radio" value="Courier" className="mt-1 accent-primary" {...form.register("deliveryType", { onChange: () => {
+                form.setValue("deliveryWarehouseRef", "", { shouldValidate: true })
+                form.setValue("deliveryWarehouseName", "", { shouldValidate: true })
+                setWarehouseSearch("")
+              } })} />
+              <span><span className="block text-sm font-medium">Кур’єр Нова Пошта</span><span className="mt-1 block text-xs text-muted-foreground">Доставка за адресою</span></span>
+            </label>
           </div>
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -252,31 +359,75 @@ export function CheckoutForm() {
               <label htmlFor="checkout-city" className="text-sm font-medium">
                 Місто <span aria-hidden="true">*</span>
               </label>
-              <Input
-                id="checkout-city"
-                autoComplete="address-level2"
-                placeholder="Київ"
-                aria-invalid={Boolean(deliveryErrors?.city)}
-                {...form.register("delivery.city")}
-              />
-              <FieldError message={deliveryErrors?.city?.message} />
+              <Input id="checkout-city" autoComplete="address-level2" placeholder="Почніть вводити назву міста" value={citySearch} aria-invalid={Boolean(customerErrors.deliveryCityRef)} onChange={event => {
+                const value = event.target.value
+                setCitySearch(value)
+                form.setValue("deliveryCityRef", "", { shouldValidate: true })
+                form.setValue("deliveryCityName", "", { shouldValidate: true })
+                form.setValue("deliveryWarehouseRef", "", { shouldValidate: true })
+                form.setValue("deliveryWarehouseName", "", { shouldValidate: true })
+                setCourierAddress({ street: "", building: "", apartment: "" })
+                form.setValue("courierStreet", "")
+                form.setValue("courierBuilding", "")
+                form.setValue("courierApartment", "")
+                form.setValue("courierStreet", "")
+                form.setValue("courierBuilding", "")
+                form.setValue("courierApartment", "")
+                setWarehouseSearch("")
+              }} />
+              {isLoadingCities && <p className="text-xs text-muted-foreground">Пошук міст…</p>}
+              {cities.length > 0 && <ul className="max-h-48 overflow-auto rounded-lg border border-border" role="listbox" aria-label="Міста Нової Пошти">{cities.map(city => <li key={city.Ref}><button type="button" role="option" aria-selected={false} className="w-full px-3 py-2 text-left text-sm hover:bg-muted focus-visible:bg-muted" onClick={() => {
+                setCitySearch(city.Description)
+                form.setValue("deliveryCityRef", city.Ref, { shouldValidate: true })
+                form.setValue("deliveryCityName", city.Description, { shouldValidate: true })
+                form.setValue("deliveryWarehouseRef", "", { shouldValidate: true })
+                form.setValue("deliveryWarehouseName", "", { shouldValidate: true })
+                setCourierAddress({ street: "", building: "", apartment: "" })
+                setCities([])
+              }}>{city.Description}{city.AreaDescription ? `, ${city.AreaDescription} обл.` : ""}</button></li>)}</ul>}
+              <FieldError message={customerErrors.deliveryCityRef?.message} />
             </div>
-            <div className="space-y-2">
+            {deliveryType !== "Courier" && <div className="space-y-2">
               <label htmlFor="checkout-warehouse" className="text-sm font-medium">
-                Номер або адреса <span aria-hidden="true">*</span>
+                {deliveryType === "Postomat" ? "Поштомат" : "Відділення"} <span aria-hidden="true">*</span>
               </label>
-              <Input
-                id="checkout-warehouse"
-                placeholder="Відділення №12 або поштомат №12345"
-                aria-invalid={Boolean(deliveryErrors?.warehouse)}
-                {...form.register("delivery.warehouse")}
-              />
-              <FieldError message={deliveryErrors?.warehouse?.message} />
-            </div>
+              {form.getValues("deliveryWarehouseRef") ? <div className="rounded-xl border border-primary/30 bg-muted/50 p-4"><p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Пункт отримання</p><p className="mt-1 text-sm font-medium">{form.getValues("deliveryWarehouseName")}</p><Button type="button" variant="outline" size="sm" className="mt-3" disabled={!cityRef} onClick={() => setIsMapOpen(true)}><MapPin className="mr-2 size-4" />Змінити на мапі</Button></div> : <>
+              <Input id="checkout-warehouse" placeholder={cityRef ? "Пошук за номером або адресою" : "Спочатку оберіть місто"} value={warehouseSearch} disabled={!cityRef || isLoadingWarehouses} onChange={event => {
+                setWarehouseSearch(event.target.value)
+                form.setValue("deliveryWarehouseRef", "", { shouldValidate: true })
+                form.setValue("deliveryWarehouseName", "", { shouldValidate: true })
+              }} />
+              {isLoadingWarehouses && <p className="text-xs text-muted-foreground">Завантаження точок Нової Пошти…</p>}
+              {cityRef && filteredWarehouses.length > 0 && <ul className="max-h-48 overflow-auto rounded-lg border border-border" role="listbox" aria-label="Точки Нової Пошти">{filteredWarehouses.map(item => <li key={item.Ref}><button type="button" role="option" aria-selected={form.getValues("deliveryWarehouseRef") === item.Ref} className="w-full px-3 py-2 text-left text-sm hover:bg-muted focus-visible:bg-muted" onClick={() => {
+                form.setValue("deliveryWarehouseRef", item.Ref, { shouldValidate: true })
+                form.setValue("deliveryWarehouseName", item.Description, { shouldValidate: true })
+                setWarehouseSearch(item.Description)
+              }}>{item.Description}{item.ShortAddress && item.ShortAddress !== item.Description ? ` — ${item.ShortAddress}` : ""}</button></li>)}</ul>}
+              <Button type="button" variant="outline" className="w-full" disabled={!cityRef || isLoadingWarehouses} onClick={() => setIsMapOpen(true)}><MapPin className="mr-2 size-4" />Обрати на мапі</Button></>}
+              <FieldError message={customerErrors.deliveryWarehouseRef?.message} />
+            </div>}
           </div>
+          {deliveryType === "Courier" && <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            <div className="space-y-2"><label htmlFor="courier-street" className="text-sm font-medium">Вулиця *</label><Input id="courier-street" placeholder="Сумська" value={courierAddress.street} disabled={!cityRef} aria-invalid={Boolean(customerErrors.courierStreet)} onChange={event => { const street = event.target.value; setCourierAddress(prev => ({ ...prev, street })); form.setValue("courierStreet", street, { shouldValidate: true }); form.setValue("deliveryWarehouseName", street ? `вул. ${street}` : "") }} /><FieldError message={customerErrors.courierStreet?.message} /></div>
+            <div className="space-y-2"><label htmlFor="courier-building" className="text-sm font-medium">Будинок *</label><Input id="courier-building" placeholder="10" value={courierAddress.building} disabled={!cityRef} aria-invalid={Boolean(customerErrors.courierBuilding)} onChange={event => { const building = event.target.value; setCourierAddress(prev => ({ ...prev, building })); form.setValue("courierBuilding", building, { shouldValidate: true }) }} /><FieldError message={customerErrors.courierBuilding?.message} /></div>
+            <div className="space-y-2"><label htmlFor="courier-apartment" className="text-sm font-medium">Квартира / офіс</label><Input id="courier-apartment" placeholder="5" value={courierAddress.apartment} disabled={!cityRef} onChange={event => { const apartment = event.target.value; setCourierAddress(prev => ({ ...prev, apartment })); form.setValue("courierApartment", apartment) }} /></div>
+          </div>}
+          {lookupError && <p className="mt-3 text-sm text-destructive" role="alert">{lookupError}</p>}
           <p className="mt-4 text-xs leading-5 text-muted-foreground">
             Доставка оплачується за тарифами перевізника Нової Пошти.
           </p>
+          {isMapOpen && cityRef && <NovaPoshtaPickerModal
+            warehouses={filteredWarehouses}
+            type={deliveryType === "Postomat" ? "Postomat" : "Warehouse"}
+            selectedRef={form.getValues("deliveryWarehouseRef") ?? ""}
+            onClose={() => setIsMapOpen(false)}
+            onSelect={warehouse => {
+              form.setValue("deliveryWarehouseRef", warehouse.Ref, { shouldValidate: true })
+              form.setValue("deliveryWarehouseName", warehouse.Description, { shouldValidate: true })
+              setWarehouseSearch(warehouse.Description)
+              setIsMapOpen(false)
+            }}
+          />}
         </section>
 
         <section className="rounded-2xl border border-border bg-card p-5 sm:p-6" aria-labelledby="payment-title">
@@ -293,7 +444,7 @@ export function CheckoutForm() {
             <label className="flex cursor-pointer gap-3 rounded-xl border border-border p-4 has-[:checked]:border-foreground">
               <input
                 type="radio"
-                value="cod"
+                value="CashOnDelivery"
                 className="mt-1 accent-primary"
                 {...form.register("paymentMethod")}
               />
@@ -303,12 +454,15 @@ export function CheckoutForm() {
                 <span className="mt-1 block text-xs text-muted-foreground">
                   Накладений платіж у відділенні або поштоматі.
                 </span>
+                <span className="mt-2 block text-xs leading-5 text-muted-foreground">
+                  Додатково стягується комісія Нової Пошти за грошовий переказ (20 грн + 2% від суми)
+                </span>
               </span>
             </label>
             <label className="flex cursor-pointer gap-3 rounded-xl border border-border p-4 has-[:checked]:border-foreground">
               <input
                 type="radio"
-                value="iban"
+                value="Online"
                 className="mt-1 accent-primary"
                 {...form.register("paymentMethod")}
               />
@@ -332,9 +486,9 @@ export function CheckoutForm() {
             rows={4}
             placeholder="Додаткові побажання до замовлення"
             className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 mt-3 min-h-24 w-full resize-y rounded-lg border bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-3"
-            {...form.register("comment")}
+            {...form.register("customerComment")}
           />
-          <FieldError message={form.formState.errors.comment?.message} />
+          <FieldError message={form.formState.errors.customerComment?.message} />
         </section>
       </div>
 

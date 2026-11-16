@@ -6,18 +6,24 @@ export interface EcommerceItem {
   price: number
   quantity: number
   item_category?: string
+  index?: number
 }
 
 interface EcommercePayload {
   currency?: "UAH"
   value?: number
   transaction_id?: string
+  order_number?: number
+  item_list_name?: string
+  shipping_tier?: string
+  payment_type?: string
   items: EcommerceItem[]
 }
 
 interface DataLayerEvent {
   event: string
   ecommerce?: EcommercePayload | null
+  order_number?: number
 }
 
 declare global {
@@ -31,7 +37,8 @@ export function getEcommerceItem(
   quantity = 1
 ): EcommerceItem {
   return {
-    item_id: product.sku || product.id,
+    // Keep in sync with <g:id> in src/app/feed.xml/route.ts.
+    item_id: product.sku?.trim() || product.id,
     item_name: product.name,
     price: product.price,
     quantity,
@@ -41,13 +48,14 @@ export function getEcommerceItem(
 
 export function pushEcommerceEvent(
   event: string,
-  ecommerce: EcommercePayload
+  ecommerce: EcommercePayload,
+  eventParams: Pick<DataLayerEvent, "order_number"> = {}
 ) {
   if (typeof window === "undefined") return
 
   window.dataLayer = window.dataLayer ?? []
   window.dataLayer.push({ ecommerce: null, event: "ecommerce_reset" })
-  window.dataLayer.push({ event, ecommerce })
+  window.dataLayer.push({ event, ecommerce, ...eventParams })
 }
 
 export function pushAddToCart(product: Product, quantity: number) {
@@ -74,6 +82,24 @@ export function pushViewCart(items: CartAnalyticsItem[], value: number) {
   })
 }
 
+export function pushViewItemList(products: Product[], itemListName: string) {
+  pushEcommerceEvent("view_item_list", {
+    item_list_name: itemListName,
+    items: products.map((product, index) => ({
+      ...getEcommerceItem(product),
+      index: index + 1,
+    })),
+  })
+}
+
+export function pushViewItem(product: Product) {
+  pushEcommerceEvent("view_item", {
+    currency: "UAH",
+    value: product.price,
+    items: [getEcommerceItem(product)],
+  })
+}
+
 export function pushBeginCheckout(items: CartAnalyticsItem[], value: number) {
   pushEcommerceEvent("begin_checkout", {
     currency: "UAH",
@@ -84,6 +110,7 @@ export function pushBeginCheckout(items: CartAnalyticsItem[], value: number) {
 
 export function pushPurchase(
   transactionId: string,
+  orderNumber: number,
   items: EcommerceItem[],
   value: number
 ) {
@@ -92,6 +119,24 @@ export function pushPurchase(
     currency: "UAH",
     value,
     items,
+  }, { order_number: orderNumber })
+}
+
+export function pushAddShippingInfo(items: CartAnalyticsItem[], value: number, shippingTier: string) {
+  pushEcommerceEvent("add_shipping_info", {
+    currency: "UAH",
+    value,
+    shipping_tier: shippingTier,
+    items: items.map(toEcommerceItem),
+  })
+}
+
+export function pushAddPaymentInfo(items: CartAnalyticsItem[], value: number, paymentType: string) {
+  pushEcommerceEvent("add_payment_info", {
+    currency: "UAH",
+    value,
+    payment_type: paymentType,
+    items: items.map(toEcommerceItem),
   })
 }
 

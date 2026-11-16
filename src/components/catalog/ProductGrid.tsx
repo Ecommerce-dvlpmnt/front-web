@@ -1,13 +1,27 @@
+"use client"
 
+import { useEffect, useRef } from "react"
 import type { Product } from "@/types/product"
+import { pushViewItemList } from "@/lib/analytics/data-layer"
 import { ProductCard, ProductCardSkeleton } from "./ProductCard"
 
 interface ProductGridProps {
   products: Product[]
   searchQuery?: string
+  itemListName: string
 }
 
-export function ProductGrid({ products, searchQuery }: ProductGridProps) {
+export function ProductGrid({ products, searchQuery, itemListName }: ProductGridProps) {
+  const lastReportedList = useRef("")
+
+  useEffect(() => {
+    if (products.length === 0) return
+    const reportKey = `${itemListName}:${products.map((product) => product.id).join(",")}`
+    if (lastReportedList.current === reportKey) return
+    lastReportedList.current = reportKey
+    pushViewItemList(products, itemListName)
+  }, [itemListName, products])
+
   if (products.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-border px-6 py-14 text-center">
