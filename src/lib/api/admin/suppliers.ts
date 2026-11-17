@@ -1,15 +1,9 @@
-import { ApiError, apiFetch } from "@/lib/api/client"
+import { adminApiFetch } from "@/lib/api/admin/auth"
+import { ApiError } from "@/lib/api/client"
 import type { Supplier, SupplierInput } from "@/types/supplier"
 
 export interface GetSuppliersOptions {
   onlyActive?: boolean
-}
-
-const supplierFetchOptions = {
-  next: {
-    revalidate: 300,
-    tags: ["suppliers"],
-  },
 }
 
 function isSupplier(value: unknown): value is Supplier {
@@ -44,9 +38,8 @@ export async function getSuppliers(
   { onlyActive = false }: GetSuppliersOptions = {}
 ): Promise<Supplier[]> {
   const query = new URLSearchParams({ onlyActive: String(onlyActive) })
-  const payload = await apiFetch<unknown>(
-    `suppliers?${query.toString()}`,
-    supplierFetchOptions
+  const payload = await adminApiFetch<unknown>(
+    `admin/suppliers?${query.toString()}`
   )
 
   if (!Array.isArray(payload) || !payload.every(isSupplier)) {
@@ -59,9 +52,8 @@ export async function getSuppliers(
 export async function getSupplier(id: string): Promise<Supplier | null> {
   try {
     return parseSupplier(
-      await apiFetch<unknown>(
-        `suppliers/${encodeURIComponent(id)}`,
-        supplierFetchOptions
+      await adminApiFetch<unknown>(
+        `admin/suppliers/${encodeURIComponent(id)}`
       )
     )
   } catch (error) {
@@ -74,7 +66,7 @@ export async function createSupplier(
   input: SupplierInput
 ): Promise<Supplier> {
   return parseSupplier(
-    await apiFetch<unknown>("suppliers", {
+    await adminApiFetch<unknown>("admin/suppliers", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(input),
