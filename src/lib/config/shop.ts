@@ -1,7 +1,7 @@
 export const shopConfig = {
-  name: "Lumière",
-  brand: process.env.NEXT_PUBLIC_SHOP_BRAND?.trim() || "Lumière",
-  description: "Речі для теплих моментів",
+  name: "Jingle & Light",
+  brand: process.env.NEXT_PUBLIC_SHOP_BRAND?.trim() || "Jingle & Light",
+  description: "Штучні литі ялинки, різдвяні вінки та хвойні гірлянди",
   contact: {
     phone: process.env.NEXT_PUBLIC_SHOP_PHONE ?? "",
     email: process.env.NEXT_PUBLIC_SHOP_EMAIL ?? "",
@@ -19,19 +19,18 @@ export const shopConfig = {
     email: process.env.NEXT_PUBLIC_SHOP_EMAIL ?? "",
   },
   seasonal: {
-    announcement: "🎄 Новорічний настрій вже тут · -20% на сезонну колекцію",
-    badge: "Новорічна колекція · -20%",
-    title: "Додайте святам трохи магії",
+    announcement: "Створіть зимовий затишок у своїй оселі · Оплата при отриманні · Доставка 1–2 дні",
+    badge: "Колекція 2026",
+    title: "Литі ялинки та святковий декор",
     description:
-      "Свічки, декор та подарунки для затишних вечорів, теплих зустрічей і моментів, які хочеться запам’ятати.",
-    catalogEyebrow: "Подарунки з настроєм",
-    catalogTitle: "Новорічні товари",
+      "Литі штучні ялинки, засніжені вінки ручної роботи та пишні хвойні гірлянди для казкового затишку у вашій оселі.",
+    catalogEyebrow: "Каталог продукції",
+    catalogTitle: "Ялинки, вінки та декор",
   },
   navigation: [
-    { label: "Новинки", href: "/#catalog" },
-    { label: "Декор", href: "/#catalog" },
-    { label: "Свічки", href: "/#catalog" },
-    { label: "Подарунки", href: "/#catalog" },
+    { label: "Ялинки", href: "/#catalog" },
+    { label: "Різдвяні вінки", href: "/catalog/rizdvyani-vinky" },
+    { label: "Хвойні гірлянди", href: "/catalog/khvoyni-hirlyandy" },
   ],
   footerLinks: [
     { label: "Оплата і доставка", href: "/delivery-and-payment" },
