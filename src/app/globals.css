@@ -10,6 +10,10 @@
   --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --font-heading: Inter, ui-sans-serif, system-ui, sans-serif;
+  --color-gold: #D4AF37;
+  --color-gold-light: #F3D078;
+  --color-ruby: #7A1C24;
+  --color-pine: #0B0F0E;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,82 +53,190 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* Світла тема: затишний зимовий теплий кашемір, фарфор і бурштин */
+  --background: #F8F4EC;
+  --foreground: #221A15;
+  --card: #FFFFFF;
+  --card-foreground: #221A15;
+  --popover: #FFFFFF;
+  --popover-foreground: #221A15;
+  --primary: #281D17;
+  --primary-foreground: #FAF6F0;
+  --secondary: #F1E8DC;
+  --secondary-foreground: #221A15;
+  --muted: #F1E8DC;
+  --muted-foreground: #7D7062;
+  --accent: #ECE1D2;
+  --accent-foreground: #221A15;
+  --destructive: #A32D2F;
+  --border: #E6D8C7;
+  --input: #E6D8C7;
+  --ring: #C8923A;
+  --chart-1: #C8923A;
+  --chart-2: #8B7A68;
+  --chart-3: #5C5042;
+  --chart-4: #3E3328;
+  --chart-5: #281D17;
+  --radius: 0.875rem;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #221A15;
+  --sidebar-primary: #281D17;
+  --sidebar-primary-foreground: #FAF6F0;
+  --sidebar-accent: #F1E8DC;
+  --sidebar-accent-foreground: #221A15;
+  --sidebar-border: #E6D8C7;
+  --sidebar-ring: #C8923A;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Темна тема: глибокий темно-зелений хвойний фон (#0B0F0E), золото (#D4AF37/#F3D078) та бордо (#7A1C24) */
+  --background: #0B0F0E;
+  --foreground: #F5F3EC;
+  --card: #121816;
+  --card-foreground: #F5F3EC;
+  --popover: #121816;
+  --popover-foreground: #F5F3EC;
+  --primary: #D4AF37;
+  --primary-foreground: #0B0F0E;
+  --secondary: #17211D;
+  --secondary-foreground: #F5F3EC;
+  --muted: #17211D;
+  --muted-foreground: #94A39B;
+  --accent: #1C2822;
+  --accent-foreground: #F3D078;
+  --destructive: #7A1C24;
+  --border: #1E2824;
+  --input: #23302B;
+  --ring: #D4AF37;
+  --chart-1: #D4AF37;
+  --chart-2: #F3D078;
+  --chart-3: #7A1C24;
+  --chart-4: #2D3D36;
+  --chart-5: #17211D;
+  --sidebar: #121816;
+  --sidebar-foreground: #F5F3EC;
+  --sidebar-primary: #D4AF37;
+  --sidebar-primary-foreground: #0B0F0E;
+  --sidebar-accent: #1C2822;
+  --sidebar-accent-foreground: #F3D078;
+  --sidebar-border: #1E2824;
+  --sidebar-ring: #D4AF37;
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
+    @apply border-border;
   }
   html {
     @apply font-sans;
+    scroll-behavior: smooth;
+    scroll-padding-top: 5.5rem;
+  }
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-[#d4af37]/25 selection:text-foreground;
+    background-image: radial-gradient(ellipse at 50% -100px, rgba(230, 180, 100, 0.14) 0%, transparent 65%);
+    background-repeat: no-repeat;
+  }
+  .dark body {
+    background-image: radial-gradient(ellipse at 50% -100px, rgba(212, 175, 55, 0.1) 0%, transparent 65%);
+    background-repeat: no-repeat;
+  }
+}
+
+@layer utilities {
+  .shadow-luxury {
+    box-shadow: 
+      0 10px 28px -6px rgba(78, 50, 22, 0.08),
+      0 3px 10px -2px rgba(78, 50, 22, 0.04),
+      0 0 0 1px rgba(230, 216, 199, 0.55);
+  }
+  .dark .shadow-luxury {
+    box-shadow: 
+      0 16px 36px -10px rgba(0, 0, 0, 0.65),
+      0 0 18px -2px rgba(212, 175, 55, 0.12),
+      0 0 0 1px rgba(30, 40, 36, 0.8);
+  }
+  .shadow-luxury-hover {
+    box-shadow: 
+      0 20px 44px -8px rgba(198, 146, 58, 0.22),
+      0 6px 18px -2px rgba(78, 50, 22, 0.08),
+      0 0 0 1px rgba(200, 146, 58, 0.45);
+  }
+  .dark .shadow-luxury-hover {
+    box-shadow: 
+      0 24px 52px -12px rgba(0, 0, 0, 0.85),
+      0 0 28px 0 rgba(212, 175, 55, 0.28),
+      0 0 0 1px rgba(212, 175, 55, 0.4);
+  }
+}
+
+/* Утончений скролбар */
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--border) 80%, transparent);
+  border-radius: 9999px;
+  border: 2px solid var(--background);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C8923A;
+}
+
+/* Спокійна зима: анімація плавного падіння сніжинок та погойдування */
+@keyframes snowFall {
+  0% {
+    transform: translate3d(0, -30px, 0);
+    opacity: 0;
+  }
+  8% {
+    opacity: var(--snow-opacity, 0.35);
+  }
+  92% {
+    opacity: var(--snow-opacity, 0.35);
+  }
+  100% {
+    transform: translate3d(0, 107vh, 0);
+    opacity: 0;
+  }
+}
+
+@keyframes snowSway {
+  0%, 100% {
+    transform: translate3d(calc(var(--snow-drift, 25px) * -0.5), 0, 0);
+  }
+  50% {
+    transform: translate3d(calc(var(--snow-drift, 25px) * 0.5), 0, 0);
+  }
+}
+
+@keyframes bannerShimmer {
+  0% {
+    transform: translateX(-120%);
+  }
+  50%, 100% {
+    transform: translateX(140%);
+  }
+}
+
+.animate-banner-shimmer {
+  animation: bannerShimmer 4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+  .snow-fall-wrapper,
+  .snow-sway-particle {
+    animation: none !important;
+    display: none !important;
+  }
+  .animate-banner-shimmer {
+    animation: none !important;
   }
 }
