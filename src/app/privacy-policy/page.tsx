@@ -3,8 +3,8 @@ import type { Metadata } from "next"
 import { InfoPage } from "@/components/content/InfoPage"
 
 export const metadata: Metadata = {
-  title: "Політика конфіденційності — Lumière",
-  description: "Політика обробки персональних даних на сайті Lumière.",
+  title: "Політика конфіденційності — Jingle Decor",
+  description: "Політика обробки персональних даних на сайті Jingle Decor.",
 }
 
 export default function PrivacyPolicyPage() {

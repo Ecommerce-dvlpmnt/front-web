@@ -5,6 +5,18 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
+        hostname: "yalynka-roku.com.ua",
+      },
+      {
+        protocol: "https",
+        hostname: "**.yalynka-roku.com.ua",
+      },
+      {
+        protocol: "http",
+        hostname: "yalynka-roku.com.ua",
+      },
+      {
+        protocol: "https",
         hostname: "picsum.photos",
       },
       {
@@ -18,10 +30,6 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "**.supabase.co",
-      },
-      {
-        protocol: "https",
-        hostname: "yalynka-roku.com.ua",
       },
     ],
   },

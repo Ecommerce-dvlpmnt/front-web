@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link"
@@ -35,7 +36,7 @@ export function Header({ categories = [] }: HeaderProps) {
 
   const { itemCount } = useCart()
 
-  // 3 основні напрямки каталогу (щоб хедер не перевантажувався):
+  // Виділяємо 3 основні напрямки каталогу (щоб хедер не перевантажувався):
   // 1. Ялинки (всі ялинки + підвиди: Литі, Преміум, Засніжені, В горщиках, ПВХ)
   // 2. Різдвяні вінки
   // 3. Хвойні гірлянди
@@ -104,8 +105,8 @@ export function Header({ categories = [] }: HeaderProps) {
             className="group flex min-w-fit items-center gap-2.5 shrink-0"
             aria-label={`${shopConfig.name} — на головну`}
           >
-            <span className="flex size-9 items-center justify-center rounded-full bg-foreground text-[11px] font-black tracking-tight text-background transition-transform duration-200 group-hover:scale-105 shadow-xs">
-              J&L
+            <span className="flex size-9 items-center justify-center rounded-full bg-foreground text-xs font-black tracking-widest text-background transition-transform duration-200 group-hover:scale-105 shadow-xs">
+              JD
             </span>
 
             <span className="text-sm font-bold tracking-[0.16em] uppercase text-foreground">
@@ -192,7 +193,7 @@ export function Header({ categories = [] }: HeaderProps) {
             ))}
           </nav>
 
-          {/* Пошук товарів */}
+          {/* Пошук товарів (розміщений праворуч після категорій) */}
           <form
             action="/#catalog"
             className="relative hidden md:block w-44 lg:w-56 xl:w-64 ml-auto shrink-0 transition-all duration-300 focus-within:w-56 xl:focus-within:w-72"
@@ -209,7 +210,7 @@ export function Header({ categories = [] }: HeaderProps) {
             />
           </form>
 
-          {/* Дії справа: Пошук для мобільних + Тема + Обране + Кошик */}
+          {/* Дії справа: Пошук для планшетів + Тема + Обране + Кошик */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <Button
               variant="ghost"

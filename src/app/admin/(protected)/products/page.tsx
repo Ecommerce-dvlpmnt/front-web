@@ -13,11 +13,22 @@ export const metadata: Metadata = {
   },
 }
 
+export const dynamic = "force-dynamic"
+
 export default async function AdminProductsPage() {
   const [products, categories, suppliers] = await Promise.all([
-    getAdminProducts({ onlyActive: false }),
-    getCategories({ onlyActive: false }),
-    getSuppliers({ onlyActive: false }),
+    getAdminProducts({ onlyActive: false }).catch((error) => {
+      console.error("Failed to load products in admin:", error)
+      return []
+    }),
+    getCategories({ onlyActive: false }).catch((error) => {
+      console.error("Failed to load categories in admin:", error)
+      return []
+    }),
+    getSuppliers({ onlyActive: false }).catch((error) => {
+      console.error("Failed to load suppliers in admin:", error)
+      return []
+    }),
   ])
 
   return (

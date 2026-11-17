@@ -3,8 +3,8 @@ import type { Metadata } from "next"
 import { InfoPage } from "@/components/content/InfoPage"
 
 export const metadata: Metadata = {
-  title: "Доставка й оплата — Lumière",
-  description: "Умови комплектації, доставки Новою Поштою та оплати замовлень Lumière.",
+  title: "Доставка й оплата — Jingle Decor",
+  description: "Умови комплектації, доставки Новою Поштою та оплати замовлень Jingle Decor.",
 }
 
 export default function DeliveryAndPaymentPage() {
@@ -29,7 +29,7 @@ export default function DeliveryAndPaymentPage() {
         <li>Оплата за реквізитами IBAN — реквізити відображаються після створення замовлення.</li>
       </ul>
       <p>
-        Ціни на сайті вказані у гривнях (UAH). Lumière не додає прихованих комісій до вартості товарів; можливі платежі перевізника або банку відображаються окремо відповідно до їхніх тарифів.
+        Ціни на сайті вказані у гривнях (UAH). Jingle Decor не додає прихованих комісій до вартості товарів; можливі платежі перевізника або банку відображаються окремо відповідно до їхніх тарифів.
       </p>
     </InfoPage>
   )

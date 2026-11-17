@@ -48,8 +48,13 @@ export function ThemeToggle() {
       aria-label={isDark ? "Увімкнути світлу тему" : "Увімкнути темну тему"}
       title={isDark ? "Світла тема" : "Темна тема"}
       onClick={toggleTheme}
+      className="transition-transform duration-150 active:scale-90"
     >
-      {isDark ? <Sun /> : <Moon />}
+      {isDark ? (
+        <Sun className="size-4 text-[#F3D078]" />
+      ) : (
+        <Moon className="size-4 text-[#6A6258]" />
+      )}
     </Button>
   )
 }

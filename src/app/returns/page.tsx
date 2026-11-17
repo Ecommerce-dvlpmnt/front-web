@@ -4,8 +4,8 @@ import { InfoPage } from "@/components/content/InfoPage"
 import { shopConfig } from "@/lib/config/shop"
 
 export const metadata: Metadata = {
-  title: "Обмін і повернення — Lumière",
-  description: "Умови обміну та повернення товарів Lumière.",
+  title: "Обмін і повернення — Jingle Decor",
+  description: "Умови обміну та повернення товарів Jingle Decor.",
 }
 
 export default function ReturnsPage() {

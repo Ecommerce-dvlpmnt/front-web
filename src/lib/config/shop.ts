@@ -1,6 +1,6 @@
 export const shopConfig = {
-  name: "Jingle & Light",
-  brand: process.env.NEXT_PUBLIC_SHOP_BRAND?.trim() || "Jingle & Light",
+  name: "Jingle Decor",
+  brand: process.env.NEXT_PUBLIC_SHOP_BRAND?.trim() || "Jingle Decor",
   description: "Штучні литі ялинки, різдвяні вінки та хвойні гірлянди",
   contact: {
     phone: process.env.NEXT_PUBLIC_SHOP_PHONE ?? "",

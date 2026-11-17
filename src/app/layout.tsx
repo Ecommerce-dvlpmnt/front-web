@@ -12,18 +12,14 @@ import "./globals.css";
 import "leaflet/dist/leaflet.css";
 
 export const metadata: Metadata = {
-  title: "Jingle & Light — литі ялинки та святковий декор",
-  description: "Штучні литі ялинки, різдвяні вінки та хвойні гірлянди від українського бренду Jingle & Light.",
+  title: "Jingle Decor — литі ялинки та святковий декор",
+  description: "Штучні литі ялинки, різдвяні вінки та хвойні гірлянди від українського бренду Jingle Decor.",
 };
 
-export default async function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const categories = await getCategories({ onlyActive: true })
     .then(buildCategoryTree)
-    .catch(() => []);
+    .catch(() => [])
 
   return (
     <html

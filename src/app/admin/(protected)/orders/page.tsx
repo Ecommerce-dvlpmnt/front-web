@@ -8,8 +8,19 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
+export const dynamic = "force-dynamic"
+
 export default async function AdminOrdersPage() {
-  const initialPage = await getAdminOrders({ pageNumber: 1, pageSize: 50 })
+  const initialPage = await getAdminOrders({ pageNumber: 1, pageSize: 50 }).catch((error) => {
+    console.error("Failed to load orders in admin:", error)
+    return {
+      items: [],
+      totalCount: 0,
+      pageNumber: 1,
+      pageSize: 50,
+      totalPages: 1,
+    }
+  })
 
   return (
     <div className="min-h-full bg-background">

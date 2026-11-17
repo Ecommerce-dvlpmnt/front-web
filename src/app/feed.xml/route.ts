@@ -114,9 +114,9 @@ export async function GET(): Promise<Response> {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">
   <channel>
-    <title>Lumière — каталог товаров</title>
+    <title>Jingle Decor — каталог товарів</title>
     <link>${escapeXml(SITE_URL)}</link>
-    <description>Товары Lumière для Google Shopping</description>${items}
+    <description>Товари Jingle Decor для Google Shopping</description>${items}
   </channel>
 </rss>`
 

@@ -520,7 +520,7 @@ export function CheckoutForm() {
           Повернутися до кошика
         </Link>
         <p className="mt-4 text-center text-xs leading-5 text-muted-foreground">
-          Валюта замовлення — гривня (UAH). Прихованих комісій з боку Lumière немає.
+          Валюта замовлення — гривня (UAH). Прихованих комісій з боку Jingle Decor немає.
         </p>
       </aside>
     </form>
