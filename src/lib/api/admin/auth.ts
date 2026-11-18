@@ -1,4 +1,5 @@
 import { cookies } from "next/headers"
+import { unstable_rethrow } from "next/navigation"
 
 import { ApiError, apiFetch } from "@/lib/api/client"
 import { ADMIN_SESSION_COOKIE } from "@/lib/api/admin/session"
@@ -61,7 +62,8 @@ export async function getCurrentAdmin(): Promise<AdminUser | null> {
     return isAdminUser(admin) && admin.role === "Admin" && admin.isActive
       ? admin
       : null
-  } catch {
+  } catch (error) {
+    unstable_rethrow(error)
     return null
   }
 }
