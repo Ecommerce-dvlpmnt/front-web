@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { OrderSuccess } from "@/components/order/OrderSuccess"
 
 export const metadata: Metadata = {
-  title: "Замовлення прийнято — Lumière",
+  title: "Замовлення прийнято — Jingle Decor",
   robots: { index: false, follow: false },
 }
 

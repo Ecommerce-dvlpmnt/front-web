@@ -3,15 +3,15 @@ import type { Metadata } from "next"
 import { InfoPage } from "@/components/content/InfoPage"
 
 export const metadata: Metadata = {
-  title: "Публічна оферта — Lumière",
-  description: "Умови продажу товарів у магазині Lumière.",
+  title: "Публічна оферта — Jingle Decor",
+  description: "Умови продажу товарів у магазині Jingle Decor.",
 }
 
 export default function TermsPage() {
   return (
     <InfoPage
       title="Публічна оферта"
-      description="Основні умови оформлення та виконання замовлень у магазині Lumière."
+      description="Основні умови оформлення та виконання замовлень у магазині Jingle Decor."
     >
       <h2>Предмет договору</h2>
       <p>Магазин пропонує покупцеві товари, представлені на сайті, а покупець оформлює замовлення та оплачує його на погоджених умовах.</p>

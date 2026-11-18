@@ -1,50 +1,345 @@
-import Link from "next/link"
-import { ArrowRight } from "lucide-react"
+"use client"
 
-import { Badge } from "@/components/ui/badge"
+import { useEffect, useState } from "react"
+import Link from "next/link"
+import Image from "next/image"
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
-import { shopConfig } from "@/lib/config/shop"
+import { scrollToElement } from "@/lib/scroll"
+
+interface HeroSlide {
+  id: string
+  badge: string
+  title: string
+  description: string
+  ctaText: string
+  categorySlug: string
+  image: string
+  imageAlt: string
+  card: {
+    tag: string
+    title: string
+    subtitle: string
+    price: string
+  }
+  features: string[]
+}
+
+const HERO_SLIDES: HeroSlide[] = [
+  {
+    id: "trees",
+    badge: "Зимова колекція 2026",
+    title: "Литі ялинки для казкового затишку",
+    description:
+      "100% лита хвоя від українського виробника. Не обсипається, не має хімічного запаху та дарує святковий настрій вашій оселі понад 10 років.",
+    ctaText: "Обрати ялинку",
+    categorySlug: "yalynky",
+    image:
+      "https://images.unsplash.com/photo-1543589077-47d81606c1bf?auto=format&fit=crop&w=1200&q=80",
+    imageAlt: "Затишна новорічна ялинка з вогниками у вітальні",
+    card: {
+      tag: "Хіт сезону",
+      title: "Віденська лита ялинка 1.8м",
+      subtitle: "100% литі гілочки · Без запаху",
+      price: "2 490 ₴",
+    },
+    features: [
+      "100% лита хвоя від виробника",
+      "Заводська коробка для зберігання",
+      "Оплата при отриманні",
+    ],
+  },
+  {
+    id: "wreaths",
+    badge: "Ручна робота",
+    title: "Різдвяні вінки з натуральними шишками",
+    description:
+      "Справжній символ домашнього затишку на вхідні двері або святковий стіл. Пишна лита хвоя, надійні кріплення та цупка фабрична коробка.",
+    ctaText: "Переглянути вінки",
+    categorySlug: "rizdvyani-vinky",
+    image:
+      "https://images.unsplash.com/photo-1637617066967-0bb74ff04f66?auto=format&fit=crop&w=1200&q=80",
+    imageAlt: "Різдвяний вінок з хвої та шишок на дверях",
+    card: {
+      tag: "Новинка",
+      title: "Вінок «Зимовий ліс» 50см",
+      subtitle: "Натуральні шишки · Калина",
+      price: "650 ₴",
+    },
+    features: [
+      "Ручне складання декору",
+      "Справжні карпатські шишки",
+      "Безпечні матеріали",
+    ],
+  },
+  {
+    id: "garlands",
+    badge: "Атмосфера свята",
+    title: "Пишні гірлянди на камін та сходи",
+    description:
+      "Густа лита хвоя на міцній гнучкій основі довжиною 2.8 м. Створює чарівні спадаючі хвилі та затишок у кожному куточку вашого дому.",
+    ctaText: "Обрати гірлянду",
+    categorySlug: "khvoyni-hirlyandy",
+    image:
+      "https://images.unsplash.com/photo-1495577333576-6b302d687566?auto=format&fit=crop&w=1200&q=80",
+    imageAlt: "Хвойна святкова гірлянда над каміном",
+    card: {
+      tag: "Популярне",
+      title: "Гірлянда «Преміум хвоя» 2.8м",
+      subtitle: "Гнучка основа · Густі гілки",
+      price: "850 ₴",
+    },
+    features: [
+      "Довжина 2.8 метра",
+      "Гнучкий дріт усередині",
+      "Швидка відправка 1–2 дні",
+    ],
+  },
+]
 
 export function HeroBanner() {
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const [isPaused, setIsPaused] = useState(false)
+
+  // Автоматичне перемикання слайдів кожні 6 секунд із паузою при наведенні
+  useEffect(() => {
+    if (isPaused) return
+
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length)
+    }, 6000)
+
+    return () => clearInterval(timer)
+  }, [isPaused])
+
+  const handleSlideSelect = (index: number) => {
+    setCurrentSlide(index)
+  }
+
+  const handlePrev = () => {
+    setCurrentSlide((prev) =>
+      prev === 0 ? HERO_SLIDES.length - 1 : prev - 1
+    )
+  }
+
+  const handleNext = () => {
+    setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length)
+  }
+
+  const handleCategoryClick = (e: React.MouseEvent, slug: string) => {
+    e.preventDefault()
+    window.dispatchEvent(
+      new CustomEvent("selectCatalogCategory", { detail: slug })
+    )
+    window.history.pushState(
+      null,
+      "",
+      slug === "yalynky" ? "/#catalog" : `/catalog/${slug}#catalog`
+    )
+    scrollToElement("catalog", 1.5)
+  }
+
   return (
-    <section className="relative isolate min-h-[540px] overflow-hidden rounded-[2rem] bg-gradient-to-br from-neutral-950 via-rose-950 to-amber-800 text-white shadow-sm sm:min-h-[600px]">
+    <section
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      className="group/slider relative isolate overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] border border-border/80 bg-[#161311] dark:bg-[#0E1311] text-white shadow-xl"
+      aria-label="Головний банер"
+    >
+      {/* Хвойна віньєтка по кутах для глибини */}
       <div
-        className="absolute inset-0 -z-10 bg-gradient-to-r from-black/75 via-black/45 to-black/20"
+        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(18,48,37,0.7),transparent_50%),radial-gradient(circle_at_bottom_right,rgba(110,24,32,0.45),transparent_50%),radial-gradient(circle_at_bottom_left,rgba(11,21,18,0.85),transparent_55%)]"
+        aria-hidden="true"
+      />
+
+      {/* М'які теплі розсіяні відблиски */}
+      <div
+        className="pointer-events-none absolute top-10 right-1/3 -z-10 size-72 rounded-full bg-[#d4af37]/10 blur-3xl"
         aria-hidden="true"
       />
       <div
-        className="absolute inset-0 -z-10 bg-gradient-to-t from-black/45 via-transparent to-black/10"
+        className="pointer-events-none absolute bottom-0 right-10 -z-10 size-96 rounded-full bg-[#f3d078]/10 blur-3xl"
         aria-hidden="true"
       />
-      <div className="pointer-events-none absolute top-8 right-8 -z-10 text-white/60 sm:top-12 sm:right-12">
-        <span className="absolute -top-2 -right-6 text-2xl">✦</span>
-        <span className="text-5xl">❄</span>
-      </div>
-      <div className="pointer-events-none absolute bottom-14 right-8 -z-10 text-3xl text-white/50 sm:right-16">
-        ✦
+
+      {/* 2-колонкова сітка банера */}
+      <div className="grid grid-cols-1 items-center gap-10 p-6 sm:p-10 lg:grid-cols-12 lg:gap-12 lg:p-16 min-h-[540px] sm:min-h-[580px]">
+        {/* Ліва колонка — Плавний перехід тексту для кожного слайду */}
+        <div className="relative flex flex-col justify-center lg:col-span-7 min-h-[360px] sm:min-h-[400px]">
+          {HERO_SLIDES.map((s, idx) => {
+            const isActive = idx === currentSlide
+            return (
+              <div
+                key={s.id}
+                className={`flex flex-col justify-center transition-all duration-700 ease-out ${
+                  isActive
+                    ? "opacity-100 translate-y-0 relative z-10"
+                    : "opacity-0 translate-y-2 absolute inset-x-0 top-0 pointer-events-none z-0"
+                }`}
+              >
+                <div className="w-fit rounded-full border border-white/20 bg-white/10 px-3.5 py-1 text-xs font-semibold tracking-wider text-white/90 backdrop-blur-md uppercase">
+                  {s.badge}
+                </div>
+
+                <h1 className="mt-5 text-4xl font-semibold tracking-tight text-balance text-white sm:text-5xl lg:text-6xl leading-[1.12]">
+                  {s.title}
+                </h1>
+
+                <p className="mt-5 max-w-lg text-base leading-relaxed text-white/80 sm:text-lg">
+                  {s.description}
+                </p>
+
+                <div className="mt-8 flex flex-wrap items-center gap-4">
+                  <Button
+                    asChild
+                    size="lg"
+                    className="relative group h-12 rounded-full border-0 bg-white text-[#181512] hover:bg-[#FAF8F5] px-8 font-semibold shadow-md shadow-black/20 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+                  >
+                    <Link
+                      href="#catalog"
+                      onClick={(e) => handleCategoryClick(e, s.categorySlug)}
+                      className="flex items-center gap-2"
+                    >
+                      <span>{s.ctaText}</span>
+                      <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    </Link>
+                  </Button>
+                </div>
+
+                {/* Мікро-переваги */}
+                <div className="mt-10 flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-white/70">
+                  {s.features.map((feature, fIdx) => (
+                    <span key={fIdx} className="flex items-center gap-3">
+                      {fIdx > 0 && <span className="text-white/30">·</span>}
+                      <span>{feature}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Права колонка — Атмосферна картка з фотографією */}
+        <div className="relative flex items-center justify-center lg:col-span-5">
+          <div
+            className="pointer-events-none absolute -inset-3 rounded-3xl bg-gradient-to-tr from-[#d4af37]/20 via-[#7a1c24]/15 to-[#122b21]/25 blur-2xl"
+            aria-hidden="true"
+          />
+
+          <div className="group relative aspect-[4/5] w-full max-w-sm sm:max-w-md overflow-hidden rounded-3xl border border-white/20 bg-[#121816] shadow-2xl shadow-black/60">
+            {HERO_SLIDES.map((s, index) => (
+              <div
+                key={s.id}
+                className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                  index === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"
+                }`}
+              >
+                <Image
+                  src={s.image}
+                  alt={s.imageAlt}
+                  fill
+                  priority={index === 0}
+                  sizes="(min-width: 1024px) 45vw, (min-width: 640px) 70vw, 90vw"
+                  className="object-cover transition-transform duration-1000 ease-out group-hover:scale-105"
+                />
+
+                <div
+                  className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/10"
+                  aria-hidden="true"
+                />
+                <div
+                  className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-[#0b1512]/40 via-transparent to-[#d4af37]/15"
+                  aria-hidden="true"
+                />
+              </div>
+            ))}
+
+            {/* Плаваюча glassmorphism-плашка товару — плавно перемикається разом із слайдами */}
+            {HERO_SLIDES.map((s, idx) => {
+              const isActive = idx === currentSlide
+              return (
+                <div
+                  key={s.id}
+                  className={`absolute right-4 bottom-4 left-4 z-20 rounded-2xl border border-white/25 bg-black/65 p-3.5 sm:p-4 backdrop-blur-md shadow-xl transition-all duration-700 ease-out ${
+                    isActive
+                      ? "opacity-100 translate-y-0 pointer-events-auto"
+                      : "opacity-0 translate-y-2 pointer-events-none"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-[#F3D078]">
+                        {s.card.tag}
+                      </span>
+                      <p className="mt-0.5 truncate text-sm font-semibold text-white">
+                        {s.card.title}
+                      </p>
+                      <p className="text-xs text-white/75">
+                        {s.card.subtitle}
+                      </p>
+                    </div>
+
+                    <div className="shrink-0 text-right">
+                      <span className="block text-sm font-bold text-white">
+                        {s.card.price}
+                      </span>
+                      <Link
+                        href="#catalog"
+                        onClick={(e) => handleCategoryClick(e, s.categorySlug)}
+                        className="inline-block text-[11px] font-medium text-[#F3D078] underline underline-offset-2 hover:text-white cursor-pointer"
+                      >
+                        Обрати →
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
       </div>
 
-      <div className="flex min-h-[540px] max-w-2xl flex-col justify-end p-6 sm:min-h-[600px] sm:p-12 lg:p-16">
-        <Badge className="w-fit border border-white/25 bg-white/15 px-3 py-1 text-white backdrop-blur-sm">
-          {shopConfig.seasonal.badge}
-        </Badge>
-        <h1 className="mt-5 max-w-xl text-4xl font-semibold tracking-tight text-balance sm:text-6xl">
-          {shopConfig.seasonal.title}
-        </h1>
-        <p className="mt-5 max-w-md text-base leading-7 text-white/80 sm:text-lg">
-          {shopConfig.seasonal.description}
-        </p>
-        <div className="mt-8">
-          <Button
-            asChild
-            size="lg"
-            className="h-11 rounded-full bg-white px-5 text-neutral-900 hover:bg-white/90"
+      {/* Керування слайдером: Стрілки та крапки навігації */}
+      <div className="absolute bottom-5 left-6 sm:left-10 lg:left-16 z-20 flex items-center gap-4">
+        {/* Індикатори-крапки */}
+        <div className="flex items-center gap-1.5" role="tablist" aria-label="Слайди банера">
+          {HERO_SLIDES.map((s, idx) => (
+            <button
+              key={s.id}
+              type="button"
+              role="tab"
+              aria-selected={idx === currentSlide}
+              aria-label={`Перейти до слайду ${idx + 1}`}
+              onClick={() => handleSlideSelect(idx)}
+              className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                idx === currentSlide
+                  ? "w-7 bg-white shadow-xs"
+                  : "w-2 bg-white/35 hover:bg-white/60"
+              }`}
+            />
+          ))}
+        </div>
+
+        {/* Стрілки попередня / наступна */}
+        <div className="flex items-center gap-1 ml-2">
+          <button
+            type="button"
+            onClick={handlePrev}
+            aria-label="Попередній слайд"
+            className="flex size-7 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-sm transition-all hover:bg-white/25 active:scale-95 cursor-pointer"
           >
-            <Link href="#catalog">
-              Переглянути колекцію
-              <ArrowRight />
-            </Link>
-          </Button>
+            <ChevronLeft className="size-4" />
+          </button>
+          <button
+            type="button"
+            onClick={handleNext}
+            aria-label="Наступний слайд"
+            className="flex size-7 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-sm transition-all hover:bg-white/25 active:scale-95 cursor-pointer"
+          >
+            <ChevronRight className="size-4" />
+          </button>
         </div>
       </div>
     </section>

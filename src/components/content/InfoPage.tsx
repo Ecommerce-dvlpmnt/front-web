@@ -8,7 +8,7 @@ interface InfoPageProps {
 }
 
 export function InfoPage({
-  eyebrow = "Lumière",
+  eyebrow = "Jingle Decor",
   title,
   description,
   children,

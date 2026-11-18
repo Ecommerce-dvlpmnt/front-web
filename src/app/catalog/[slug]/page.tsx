@@ -25,7 +25,7 @@ export default async function CategoryPage({
   }
 
   const [products, categories] = await Promise.all([
-    getProducts({ categoryId: category.id }),
+    getProducts(),
     getCategories({ onlyActive: true })
       .then(buildCategoryTree)
       .catch(() => []),

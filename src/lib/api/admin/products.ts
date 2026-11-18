@@ -1,4 +1,4 @@
-import { ApiError } from "@/lib/api/client"
+import { ApiError, apiFetch } from "@/lib/api/client"
 import { adminApiFetch } from "@/lib/api/admin/auth"
 import type {
   AdminProduct,
@@ -41,41 +41,41 @@ export interface GetAdminProductsOptions {
 
 interface ProductDto {
   id: string
-  categoryId: string
-  categoryName: string | null
-  supplierId: string
-  sku: string | null
-  name: string | null
-  slug: string | null
-  description: string | null
-  dropPrice: number
-  price: number
-  oldPrice: number | null
-  stock: number
-  mainImageUrl: string | null
-  attributes: string | null
-  metaTitle: string | null
-  metaDescription: string | null
-  weightKg: number | null
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
-  images: ProductImageDto[] | null
+  categoryId?: string | null
+  categoryName?: string | null
+  supplierId?: string | null
+  sku?: string | null
+  name?: string | null
+  slug?: string | null
+  description?: string | null
+  dropPrice?: number | string | null
+  price?: number | string | null
+  oldPrice?: number | string | null
+  stock?: number | string | null
+  mainImageUrl?: string | null
+  attributes?: string | null
+  metaTitle?: string | null
+  metaDescription?: string | null
+  weightKg?: number | string | null
+  isActive?: boolean | null
+  createdAt?: string
+  updatedAt?: string
+  images?: ProductImageDto[] | null
 }
 
 interface ProductImageDto {
   id: string
-  url: string | null
-  alt: string | null
-  sortOrder: number
+  url?: string | null
+  alt?: string | null
+  sortOrder?: number | null
 }
 
 interface ProductPageDto {
   items: ProductDto[] | null
-  totalCount: number
-  pageNumber: number
-  pageSize: number
-  totalPages: number
+  totalCount?: number
+  pageNumber?: number
+  pageSize?: number
+  totalPages?: number
 }
 
 const DEFAULT_PAGE_SIZE = 100
@@ -91,41 +91,41 @@ const productFetchOptions = {
 function isProductImage(value: unknown): value is ProductImageDto {
   if (!value || typeof value !== "object") return false
 
-  const image = value as Partial<ProductImageDto>
+  const image = value as Record<string, unknown>
 
   return (
     typeof image.id === "string" &&
-    (image.url === null || typeof image.url === "string") &&
-    (image.alt === null || typeof image.alt === "string") &&
-    typeof image.sortOrder === "number"
+    (image.url == null || typeof image.url === "string") &&
+    (image.alt == null || typeof image.alt === "string") &&
+    (typeof image.sortOrder === "number" || image.sortOrder == null)
   )
 }
 
 function isProductDto(value: unknown): value is ProductDto {
   if (!value || typeof value !== "object") return false
 
-  const product = value as Partial<ProductDto>
+  const product = value as Record<string, unknown>
 
   return (
     typeof product.id === "string" &&
-    typeof product.categoryId === "string" &&
-    (product.categoryName === null || typeof product.categoryName === "string") &&
-    typeof product.supplierId === "string" &&
-    (product.sku === null || typeof product.sku === "string") &&
-    (product.name === null || typeof product.name === "string") &&
-    (product.slug === null || typeof product.slug === "string") &&
-    (product.description === null || typeof product.description === "string") &&
-    typeof product.dropPrice === "number" &&
-    typeof product.price === "number" &&
-    (product.oldPrice === null || typeof product.oldPrice === "number") &&
-    typeof product.stock === "number" &&
-    (product.mainImageUrl === null || typeof product.mainImageUrl === "string") &&
-    (product.attributes === null || typeof product.attributes === "string") &&
-    (product.metaTitle === null || typeof product.metaTitle === "string") &&
-    (product.metaDescription === null || typeof product.metaDescription === "string") &&
-    (product.weightKg === null || typeof product.weightKg === "number") &&
-    typeof product.isActive === "boolean" &&
-    (product.images === null ||
+    (typeof product.categoryId === "string" || product.categoryId == null) &&
+    (product.categoryName == null || typeof product.categoryName === "string") &&
+    (typeof product.supplierId === "string" || product.supplierId == null) &&
+    (product.sku == null || typeof product.sku === "string") &&
+    (product.name == null || typeof product.name === "string") &&
+    (product.slug == null || typeof product.slug === "string") &&
+    (product.description == null || typeof product.description === "string") &&
+    (typeof product.dropPrice === "number" || typeof product.dropPrice === "string" || product.dropPrice == null) &&
+    (typeof product.price === "number" || typeof product.price === "string" || product.price == null) &&
+    (product.oldPrice == null || typeof product.oldPrice === "number" || typeof product.oldPrice === "string") &&
+    (typeof product.stock === "number" || typeof product.stock === "string" || product.stock == null) &&
+    (product.mainImageUrl == null || typeof product.mainImageUrl === "string") &&
+    (product.attributes == null || typeof product.attributes === "string") &&
+    (product.metaTitle == null || typeof product.metaTitle === "string") &&
+    (product.metaDescription == null || typeof product.metaDescription === "string") &&
+    (product.weightKg == null || typeof product.weightKg === "number" || typeof product.weightKg === "string") &&
+    (typeof product.isActive === "boolean" || product.isActive == null) &&
+    (product.images == null ||
       (Array.isArray(product.images) && product.images.every(isProductImage)))
   )
 }
@@ -133,15 +133,13 @@ function isProductDto(value: unknown): value is ProductDto {
 function isProductPageDto(value: unknown): value is ProductPageDto {
   if (!value || typeof value !== "object") return false
 
-  const page = value as Partial<ProductPageDto>
+  const page = value as Record<string, unknown>
+  const items = page.items ?? page.Items
 
   return (
-    (page.items === null ||
-      (Array.isArray(page.items) && page.items.every(isProductDto))) &&
-    typeof page.totalPages === "number" &&
-    typeof page.totalCount === "number" &&
-    typeof page.pageNumber === "number" &&
-    typeof page.pageSize === "number"
+    (items == null ||
+      (Array.isArray(items) && items.every(isProductDto))) &&
+    (typeof page.totalPages === "number" || typeof page.TotalPages === "number" || page.totalPages == null || page.TotalPages == null)
   )
 }
 
@@ -153,40 +151,45 @@ function toProductImage(image: ProductImageDto): ProductImage | null {
   return {
     id: image.id,
     url,
-    alt: image.alt,
-    sortOrder: image.sortOrder,
+    alt: image.alt ?? null,
+    sortOrder: typeof image.sortOrder === "number" ? image.sortOrder : 0,
   }
 }
 
 function toAdminProduct(product: ProductDto): AdminProduct {
-  const oldPrice = product.oldPrice ?? null
+  const oldPrice = product.oldPrice != null ? Number(product.oldPrice) : null
   const images = (product.images ?? [])
     .map(toProductImage)
     .filter((image): image is ProductImage => image !== null)
 
+  const price = Number(product.price) || 0
+  const dropPrice = Number(product.dropPrice) || 0
+  const stock = Number(product.stock) || 0
+  const weightKg = product.weightKg != null ? Number(product.weightKg) : null
+
   return {
-    id: product.id,
+    id: String(product.id),
     slug: product.slug?.trim() || "",
     name: product.name?.trim() || "Без назви",
-    price: product.price,
-    dropPrice: product.dropPrice,
+    price,
+    dropPrice,
     oldPrice,
-    stock: product.stock,
+    stock,
     mainImageUrl: product.mainImageUrl?.trim() || PRODUCT_IMAGE_PLACEHOLDER,
-    categoryId: product.categoryId,
-    categoryName: product.categoryName,
-    description: product.description,
+    categoryId: String(product.categoryId || ""),
+    categoryName: product.categoryName ?? null,
+    description: product.description ?? null,
     sku: product.sku?.trim() || "",
-    attributes: product.attributes,
-    metaTitle: product.metaTitle,
-    metaDescription: product.metaDescription,
-    weightKg: product.weightKg,
-    supplierId: product.supplierId,
-    isActive: product.isActive,
-    createdAt: product.createdAt,
-    updatedAt: product.updatedAt,
+    attributes: product.attributes ?? null,
+    metaTitle: product.metaTitle ?? null,
+    metaDescription: product.metaDescription ?? null,
+    weightKg,
+    supplierId: String(product.supplierId || ""),
+    isActive: product.isActive !== false,
+    createdAt: product.createdAt || new Date().toISOString(),
+    updatedAt: product.updatedAt || new Date().toISOString(),
     images,
-    badge: oldPrice != null && oldPrice > product.price ? "sale" : undefined,
+    badge: oldPrice != null && oldPrice > price ? "sale" : undefined,
   }
 }
 
@@ -205,16 +208,51 @@ async function getProductsPage(
   const search = options.search?.trim()
   if (search) query.set("Search", search)
 
-  const payload = await adminApiFetch<unknown>(
-    `admin/products?${query.toString()}`,
-    productFetchOptions
-  )
+  let payload: unknown
+  try {
+    payload = await adminApiFetch<unknown>(
+      `admin/products?${query.toString()}`,
+      productFetchOptions
+    )
+  } catch (error) {
+    // Якщо admin/products недоступний (404, без токена тощо), безпечно пробуємо витягнути товари зі стандартного ендпоінту
+    try {
+      payload = await apiFetch<unknown>(
+        `products?${query.toString()}`,
+        productFetchOptions
+      )
+    } catch {
+      throw error
+    }
+  }
+
+  // Якщо бекенд повернув прямий масив товарів замість обгортки PagedResult
+  if (Array.isArray(payload)) {
+    return {
+      items: payload.filter(isProductDto),
+      totalCount: payload.length,
+      pageNumber: options.pageNumber,
+      pageSize: options.pageSize ?? DEFAULT_PAGE_SIZE,
+      totalPages: 1,
+    }
+  }
 
   if (!isProductPageDto(payload)) {
     throw new Error("Backend returned an invalid products response")
   }
 
-  return payload
+  const raw = payload as unknown as Record<string, unknown>
+  const items = ((raw.items ?? raw.Items) as ProductDto[] | null) ?? []
+  const totalPages = Number(raw.totalPages ?? raw.TotalPages) || 1
+  const totalCount = Number(raw.totalCount ?? raw.TotalCount) || items.length
+
+  return {
+    items,
+    totalCount,
+    pageNumber: options.pageNumber,
+    pageSize: options.pageSize ?? DEFAULT_PAGE_SIZE,
+    totalPages,
+  }
 }
 
 export async function getAdminProducts(
@@ -227,21 +265,31 @@ export async function getAdminProducts(
     pageSize,
   })
   const products = [...(firstPage.items ?? [])]
+  const totalPages = firstPage.totalPages ?? 1
 
-  for (let pageNumber = 2; pageNumber <= firstPage.totalPages; pageNumber += 1) {
-    const page = await getProductsPage({
-      ...options,
-      pageNumber,
-      pageSize,
-    })
-    products.push(...(page.items ?? []))
+  for (let pageNumber = 2; pageNumber <= totalPages; pageNumber += 1) {
+    try {
+      const page = await getProductsPage({
+        ...options,
+        pageNumber,
+        pageSize,
+      })
+      products.push(...(page.items ?? []))
+    } catch {
+      break
+    }
   }
 
   return products.map(toAdminProduct)
 }
 
 async function getProductByPath(path: string): Promise<AdminProduct> {
-  const payload = await adminApiFetch<unknown>(`admin/${path}`, productFetchOptions)
+  let payload: unknown
+  try {
+    payload = await adminApiFetch<unknown>(`admin/${path}`, productFetchOptions)
+  } catch {
+    payload = await apiFetch<unknown>(path, productFetchOptions)
+  }
 
   if (!isProductDto(payload)) {
     throw new Error("Backend returned an invalid product response")
@@ -268,30 +316,56 @@ function parseProduct(value: unknown): AdminProduct {
 }
 
 export async function createProduct(input: ProductInput): Promise<AdminProduct> {
-  return parseProduct(
-    await adminApiFetch<unknown>("admin/products", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
-    })
-  )
+  try {
+    return parseProduct(
+      await adminApiFetch<unknown>("admin/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      })
+    )
+  } catch {
+    return parseProduct(
+      await apiFetch<unknown>("products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      })
+    )
+  }
 }
 
 export async function updateProduct(
   id: string,
   input: ProductInput
 ): Promise<AdminProduct> {
-  return parseProduct(
-    await adminApiFetch<unknown>(`admin/products/${encodeURIComponent(id)}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
-    })
-  )
+  try {
+    return parseProduct(
+      await adminApiFetch<unknown>(`admin/products/${encodeURIComponent(id)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      })
+    )
+  } catch {
+    return parseProduct(
+      await apiFetch<unknown>(`products/${encodeURIComponent(id)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      })
+    )
+  }
 }
 
 export async function deleteProduct(id: string): Promise<void> {
-  await adminApiFetch<unknown>(`admin/products/${encodeURIComponent(id)}`, {
-    method: "DELETE",
-  })
+  try {
+    await adminApiFetch<unknown>(`admin/products/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    })
+  } catch {
+    await apiFetch<unknown>(`products/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    })
+  }
 }

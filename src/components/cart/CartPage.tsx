@@ -130,7 +130,7 @@ export function CartPage() {
                       max={product.stock}
                       value={quantity}
                       aria-label={`Кількість: ${product.name}`}
-                      className="h-9 w-12 border-x border-border bg-transparent text-center text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                      className="h-9 w-12 border-x border-border bg-transparent text-center text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                       onChange={(event) => {
                         const nextQuantity = Number(event.target.value)
                         if (Number.isFinite(nextQuantity)) {

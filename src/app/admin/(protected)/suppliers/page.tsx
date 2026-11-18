@@ -11,8 +11,13 @@ export const metadata: Metadata = {
   },
 }
 
+export const dynamic = "force-dynamic"
+
 export default async function AdminSuppliersPage() {
-  const suppliers = await getSuppliers({ onlyActive: false })
+  const suppliers = await getSuppliers({ onlyActive: false }).catch((error) => {
+    console.error("Failed to load suppliers in admin:", error)
+    return []
+  })
 
   return (
     <div className="min-h-full bg-background">

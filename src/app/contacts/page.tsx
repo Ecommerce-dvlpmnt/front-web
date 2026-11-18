@@ -5,8 +5,8 @@ import { InfoPage } from "@/components/content/InfoPage"
 import { shopConfig } from "@/lib/config/shop"
 
 export const metadata: Metadata = {
-  title: "Контакти — Lumière",
-  description: "Контакти та графік роботи магазину Lumière.",
+  title: "Контакти — Jingle Decor",
+  description: "Контакти та графік роботи магазину Jingle Decor.",
 }
 
 export default function ContactsPage() {

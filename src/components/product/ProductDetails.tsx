@@ -3,9 +3,22 @@
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Minus, Plus, ShoppingBag } from "lucide-react"
+import {
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  CreditCard,
+  Minus,
+  Plus,
+  RotateCcw,
+  ShieldCheck,
+  ShoppingBag,
+  Star,
+  Truck,
+} from "lucide-react"
 
 import { useCart } from "@/components/cart/CartContext"
+import { ProductReviews } from "@/components/product/ProductReviews"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -16,12 +29,157 @@ import {
   parseProductAttributes,
 } from "@/features/product/product-utils"
 import { formatPrice } from "@/lib/formatters/price"
+import { formatReviewsDeclension, getProductRating } from "@/lib/reviews/reviews-store"
+import { cn } from "@/lib/utils"
 import type { Category } from "@/types/category"
 import type { Product } from "@/types/product"
 
 interface ProductDetailsProps {
   product: Product
   category?: Category
+}
+
+function StructuredDescription({ description }: { description?: string | null }) {
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  if (!description || !description.trim()) {
+    return (
+      <div className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+        Опис товару наразі оновлюється нашими менеджерами.
+      </div>
+    )
+  }
+
+  // Очищення від сирих HTML-тегів
+  const cleanText = description
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .trim()
+
+  const paragraphs = cleanText
+    .split(/\n+/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+
+  const isLong = cleanText.length > 280 || paragraphs.length > 3
+
+  return (
+    <div className="space-y-6">
+      {/* Ключові властивості виробу у витриманому лаконічному форматі */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4 py-3.5 border-y border-border/80 my-2">
+        <div>
+          <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground block">
+            Хвоя
+          </span>
+          <p className="mt-0.5 text-xs sm:text-sm font-semibold text-foreground">
+            100% Лита
+          </p>
+          <p className="text-[11px] text-muted-foreground">Первинний полімер</p>
+        </div>
+
+        <div>
+          <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground block">
+            Безпека
+          </span>
+          <p className="mt-0.5 text-xs sm:text-sm font-semibold text-foreground">
+            Без запаху
+          </p>
+          <p className="text-[11px] text-muted-foreground">Гіпоалергенна, не горить</p>
+        </div>
+
+        <div>
+          <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground block">
+            Конструкція
+          </span>
+          <p className="mt-0.5 text-xs sm:text-sm font-semibold text-foreground">
+            Швидка збірка
+          </p>
+          <p className="text-[11px] text-muted-foreground">Гілки на шарнірах</p>
+        </div>
+
+        <div>
+          <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground block">
+            Пакування
+          </span>
+          <p className="mt-0.5 text-xs sm:text-sm font-semibold text-foreground">
+            Заводська коробка
+          </p>
+          <p className="text-[11px] text-muted-foreground">Для щороку зберігання</p>
+        </div>
+      </div>
+
+      {/* Контейнер структурованого опису */}
+      <div className="relative">
+        <div
+          className={cn(
+            "space-y-3.5 text-sm sm:text-base leading-relaxed text-foreground/90 transition-all duration-300",
+            !isExpanded && isLong && "max-h-56 overflow-hidden"
+          )}
+        >
+          {paragraphs.map((para, idx) => {
+            const isBullet = /^([•\-\*✔✓\+]|\d+[\.\)])\s+/.test(para)
+            if (isBullet) {
+              const cleanBullet = para.replace(/^([•\-\*✔✓\+]|\d+[\.\)])\s+/, "")
+              return (
+                <div key={idx} className="flex items-start gap-2.5 pl-1 text-sm text-foreground/90">
+                  <CheckCircle2 className="size-4 shrink-0 text-[#C8923A] dark:text-[#D4AF37] mt-0.5" />
+                  <span>{cleanBullet}</span>
+                </div>
+              )
+            }
+
+            const isHeading = (para.endsWith(":") || para.length < 50) && !para.includes(".")
+            if (isHeading) {
+              return (
+                <h4 key={idx} className="pt-2 font-semibold text-foreground text-sm uppercase tracking-wider">
+                  {para}
+                </h4>
+              )
+            }
+
+            return (
+              <p key={idx} className="leading-7">
+                {para}
+              </p>
+            )
+          })}
+        </div>
+
+        {/* Градієнт приховання тексту */}
+        {!isExpanded && isLong && (
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-background via-background/80 to-transparent"
+            aria-hidden="true"
+          />
+        )}
+      </div>
+
+      {/* Кнопка розгортання/згортання */}
+      {isLong && (
+        <div className="flex justify-center pt-1">
+          <button
+            type="button"
+            onClick={() => setIsExpanded((prev) => !prev)}
+            className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-muted/60 px-5 py-2 text-xs font-semibold uppercase tracking-wider text-foreground shadow-xs transition-colors hover:bg-muted cursor-pointer"
+          >
+            {isExpanded ? (
+              <>
+                <span>Згорнути опис</span>
+                <ChevronUp className="size-3.5" />
+              </>
+            ) : (
+              <>
+                <span>Читати опис повністю</span>
+                <ChevronDown className="size-3.5" />
+              </>
+            )}
+          </button>
+        </div>
+      )}
+    </div>
+  )
 }
 
 export function ProductDetails({
@@ -35,7 +193,12 @@ export function ProductDetails({
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [isAdded, setIsAdded] = useState(false)
+  const [activeTab, setActiveTab] = useState<
+    "description" | "attributes" | "delivery" | "reviews"
+  >("description")
   const { addItem, items } = useCart()
+
+  const rating = getProductRating(product.id)
 
   const cartQuantity =
     items.find((item) => item.product.id === product.id)?.quantity ?? 0
@@ -66,13 +229,21 @@ export function ProductDetails({
     if (!canAddToCart) return
 
     addItem(product, quantity)
-
     setIsAdded(true)
+  }
+
+  const handleOpenReviews = () => {
+    setActiveTab("reviews")
+    const el = document.getElementById("product-tabs")
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" })
+    }
   }
 
   return (
     <>
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1.08fr)_minmax(24rem,0.92fr)] lg:gap-16">
+        {/* Галерея изображений */}
         <section aria-label="Галерея товару">
           <div className="md:hidden">
             <div className="flex snap-x snap-mandatory overflow-x-auto rounded-3xl border border-border bg-muted">
@@ -140,7 +311,11 @@ export function ProductDetails({
           </div>
         </section>
 
-        <section className="lg:sticky lg:top-28 lg:self-start" aria-labelledby="product-title">
+        {/* Информация о товаре */}
+        <section
+          className="lg:sticky lg:top-28 lg:self-start"
+          aria-labelledby="product-title"
+        >
           <div className="flex flex-wrap items-center gap-2">
             {category ? (
               <Link
@@ -166,19 +341,51 @@ export function ProductDetails({
 
           <h1
             id="product-title"
-            className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl"
+            className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl text-foreground"
           >
             {product.name}
           </h1>
 
+          {/* Звездный рейтинг товара с прямым переходом к отзывам */}
+          <div className="mt-3 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleOpenReviews}
+              className="group flex items-center gap-2 text-sm transition-colors hover:text-foreground cursor-pointer"
+              aria-label={`Оцінка ${rating.score.toFixed(1)} на основі ${rating.count} ${formatReviewsDeclension(rating.count)}`}
+            >
+              <div
+                className="flex items-center gap-0.5 text-[#F59E0B] dark:text-[#FBBF24]"
+                aria-hidden="true"
+              >
+                {Array.from({ length: 5 }, (_, i) => (
+                  <Star
+                    key={i}
+                    className={`size-4 ${
+                      i < Math.round(rating.score)
+                        ? "fill-current"
+                        : "text-muted-foreground/30 fill-muted-foreground/15"
+                    }`}
+                  />
+                ))}
+              </div>
+              <span className="font-bold text-foreground text-sm">
+                {rating.score.toFixed(1)}
+              </span>
+              <span className="text-xs text-muted-foreground group-hover:underline">
+                · {rating.count} {formatReviewsDeclension(rating.count)} покупців
+              </span>
+            </button>
+          </div>
+
           {product.sku && (
-            <p className="mt-3 text-sm text-muted-foreground">
+            <p className="mt-2 text-xs text-muted-foreground">
               Артикул: {product.sku}
             </p>
           )}
 
-          <div className="mt-7 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <p className="text-3xl font-semibold tracking-tight">
+          <div className="mt-6 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <p className="text-3xl font-semibold tracking-tight text-foreground">
               {formatPrice(product.price)}
             </p>
 
@@ -189,18 +396,31 @@ export function ProductDetails({
             )}
           </div>
 
-          <div className="mt-5 flex items-center gap-3">
+          <div className="mt-4 flex items-center gap-3">
             <Badge variant={isOutOfStock ? "destructive" : "secondary"}>
               {isOutOfStock ? "Закінчився" : "В наявності"}
             </Badge>
             {!isOutOfStock && (
-              <span className="text-sm text-muted-foreground">
-                {product.stock} шт. доступно
+              <span className="text-xs text-muted-foreground">
+                {product.stock} шт. готово до відправки
               </span>
             )}
           </div>
 
-          <div className="mt-8 border-t border-border pt-7">
+          {/* Быстрые гарантии магазина */}
+          <div className="mt-6 grid grid-cols-2 gap-3 border-t border-border/80 pt-5 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Truck className="size-4 shrink-0 text-foreground" />
+              <span>Відправка Новою Поштою 1–2 дні</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="size-4 shrink-0 text-foreground" />
+              <span>Сертифікована якість виробника</span>
+            </div>
+          </div>
+
+          {/* Блок выбора количества и кнопка покупки */}
+          <div className="mt-6 border-t border-border pt-6">
             <label
               htmlFor="product-quantity"
               className="text-sm font-medium"
@@ -228,7 +448,7 @@ export function ProductDetails({
                   value={quantity}
                   disabled={isOutOfStock}
                   aria-label="Кількість товару"
-                  className="h-10 w-12 appearance-none border-x border-border bg-transparent text-center text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                  className="h-10 w-12 border-x border-border bg-transparent text-center text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                   onChange={(event) =>
                     updateQuantity(Number(event.target.value))
                   }
@@ -247,11 +467,11 @@ export function ProductDetails({
 
               <Button
                 type="button"
-                className="h-10 flex-1"
+                className="h-10 flex-1 rounded-lg bg-foreground text-background font-semibold uppercase tracking-wider text-xs shadow-xs hover:bg-foreground/90 cursor-pointer"
                 disabled={!canAddToCart}
                 onClick={handleAddToCart}
               >
-                <ShoppingBag />
+                <ShoppingBag className="mr-1.5 size-4" />
                 {isOutOfStock
                   ? "Немає в наявності"
                   : !canAddToCart
@@ -263,50 +483,170 @@ export function ProductDetails({
             </div>
 
             <p className="mt-3 text-xs text-muted-foreground">
-              Кількість можна змінити в кошику перед оформленням замовлення.
+              Оплата при отриманні на пошті або онлайн на IBAN ФОП.
             </p>
           </div>
         </section>
       </div>
 
-      <div className="mt-16 grid gap-10 border-t border-border pt-10 sm:mt-24 sm:pt-14 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] lg:gap-16">
-        <section aria-labelledby="product-description-title">
-          <p className="text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase">
-            Деталі
-          </p>
-          <h2
-            id="product-description-title"
-            className="mt-3 text-2xl font-semibold tracking-tight"
+      {/* Продуманная система описания, характеристик, доставки и отзывов */}
+      <div id="product-tabs" className="mt-16 border-t border-border pt-10 sm:mt-24 sm:pt-14 scroll-mt-28">
+        <div className="flex flex-wrap items-center gap-2 border-b border-border pb-4">
+          <button
+            type="button"
+            onClick={() => setActiveTab("description")}
+            className={cn(
+              "rounded-full px-5 py-2 text-xs font-semibold uppercase tracking-wider transition-all duration-200 cursor-pointer",
+              activeTab === "description"
+                ? "bg-foreground text-background shadow-xs"
+                : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
           >
-            Опис товару
-          </h2>
-        </section>
-
-        <div>
-          <p className="whitespace-pre-line text-base leading-8 text-muted-foreground">
-            {product.description || "Опис товару поки що не доданий."}
-          </p>
+            Опис виробу
+          </button>
 
           {attributes.length > 0 && (
-            <div className="mt-10 overflow-hidden rounded-2xl border border-border">
-              <h3 className="border-b border-border bg-muted/50 px-5 py-4 text-sm font-semibold">
-                Характеристики
-              </h3>
+            <button
+              type="button"
+              onClick={() => setActiveTab("attributes")}
+              className={cn(
+                "rounded-full px-5 py-2 text-xs font-semibold uppercase tracking-wider transition-all duration-200 cursor-pointer",
+                activeTab === "attributes"
+                  ? "bg-foreground text-background shadow-xs"
+                  : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+            >
+              Характеристики ({attributes.length})
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("delivery")}
+            className={cn(
+              "rounded-full px-5 py-2 text-xs font-semibold uppercase tracking-wider transition-all duration-200 cursor-pointer",
+              activeTab === "delivery"
+                ? "bg-foreground text-background shadow-xs"
+                : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            Доставка та оплата
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("reviews")}
+            className={cn(
+              "rounded-full px-5 py-2 text-xs font-semibold uppercase tracking-wider transition-all duration-200 cursor-pointer",
+              activeTab === "reviews"
+                ? "bg-foreground text-background shadow-xs"
+                : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            Відгуки покупців ({rating.count})
+          </button>
+        </div>
+
+        {/* Содержимое активной вкладки */}
+        <div className="mt-8">
+          {/* Вкладка 1: Опис товару */}
+          {activeTab === "description" && (
+            <div className="space-y-10 animate-in fade-in duration-300">
+              <StructuredDescription description={product.description} />
+
+              {/* 4 картки фабричних переваг виробу */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="rounded-2xl border border-border/80 bg-card p-4 shadow-xs">
+                  <ShieldCheck className="size-5 text-[#C8923A] dark:text-[#D4AF37]" />
+                  <p className="mt-2 text-sm font-semibold text-foreground">100% Безпечні матеріали</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Харчовий еко-полімер, гіпоалергенна хвоя без неприємного запаху.</p>
+                </div>
+
+                <div className="rounded-2xl border border-border/80 bg-card p-4 shadow-xs">
+                  <CheckCircle2 className="size-5 text-[#C8923A] dark:text-[#D4AF37]" />
+                  <p className="mt-2 text-sm font-semibold text-foreground">Пожежобезпечність</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Хвоя не підтримує горіння, а плавиться. Безпечно для дітей та тварин.</p>
+                </div>
+
+                <div className="rounded-2xl border border-border/80 bg-card p-4 shadow-xs">
+                  <RotateCcw className="size-5 text-[#C8923A] dark:text-[#D4AF37]" />
+                  <p className="mt-2 text-sm font-semibold text-foreground">Служба 10+ сезонів</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Гілочки не деформуються, не ламаються і зберігають пишність роками.</p>
+                </div>
+
+                <div className="rounded-2xl border border-border/80 bg-card p-4 shadow-xs">
+                  <Truck className="size-5 text-[#C8923A] dark:text-[#D4AF37]" />
+                  <p className="mt-2 text-sm font-semibold text-foreground">Щільна упаковка</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Постачається у надійній фірмовій коробці, зручній для сезонного зберігання.</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Вкладка 2: Характеристики */}
+          {activeTab === "attributes" && attributes.length > 0 && (
+            <div className="overflow-hidden rounded-2xl border border-border/90 bg-card shadow-xs animate-in fade-in duration-300">
               <dl className="divide-y divide-border">
-                {attributes.map(([key, value]) => (
+                {attributes.map(([key, value], idx) => (
                   <div
                     key={key}
-                    className="grid gap-1 px-5 py-4 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] sm:gap-6"
+                    className={`grid gap-1 px-5 py-3.5 sm:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] sm:gap-6 ${
+                      idx % 2 === 0 ? "bg-card" : "bg-muted/20"
+                    }`}
                   >
-                    <dt className="text-sm text-muted-foreground">
+                    <dt className="text-sm text-muted-foreground font-medium">
                       {formatProductAttributeLabel(key)}
                     </dt>
-                    <dd className="text-sm font-medium">
+                    <dd className="text-sm font-semibold text-foreground">
                       {formatProductAttributeValue(value)}
                     </dd>
                   </div>
                 ))}
               </dl>
+            </div>
+          )}
+
+          {/* Вкладка 3: Доставка и оплата */}
+          {activeTab === "delivery" && (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 animate-in fade-in duration-300">
+              <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-xs">
+                <Truck className="size-6 text-[#C8923A] dark:text-[#D4AF37]" />
+                <h4 className="mt-3 text-base font-semibold text-foreground">Доставка Новою Поштою</h4>
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                  Швидка відправка по всій Україні протягом 1–2 робочих днів. Доставка у будь-яке відділення, поштомат або адресна доставка кур&apos;єром.
+                </p>
+                <p className="mt-3 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                  Безкоштовна доставка для замовлень від 1500 ₴
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-xs">
+                <CreditCard className="size-6 text-[#C8923A] dark:text-[#D4AF37]" />
+                <h4 className="mt-3 text-base font-semibold text-foreground">Зручні способи оплати</h4>
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                  • Оплата при отриманні (післяплата) після огляду виробу у відділенні.<br />
+                  • Офіційна онлайн-оплата за реквізитами IBAN ФОП.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-xs">
+                <RotateCcw className="size-6 text-[#C8923A] dark:text-[#D4AF37]" />
+                <h4 className="mt-3 text-base font-semibold text-foreground">Гарантія та повернення</h4>
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                  14 днів на повернення або обмін відповідно до Закону України «Про захист прав споживачів». Ви можете спокійно перевірити виріб при отриманні.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Вкладка 4: Отзывы */}
+          {activeTab === "reviews" && (
+            <div className="animate-in fade-in duration-300">
+              <ProductReviews
+                productId={product.id}
+                productName={product.name}
+                categorySlug={category?.slug}
+              />
             </div>
           )}
         </div>

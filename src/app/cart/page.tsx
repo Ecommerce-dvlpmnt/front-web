@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { CartPage } from "@/components/cart/CartPage"
 
 export const metadata: Metadata = {
-  title: "Кошик — Lumière",
+  title: "Кошик — Jingle Decor",
   description: "Перевірте товари та перейдіть до оформлення замовлення.",
   robots: { index: false, follow: false },
 }
