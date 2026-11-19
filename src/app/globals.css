@@ -132,6 +132,20 @@
     scroll-behavior: smooth;
     scroll-padding-top: 5.5rem;
   }
+
+  /* Адаптив для больших мониторов (QHD, ultrawide, 4K).
+     До 1920px ничего не меняется: 1rem = 16px.
+     Шире 1920px базовый размер плавно растёт: 2560px → ~18.7px, 3840px → 24px (максимум 150%).
+     Почти все размеры Tailwind заданы в rem, поэтому контейнер max-w-7xl,
+     шрифты и отступы увеличиваются пропорционально, а сайт не превращается
+     в узкую полоску посреди экрана.
+     Брейкпоинты sm/md/lg в медиазапросах этим правилом не затрагиваются. */
+  @media (min-width: 120rem) {
+    html {
+      font-size: clamp(100%, 0.5rem + 0.4167vw, 150%);
+    }
+  }
+
   body {
     @apply bg-background text-foreground antialiased selection:bg-[#d4af37]/25 selection:text-foreground;
     transition: background-color 0.2s ease, color 0.15s ease;

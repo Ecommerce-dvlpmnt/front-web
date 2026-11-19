@@ -112,7 +112,10 @@ export function ProductCard({
       </Link>
 
       <div className="flex flex-1 flex-col p-4 sm:p-5">
-        <h3 className="min-h-12 line-clamp-2 font-medium text-[15px] leading-snug text-foreground transition-colors group-hover/card:text-[#d4af37]">
+        {/* min-h-[2.75em] = ровно 2 строки (2 × leading-snug 1.375em).
+            Раньше min-h-12 был выше двух строк, и из-под line-clamp
+            выглядывал верх третьей строки. */}
+        <h3 className="min-h-[2.75em] line-clamp-2 break-words font-medium text-[15px] leading-snug text-foreground transition-colors group-hover/card:text-[#d4af37]">
           <Link
             href={`/product/${product.slug}`}
             className="rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
@@ -121,35 +124,38 @@ export function ProductCard({
           </Link>
         </h3>
 
-        {/* Звездный рейтинг товара: 5 звезд, жирный балл и количество отзывов */}
-        <div className="mt-2 flex items-center gap-1.5 text-xs">
-          <div className="flex items-center gap-0.5 text-[#F59E0B] dark:text-[#FBBF24]" aria-hidden="true">
-            {Array.from({ length: 5 }, (_, i) => (
-              <Star
-                key={i}
-                className={`size-3.5 ${
-                  i < Math.round(rating.score)
-                    ? "fill-current text-[#F59E0B] dark:text-[#FBBF24]"
-                    : "text-muted-foreground/30 fill-muted-foreground/15"
-                }`}
-              />
-            ))}
+        {/* Звездный рейтинг: звёзды и балл — одна группа, отзывы — другая.
+            В узкой карточке «(24 відгуки)» целиком переносится на новую строку. */}
+        <div className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs">
+          <div className="flex shrink-0 items-center gap-1.5">
+            <div className="flex items-center gap-0.5 text-[#F59E0B] dark:text-[#FBBF24]" aria-hidden="true">
+              {Array.from({ length: 5 }, (_, i) => (
+                <Star
+                  key={i}
+                  className={`size-3.5 ${
+                    i < Math.round(rating.score)
+                      ? "fill-current text-[#F59E0B] dark:text-[#FBBF24]"
+                      : "text-muted-foreground/30 fill-muted-foreground/15"
+                  }`}
+                />
+              ))}
+            </div>
+            <span className="font-bold text-foreground text-xs tracking-tight">
+              {rating.score.toFixed(1)}
+            </span>
           </div>
-          <span className="font-bold text-foreground text-xs tracking-tight">
-            {rating.score.toFixed(1)}
-          </span>
-          <span className="text-[11px] text-muted-foreground">
+          <span className="whitespace-nowrap text-[11px] text-muted-foreground">
             ({rating.count} {formatReviewsDeclension(rating.count)})
           </span>
         </div>
 
-        <div className="mt-3 flex min-h-7 flex-wrap items-baseline gap-2">
-          <p className="text-base font-semibold tracking-tight text-foreground">
+        <div className="mt-3 flex min-h-7 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          <p className="whitespace-nowrap text-base font-semibold tracking-tight text-foreground">
             {formattedPrice}
           </p>
 
           {formattedOldPrice && (
-            <p className="text-xs text-muted-foreground line-through">
+            <p className="whitespace-nowrap text-xs text-muted-foreground line-through">
               {formattedOldPrice}
             </p>
           )}
@@ -157,7 +163,7 @@ export function ProductCard({
 
         <div className="mt-auto flex items-center gap-1.5 pt-3 text-xs text-muted-foreground">
           <span
-            className={`size-1.5 rounded-full ${
+            className={`size-1.5 shrink-0 rounded-full ${
               isOutOfStock ? "bg-red-400" : "bg-emerald-500/80"
             }`}
             aria-hidden="true"
@@ -167,8 +173,10 @@ export function ProductCard({
           </p>
         </div>
 
+        {/* h-auto + whitespace-normal: длинный текст («Максимум у кошику»)
+            переносится внутри кнопки, а не вылезает за её край. */}
         <Button
-          className={`mt-3.5 w-full rounded-full border-0 text-xs font-semibold tracking-wide uppercase transition-all duration-200 ${
+          className={`mt-3.5 h-auto min-h-8 w-full whitespace-normal rounded-full border-0 py-2 text-center text-xs font-semibold leading-tight tracking-wide uppercase transition-all duration-200 ${
             isAdded
               ? "bg-[#1B3527] text-white scale-[1.01]"
               : "bg-foreground text-background hover:bg-foreground/90 active:scale-[0.98] shadow-xs"
