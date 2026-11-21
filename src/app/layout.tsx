@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Manrope } from "next/font/google";
+import { Manrope, Onest } from "next/font/google";
 
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
@@ -20,10 +20,9 @@ const fontSans = Manrope({
   display: "swap",
 });
 
-const fontHeading = Cormorant_Garamond({
+const fontHeading = Onest({
   subsets: ["latin", "cyrillic", "cyrillic-ext"],
   weight: ["500", "600", "700"],
-  style: ["normal", "italic"],
   variable: "--font-heading-loaded",
   display: "swap",
 });

@@ -184,7 +184,7 @@ export function HeroBanner() {
                   {s.badge}
                 </div>
 
-                <h1 className="mt-5 font-heading text-[2.5rem] font-semibold tracking-tight text-balance text-[#FAF8F5] sm:text-5xl lg:text-[4rem] leading-[1.06]">
+                <h1 className="mt-5 font-heading text-4xl font-semibold tracking-[-0.02em] text-balance text-[#FAF8F5] sm:text-5xl lg:text-[3.5rem] leading-[1.12]">
                   {s.title}
                 </h1>
 

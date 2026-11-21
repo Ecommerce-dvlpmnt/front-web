@@ -9,7 +9,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans-loaded), Inter, ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  --font-heading: var(--font-heading-loaded), Georgia, serif;
+  --font-heading: var(--font-heading-loaded), var(--font-sans-loaded), ui-sans-serif, system-ui, sans-serif;
   --color-gold: #D4AF37;
   --color-gold-light: #F3D078;
   --color-ruby: #7A1C24;

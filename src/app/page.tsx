@@ -42,14 +42,14 @@ export default async function Home({ searchParams }: HomeProps) {
                 <Factory className="size-4.5" strokeWidth={1.75} />
               </div>
               <span className="text-[11px] font-semibold tracking-widest uppercase text-[#8C5E14]/70 dark:text-[#F3D078]/60">
-                Власна фабрика
+                Авторський декор
               </span>
             </div>
-            <h3 className="mt-4 text-sm font-bold tracking-wide text-foreground">
-              Прямо з виробництва
+            <h3 className="mt-4 font-heading text-sm font-bold tracking-wide text-foreground">
+              Ручна робота та затишок
             </h3>
             <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
-              Чесна ціна без націнок посередників. Усі замовлення дбайливо пакуються та відправляються напряму з фабрики.
+              Створюємо пухнасті ялинки, різдвяні вінки та святкові прикраси з увагою до кожної гілочки й деталі.
             </p>
           </div>
 
@@ -62,11 +62,11 @@ export default async function Home({ searchParams }: HomeProps) {
                 Еко-безпека
               </span>
             </div>
-            <h3 className="mt-4 text-sm font-bold tracking-wide text-foreground">
-              100% Лита хвоя
+            <h3 className="mt-4 font-heading text-sm font-bold tracking-wide text-foreground">
+              Як справжня лісова хвоя
             </h3>
             <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
-              Первинний харчовий полімер. Безпечно для дітей та улюбленців, не обсипається і не має стороннього запаху.
+              М’які та густі литі гілочки, які приємно прикрашати всією родиною. Безпечні для дітей та домашніх улюбленців.
             </p>
           </div>
 
@@ -76,14 +76,14 @@ export default async function Home({ searchParams }: HomeProps) {
                 <Box className="size-4.5" strokeWidth={1.75} />
               </div>
               <span className="text-[11px] font-semibold tracking-widest uppercase text-[#8C5E14]/70 dark:text-[#F3D078]/60">
-                Надійне пакування
+                Турбота про свято
               </span>
             </div>
-            <h3 className="mt-4 text-sm font-bold tracking-wide text-foreground">
-              Заводська коробка
+            <h3 className="mt-4 font-heading text-sm font-bold tracking-wide text-foreground">
+              Дбайливе пакування
             </h3>
             <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
-              Цупкий 5-шаровий гофрокартон захищає декор у дорозі та зручно служить для дбайливого зберігання щороку.
+              Кожна ялинка та прикраса приїжджають у міцній фірмовій коробці, в якій декор зручно зберігати до наступної зими.
             </p>
           </div>
 
@@ -96,11 +96,11 @@ export default async function Home({ searchParams }: HomeProps) {
                 1–2 дні по Україні
               </span>
             </div>
-            <h3 className="mt-4 text-sm font-bold tracking-wide text-foreground">
-              Оплата при отриманні
+            <h3 className="mt-4 font-heading text-sm font-bold tracking-wide text-foreground">
+              Оплата після огляду
             </h3>
             <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
-              Швидка доставка Новою Поштою. Спокійно оглядайте пишність та якість хвої у відділенні перед оплатою.
+              Швидка відправка Новою Поштою. Спокійно оглядайте красу та якість декору у відділенні перед оплатою.
             </p>
           </div>
         </div>
