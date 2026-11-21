@@ -306,19 +306,58 @@ html.lenis, html.lenis body {
 }
 
 @keyframes logoShimmerSweep {
-  0%, 86% {
+  0%, 70% {
     transform: translateX(-150%) skewX(-20deg);
     opacity: 0;
   }
-  88% {
+  72% {
     opacity: 1;
   }
+  84% {
+    transform: translateX(330%) skewX(-20deg);
+    opacity: 1;
+  }
+  86%, 100% {
+    transform: translateX(330%) skewX(-20deg);
+    opacity: 0;
+  }
+}
+
+/* Вспышка звездочки возле слова DECOR через ~0.5 сек после прохода блика по буквам */
+@keyframes logoStarSparkle {
+  0%, 89% {
+    transform: scale(0) rotate(-35deg);
+    opacity: 0;
+  }
+  93.5% {
+    transform: scale(1.18) rotate(0deg);
+    opacity: 1;
+  }
+  95.5% {
+    transform: scale(0.92) rotate(12deg);
+    opacity: 0.9;
+  }
   97% {
-    transform: translateX(300%) skewX(-20deg);
+    transform: scale(1.06) rotate(20deg);
     opacity: 1;
   }
   100% {
-    transform: translateX(300%) skewX(-20deg);
+    transform: scale(0) rotate(45deg);
+    opacity: 0;
+  }
+}
+
+@keyframes logoMicroSparkle {
+  0%, 91% {
+    transform: scale(0) rotate(-25deg);
+    opacity: 0;
+  }
+  95% {
+    transform: scale(1.1) rotate(0deg);
+    opacity: 0.95;
+  }
+  100% {
+    transform: scale(0) rotate(35deg);
     opacity: 0;
   }
 }
@@ -326,7 +365,19 @@ html.lenis, html.lenis body {
 .animate-logo-shimmer {
   transform-box: fill-box;
   transform-origin: center;
-  animation: logoShimmerSweep 10s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: logoShimmerSweep 8s cubic-bezier(0.4, 0, 0.2, 1) -5.3s infinite;
+}
+
+.animate-logo-sparkle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: logoStarSparkle 8s cubic-bezier(0.22, 1, 0.36, 1) -5.3s infinite;
+}
+
+.animate-logo-sparkle-delayed {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: logoMicroSparkle 8s cubic-bezier(0.22, 1, 0.36, 1) -5.3s infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -339,7 +390,9 @@ html.lenis, html.lenis body {
     display: none !important;
   }
   .animate-banner-shimmer,
-  .animate-logo-shimmer {
+  .animate-logo-shimmer,
+  .animate-logo-sparkle,
+  .animate-logo-sparkle-delayed {
     animation: none !important;
   }
 }

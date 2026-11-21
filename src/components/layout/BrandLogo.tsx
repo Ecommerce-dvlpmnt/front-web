@@ -111,10 +111,11 @@ export function BrandNameLogo({
   const cleanId = rawId.replace(/[^a-zA-Z0-9_-]/g, "")
   const maskId = `name-mask-${cleanId}`
   const shimmerId = `name-shimmer-${cleanId}`
+  const sparkleGlowId = `sparkle-glow-${cleanId}`
 
   return (
     <svg
-      viewBox="0 2 313 109"
+      viewBox="0 2 332 111"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
@@ -133,6 +134,11 @@ export function BrandNameLogo({
               <stop offset="50%" stopColor="#FFFFFF" stopOpacity="0.85" />
               <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
             </linearGradient>
+            <radialGradient id={sparkleGlowId} cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#FFF6D6" stopOpacity="0.95" />
+              <stop offset="45%" stopColor="#F3D078" stopOpacity="0.45" />
+              <stop offset="100%" stopColor="#D4AF37" stopOpacity="0" />
+            </radialGradient>
             <mask id={maskId}>
               <path
                 d={JINGLE_PATH}
@@ -170,16 +176,41 @@ export function BrandNameLogo({
       />
 
       {animated && (
-        <g mask={`url(#${maskId})`} className="pointer-events-none">
-          <rect
-            className="animate-logo-shimmer"
-            x="0"
-            y="-20"
-            width="80"
-            height="160"
-            fill={`url(#${shimmerId})`}
-          />
-        </g>
+        <>
+          <g mask={`url(#${maskId})`} className="pointer-events-none">
+            <rect
+              className="animate-logo-shimmer"
+              x="0"
+              y="-20"
+              width="80"
+              height="160"
+              fill={`url(#${shimmerId})`}
+            />
+          </g>
+
+          {/* Ювелірний спалах зірочки біля слова DECOR через ~0.5с після проходження шимера */}
+          <g className="animate-logo-sparkle pointer-events-none" aria-hidden="true">
+            <circle cx="321" cy="87" r="10.5" fill={`url(#${sparkleGlowId})`} />
+            <path
+              d="M321 75.5C321 84.8 322.2 87 331.5 87C322.2 87 321 89.2 321 98.5C321 89.2 319.8 87 310.5 87C319.8 87 321 84.8 321 75.5Z"
+              className="fill-[#B87D14] dark:fill-[#FFDF85]"
+            />
+            <circle
+              cx="321"
+              cy="87"
+              r="2"
+              className="fill-[#FFF8E1] dark:fill-[#FFFFFF]"
+            />
+          </g>
+
+          {/* Додаткова ніжна мікро-іскра трохи вище літер OR */}
+          <g className="animate-logo-sparkle-delayed pointer-events-none" aria-hidden="true">
+            <path
+              d="M302 70C302 74.2 302.7 75 307 75C302.7 75 302 75.8 302 80C302 75.8 301.3 75 297 75C301.3 75 302 74.2 302 70Z"
+              className="fill-[#C8923A] dark:fill-[#FFF0B8]"
+            />
+          </g>
+        </>
       )}
     </svg>
   )
