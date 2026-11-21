@@ -4,7 +4,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { WinterSnow } from "@/components/ambient/WinterSnow";
 import { SmoothScroll } from "@/components/ambient/SmoothScroll";
-import { GoogleTagManager } from "@/components/analytics/GoogleTagManager";
+import { GoogleTag } from "@/components/analytics/GoogleTag";
 import { CartProvider } from "@/components/cart/CartContext";
 import { buildCategoryTree, getCategories } from "@/lib/api/categories";
 
@@ -28,7 +28,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col" suppressHydrationWarning>
-        <GoogleTagManager id={process.env.NEXT_PUBLIC_GTM_ID} />
+        <GoogleTag id={process.env.NEXT_PUBLIC_GOOGLE_TAG_ID} />
         <SmoothScroll />
         <WinterSnow />
         <CartProvider>

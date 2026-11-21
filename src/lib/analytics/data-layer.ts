@@ -20,15 +20,10 @@ interface EcommercePayload {
   items: EcommerceItem[]
 }
 
-interface DataLayerEvent {
-  event: string
-  ecommerce?: EcommercePayload | null
-  order_number?: number
-}
-
 declare global {
   interface Window {
-    dataLayer?: DataLayerEvent[]
+    dataLayer?: Array<IArguments | unknown[]>
+    gtag?: (...args: unknown[]) => void
   }
 }
 
@@ -49,13 +44,16 @@ export function getEcommerceItem(
 export function pushEcommerceEvent(
   event: string,
   ecommerce: EcommercePayload,
-  eventParams: Pick<DataLayerEvent, "order_number"> = {}
+  eventParams: { order_number?: number } = {}
 ) {
   if (typeof window === "undefined") return
 
   window.dataLayer = window.dataLayer ?? []
-  window.dataLayer.push({ ecommerce: null, event: "ecommerce_reset" })
-  window.dataLayer.push({ event, ecommerce, ...eventParams })
+  if (window.gtag) {
+    window.gtag("event", event, { ...ecommerce, ...eventParams })
+  } else {
+    window.dataLayer.push(["event", event, { ...ecommerce, ...eventParams }])
+  }
 }
 
 export function pushAddToCart(product: Product, quantity: number) {
