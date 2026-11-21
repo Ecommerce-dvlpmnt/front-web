@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ThemeToggle } from "@/components/layout/ThemeToggle"
+import { BrandLogo } from "@/components/layout/BrandLogo"
 import { CartDrawer } from "@/components/cart/CartDrawer"
 import { useCart } from "@/components/cart/CartContext"
 import { shopConfig } from "@/lib/config/shop"
@@ -87,7 +88,7 @@ export function Header({ categories = [] }: HeaderProps) {
           transform-gpu выносит хедер в отдельный GPU-слой — это стабилизирует
           sticky в iOS Safari. */}
       <header className="sticky top-0 z-50 transform-gpu border-b border-border/80 bg-background pointer-fine:bg-background/90 pointer-fine:backdrop-blur-md">
-        <div className="border-b border-[#D4A853] dark:border-[#20362C] bg-gradient-to-r from-[#DFB76C] via-[#F4DC9E] to-[#DFB76C] dark:from-[#0B1511] dark:via-[#15271F] dark:to-[#0B1511] px-4 py-1.5 text-center text-[0.6875rem] sm:text-[0.75rem] font-medium tracking-wide text-[#382500] dark:text-[#E8D9C0] shadow-xs transition-colors">
+        <div className="border-b border-[#D4AF37]/30 dark:border-[#20362C] bg-gradient-to-r from-[#F2E8D5] via-[#FAF4E8] to-[#F2E8D5] dark:from-[#0B1511] dark:via-[#15271F] dark:to-[#0B1511] px-4 py-1.5 text-center text-[0.6875rem] sm:text-[0.75rem] font-medium tracking-wider text-[#4A3208] dark:text-[#E8D9C0] transition-colors">
           <span>{shopConfig.seasonal.announcement}</span>
         </div>
 
@@ -107,28 +108,18 @@ export function Header({ categories = [] }: HeaderProps) {
             {isMenuOpen ? <X /> : <Menu />}
           </Button>
 
-          {/* Логотип бренду.
-              min-w-0 разрешает логотипу сжиматься: если места не хватит,
-              надпись обрежется «…», а не растянет страницу шире экрана. */}
+          {/* Логотип бренду з фірмовою ялинкою та вишуканою типографікою */}
           <Link
             href="/"
-            className="group flex min-w-0 items-center gap-2 sm:gap-2.5 lg:shrink-0"
+            className="group flex shrink-0 items-center transition-transform duration-200 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg"
             aria-label={`${shopConfig.name} — на головну`}
           >
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-black tracking-widest text-background transition-transform duration-200 group-hover:scale-105 shadow-xs sm:size-9">
-              JD
-            </span>
-
-            {/* До sm — компактнее (12px, меньший межбуквенный интервал);
-                уже 336px (21rem) — скрыта, остаётся круг «JD» и aria-label. */}
-            <span className="truncate text-xs font-bold tracking-[0.08em] uppercase text-foreground max-[21rem]:hidden sm:text-sm sm:tracking-[0.16em]">
-              {shopConfig.name}
-            </span>
+            <BrandLogo />
           </Link>
 
-          {/* Навігація: тільки основні категорії — акуратно, без фанатизму */}
+          {/* Навігація: тільки основні категорії — акуратно, з комфортним повітрям від логотипу */}
           <nav
-            className="hidden items-center gap-5 xl:gap-8 lg:flex shrink-0 min-w-0"
+            className="hidden items-center gap-5 xl:gap-8 lg:ml-3 xl:ml-6 lg:flex shrink-0 min-w-0"
             aria-label="Категорії"
           >
             {/* 1. Ялинки (з випадаючим меню підкатегорій при наведенні) */}

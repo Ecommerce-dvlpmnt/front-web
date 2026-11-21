@@ -144,54 +144,51 @@ export function HeroBanner() {
     <section
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      className="group/slider relative isolate overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] border border-border/80 bg-[#161311] dark:bg-[#0E1311] text-white shadow-xl"
+      className="group/slider relative isolate overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] border border-[#D4AF37]/30 bg-[#0C1914] dark:bg-[#0B1511] text-white shadow-2xl ring-1 ring-inset ring-[#F3D078]/15"
       aria-label="Головний банер"
     >
-      {/* Хвойна віньєтка по кутах для глибини */}
+      {/* Глибока хвойно-рубінова атмосферна віньєтка по кутах для затишку */}
       <div
-        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(18,48,37,0.7),transparent_50%),radial-gradient(circle_at_bottom_right,rgba(110,24,32,0.45),transparent_50%),radial-gradient(circle_at_bottom_left,rgba(11,21,18,0.85),transparent_55%)]"
+        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(20,56,42,0.85),transparent_55%),radial-gradient(circle_at_bottom_right,rgba(122,28,36,0.42),transparent_55%),radial-gradient(circle_at_bottom_left,rgba(11,23,19,0.92),transparent_60%)]"
         aria-hidden="true"
       />
 
-      {/* М'які теплі розсіяні відблиски */}
+      {/* М'які теплі розсіяні відблиски гірлянд */}
       <div
-        className="pointer-events-none absolute top-10 right-1/3 -z-10 size-72 rounded-full bg-[#d4af37]/10 blur-3xl"
+        className="pointer-events-none absolute top-10 right-1/3 -z-10 size-72 rounded-full bg-[#D4AF37]/15 blur-3xl"
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute bottom-0 right-10 -z-10 size-96 rounded-full bg-[#f3d078]/10 blur-3xl"
+        className="pointer-events-none absolute bottom-0 right-10 -z-10 size-96 rounded-full bg-[#F3D078]/12 blur-3xl"
         aria-hidden="true"
       />
 
       {/* 2-колонкова сітка банера */}
       <div className="grid grid-cols-1 items-center gap-10 p-6 sm:p-10 lg:grid-cols-12 lg:gap-12 lg:p-16 min-h-[540px] sm:min-h-[580px]">
-        {/* Ліва колонка — тексти слайдів.
-            Усі слайди лежать в ОДНІЙ клітинці grid (col-start-1 row-start-1),
-            тому висота колонки завжди дорівнює найвищому слайду
-            і банер не змінює розмір при перемиканні. */}
+        {/* Ліва колонка — тексти слайдів без багу накладання при крос-фейді */}
         <div className="relative grid items-center lg:col-span-7 min-h-[360px] sm:min-h-[400px]">
           {HERO_SLIDES.map((s, idx) => {
             const isActive = idx === currentSlide
             return (
               <div
                 key={s.id}
-                // inert: неактивний слайд недоступний для Tab і скрінрідера
                 inert={!isActive}
-                className={`col-start-1 row-start-1 flex flex-col justify-center transition-all duration-700 ease-out ${
+                aria-hidden={!isActive}
+                className={`col-start-1 row-start-1 flex flex-col justify-center transition-[opacity,transform] ${
                   isActive
-                    ? "visible opacity-100 translate-y-0 z-10"
-                    : "invisible opacity-0 translate-y-2 pointer-events-none z-0"
+                    ? "duration-500 delay-150 ease-out opacity-100 translate-y-0 z-10 pointer-events-auto"
+                    : "duration-150 ease-in opacity-0 -translate-y-1.5 z-0 pointer-events-none select-none"
                 }`}
               >
-                <div className="w-fit rounded-full border border-white/20 bg-white/10 px-3.5 py-1 text-xs font-semibold tracking-wider text-white/90 backdrop-blur-md uppercase">
+                <div className="w-fit rounded-full border border-[#F3D078]/35 bg-[#D4AF37]/15 px-4 py-1 text-[11px] font-semibold tracking-[0.14em] text-[#F3D078] backdrop-blur-md uppercase shadow-xs">
                   {s.badge}
                 </div>
 
-                <h1 className="mt-5 text-4xl font-semibold tracking-tight text-balance text-white sm:text-5xl lg:text-6xl leading-[1.12]">
+                <h1 className="mt-5 font-heading text-4xl font-semibold tracking-tight text-balance text-[#FAF8F5] sm:text-5xl lg:text-6xl leading-[1.1]">
                   {s.title}
                 </h1>
 
-                <p className="mt-5 max-w-lg text-base leading-relaxed text-white/80 sm:text-lg">
+                <p className="mt-5 max-w-lg text-base leading-relaxed text-[#E8E2D8]/85 sm:text-lg">
                   {s.description}
                 </p>
 
@@ -199,12 +196,12 @@ export function HeroBanner() {
                   <Button
                     asChild
                     size="lg"
-                    className="relative group h-12 rounded-full border-0 bg-white text-[#181512] hover:bg-[#FAF8F5] px-8 font-semibold shadow-md shadow-black/20 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+                    className="relative group h-12 rounded-full border-0 bg-gradient-to-r from-[#E5C158] via-[#F3D078] to-[#D4AF37] text-[#14110C] hover:brightness-105 px-8 text-sm font-bold tracking-wide shadow-[0_10px_28px_-6px_rgba(212,175,55,0.45)] transition-all duration-200 hover:scale-[1.015] active:scale-[0.99] cursor-pointer"
                   >
                     <Link
                       href="#catalog"
                       onClick={(e) => handleCategoryClick(e, s.categorySlug)}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2.5"
                     >
                       <span>{s.ctaText}</span>
                       <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -213,10 +210,10 @@ export function HeroBanner() {
                 </div>
 
                 {/* Мікро-переваги */}
-                <div className="mt-10 flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-white/70">
+                <div className="mt-10 flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-[#E8E2D8]/75">
                   {s.features.map((feature, fIdx) => (
                     <span key={fIdx} className="flex items-center gap-3">
-                      {fIdx > 0 && <span className="text-white/30">·</span>}
+                      {fIdx > 0 && <span className="text-[#F3D078]/45">·</span>}
                       <span>{feature}</span>
                     </span>
                   ))}
@@ -229,16 +226,16 @@ export function HeroBanner() {
         {/* Права колонка — Атмосферна картка з фотографією */}
         <div className="relative flex items-center justify-center lg:col-span-5">
           <div
-            className="pointer-events-none absolute -inset-3 rounded-3xl bg-gradient-to-tr from-[#d4af37]/20 via-[#7a1c24]/15 to-[#122b21]/25 blur-2xl"
+            className="pointer-events-none absolute -inset-3 rounded-3xl bg-gradient-to-tr from-[#d4af37]/25 via-[#7a1c24]/18 to-[#122b21]/30 blur-2xl"
             aria-hidden="true"
           />
 
-          <div className="group relative aspect-[4/5] w-full max-w-sm sm:max-w-md overflow-hidden rounded-3xl border border-white/20 bg-[#121816] shadow-2xl shadow-black/60">
+          <div className="group relative aspect-[4/5] w-full max-w-sm sm:max-w-md overflow-hidden rounded-3xl border border-[#F3D078]/25 bg-[#121816] shadow-2xl shadow-black/60">
             {HERO_SLIDES.map((s, index) => (
               <div
                 key={s.id}
-                className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
-                  index === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"
+                className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${
+                  index === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
                 }`}
               >
                 <Image
@@ -246,6 +243,7 @@ export function HeroBanner() {
                   alt={s.imageAlt}
                   fill
                   priority={index === 0}
+                  loading="eager"
                   sizes="(min-width: 1024px) 45vw, (min-width: 640px) 70vw, 90vw"
                   className="object-cover transition-transform duration-1000 ease-out group-hover:scale-105"
                 />
@@ -261,40 +259,41 @@ export function HeroBanner() {
               </div>
             ))}
 
-            {/* Плаваюча glassmorphism-плашка товару — плавно перемикається разом із слайдами */}
+            {/* Плаваюча glassmorphism-плашка товару — без накладання під час зміни слайдів */}
             {HERO_SLIDES.map((s, idx) => {
               const isActive = idx === currentSlide
               return (
                 <div
                   key={s.id}
                   inert={!isActive}
-                  className={`absolute right-4 bottom-4 left-4 z-20 rounded-2xl border border-white/25 bg-black/65 p-3.5 sm:p-4 backdrop-blur-md shadow-xl transition-all duration-700 ease-out ${
+                  aria-hidden={!isActive}
+                  className={`absolute right-4 bottom-4 left-4 rounded-2xl border border-[#F3D078]/30 bg-[#0B1410]/85 p-3.5 sm:p-4 backdrop-blur-md shadow-xl transition-[opacity,transform] ${
                     isActive
-                      ? "opacity-100 translate-y-0 pointer-events-auto"
-                      : "opacity-0 translate-y-2 pointer-events-none"
+                      ? "duration-500 delay-150 ease-out opacity-100 translate-y-0 z-20 pointer-events-auto"
+                      : "duration-150 ease-in opacity-0 translate-y-2 z-10 pointer-events-none select-none"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
-                      <span className="text-[10px] font-semibold uppercase tracking-wider text-[#F3D078]">
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#F3D078]">
                         {s.card.tag}
                       </span>
-                      <p className="mt-0.5 truncate text-sm font-semibold text-white">
+                      <p className="mt-0.5 truncate text-sm font-semibold text-[#FAF8F5]">
                         {s.card.title}
                       </p>
-                      <p className="text-xs text-white/75">
+                      <p className="text-xs text-[#E8E2D8]/75">
                         {s.card.subtitle}
                       </p>
                     </div>
 
                     <div className="shrink-0 text-right">
-                      <span className="block text-sm font-bold text-white">
+                      <span className="block text-base sm:text-lg font-bold tracking-tight text-[#F3D078]">
                         {s.card.price}
                       </span>
                       <Link
                         href="#catalog"
                         onClick={(e) => handleCategoryClick(e, s.categorySlug)}
-                        className="inline-block text-[11px] font-medium text-[#F3D078] underline underline-offset-2 hover:text-white cursor-pointer"
+                        className="inline-block text-[11px] font-medium text-white/90 underline underline-offset-2 hover:text-[#F3D078] transition-colors cursor-pointer"
                       >
                         Обрати →
                       </Link>

@@ -178,16 +178,16 @@ export function CatalogSection({
   }, [currentCategory, categories])
 
   return (
-    <section id="catalog" className="scroll-mt-24 py-16 sm:py-24">
+    <section id="catalog" className="scroll-mt-24 pt-12 pb-16 sm:pt-16 sm:pb-24">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-semibold tracking-[0.2em] text-[#A0772D] dark:text-[#D4AF37] uppercase">
+          <p className="text-xs font-semibold tracking-[0.2em] text-[#8C5E14] dark:text-[#D4AF37] uppercase">
             {eyebrow}
           </p>
 
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl text-foreground transition-all duration-300">
+          <h2 className="mt-2 font-heading text-3xl font-semibold tracking-tight sm:text-4xl text-foreground transition-all duration-300">
             {currentTitle}
-          </h1>
+          </h2>
         </div>
 
         <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
@@ -207,11 +207,14 @@ export function CatalogSection({
             "group relative shrink-0 whitespace-nowrap rounded-full border px-4 py-2 text-xs font-semibold tracking-wider uppercase transition-all duration-200 shadow-xs cursor-pointer",
             !selectedSlug
               ? "border-transparent bg-[#181512] text-[#FAF8F5] dark:bg-[#D4AF37] dark:text-[#0B0F0E] shadow-sm"
-              : "border-border/80 bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+              : "border-border/80 bg-card text-muted-foreground hover:border-[#D4AF37]/45 hover:text-foreground"
           )}
           aria-current={!selectedSlug ? "page" : undefined}
         >
-          Усі товари ({products.length})
+          <span>Усі товари</span>
+          <span className="ml-1.5 text-[10px] font-medium opacity-70">
+            {products.length}
+          </span>
         </Link>
 
         {topCategories.map((category) => {
@@ -229,11 +232,14 @@ export function CatalogSection({
                 "group relative shrink-0 whitespace-nowrap rounded-full border px-4 py-2 text-xs font-semibold tracking-wider uppercase transition-all duration-200 shadow-xs cursor-pointer",
                 isCategoryActive
                   ? "border-transparent bg-[#181512] text-[#FAF8F5] dark:bg-[#D4AF37] dark:text-[#0B0F0E] shadow-sm"
-                  : "border-border/80 bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+                  : "border-border/80 bg-card text-muted-foreground hover:border-[#D4AF37]/45 hover:text-foreground"
               )}
               aria-current={isCategoryActive ? "page" : undefined}
             >
-              {category.name} ({count})
+              <span>{category.name}</span>
+              <span className="ml-1.5 text-[10px] font-medium opacity-70">
+                {count}
+              </span>
             </Link>
           )
         })}

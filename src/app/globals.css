@@ -305,6 +305,30 @@ html.lenis, html.lenis body {
   animation: bannerShimmer 4s ease-in-out infinite;
 }
 
+@keyframes logoShimmerSweep {
+  0%, 86% {
+    transform: translateX(-150%) skewX(-20deg);
+    opacity: 0;
+  }
+  88% {
+    opacity: 1;
+  }
+  97% {
+    transform: translateX(300%) skewX(-20deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(300%) skewX(-20deg);
+    opacity: 0;
+  }
+}
+
+.animate-logo-shimmer {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: logoShimmerSweep 10s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto !important;
@@ -314,7 +338,8 @@ html.lenis, html.lenis body {
     animation: none !important;
     display: none !important;
   }
-  .animate-banner-shimmer {
+  .animate-banner-shimmer,
+  .animate-logo-shimmer {
     animation: none !important;
   }
 }

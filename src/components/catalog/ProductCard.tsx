@@ -26,9 +26,9 @@ const badgeLabels = {
 }
 
 const badgeVariants: Record<keyof typeof badgeLabels, string> = {
-  sale: "bg-[#8B2228] text-white border-0 shadow-xs text-[10px] font-semibold tracking-wider uppercase px-2.5 py-0.5",
-  hit: "bg-[#181512] text-[#FAF8F5] dark:bg-[#D4AF37] dark:text-[#0B0F0E] border-0 shadow-xs text-[10px] font-semibold tracking-wider uppercase px-2.5 py-0.5",
-  new: "bg-[#1B3527] text-white border-0 shadow-xs text-[10px] font-semibold tracking-wider uppercase px-2.5 py-0.5",
+  sale: "bg-[#8B2228]/95 text-white border-0 ring-1 ring-white/20 backdrop-blur-md shadow-sm text-[10px] font-semibold tracking-wider uppercase px-2.5 py-0.5",
+  hit: "bg-[#181512]/90 text-[#F3D078] dark:bg-[#D4AF37]/95 dark:text-[#0B0F0E] border-0 ring-1 ring-[#F3D078]/30 backdrop-blur-md shadow-sm text-[10px] font-semibold tracking-wider uppercase px-2.5 py-0.5",
+  new: "bg-[#1B3527]/95 text-[#FAF8F5] border-0 ring-1 ring-white/20 backdrop-blur-md shadow-sm text-[10px] font-semibold tracking-wider uppercase px-2.5 py-0.5",
 }
 
 export function ProductCard({
@@ -38,6 +38,7 @@ export function ProductCard({
   const { addItem, items } = useCart()
   const [isAdded, setIsAdded] = useState(false)
   const [isImageLoaded, setIsImageLoaded] = useState(false)
+  const [hasImageError, setHasImageError] = useState(false)
 
   const rating = getProductRating(product.id)
 
@@ -87,12 +88,17 @@ export function ProductCard({
         )}
 
         <Image
-          src={product.mainImageUrl}
+          key={product.mainImageUrl}
+          src={hasImageError ? "/product-placeholder.svg" : (product.mainImageUrl || "/product-placeholder.svg")}
           alt={product.name}
           fill
           loading={priority ? "eager" : "lazy"}
           sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
           onLoad={() => setIsImageLoaded(true)}
+          onError={() => {
+            setHasImageError(true)
+            setIsImageLoaded(true)
+          }}
           className={`object-cover transition-all duration-700 ease-out group-hover:scale-105 ${
             isImageLoaded ? "opacity-100 scale-100 blur-0" : "opacity-0 scale-98 blur-[2px]"
           }`}
@@ -112,10 +118,8 @@ export function ProductCard({
       </Link>
 
       <div className="flex flex-1 flex-col p-4 sm:p-5">
-        {/* min-h-[2.75em] = ровно 2 строки (2 × leading-snug 1.375em).
-            Раньше min-h-12 был выше двух строк, и из-под line-clamp
-            выглядывал верх третьей строки. */}
-        <h3 className="min-h-[2.75em] line-clamp-2 break-words font-medium text-[15px] leading-snug text-foreground transition-colors group-hover/card:text-[#d4af37]">
+        {/* min-h-[2.75em] = ровно 2 строки (2 × leading-snug 1.375em). */}
+        <h3 className="min-h-[2.75em] line-clamp-2 break-words font-medium text-[15px] leading-snug text-foreground transition-colors group-hover/card:text-[#8C5E14] dark:group-hover/card:text-[#F3D078]">
           <Link
             href={`/product/${product.slug}`}
             className="rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
@@ -124,17 +128,16 @@ export function ProductCard({
           </Link>
         </h3>
 
-        {/* Звездный рейтинг: звёзды и балл — одна группа, отзывы — другая.
-            В узкой карточке «(24 відгуки)» целиком переносится на новую строку. */}
+        {/* Зірковий рейтинг */}
         <div className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs">
           <div className="flex shrink-0 items-center gap-1.5">
-            <div className="flex items-center gap-0.5 text-[#F59E0B] dark:text-[#FBBF24]" aria-hidden="true">
+            <div className="flex items-center gap-0.5 text-[#D99B26] dark:text-[#F3D078]" aria-hidden="true">
               {Array.from({ length: 5 }, (_, i) => (
                 <Star
                   key={i}
                   className={`size-3.5 ${
                     i < Math.round(rating.score)
-                      ? "fill-current text-[#F59E0B] dark:text-[#FBBF24]"
+                      ? "fill-current text-[#D99B26] dark:text-[#F3D078]"
                       : "text-muted-foreground/30 fill-muted-foreground/15"
                   }`}
                 />
@@ -149,37 +152,37 @@ export function ProductCard({
           </span>
         </div>
 
-        <div className="mt-3 flex min-h-7 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-          <p className="whitespace-nowrap text-base font-semibold tracking-tight text-foreground">
-            {formattedPrice}
-          </p>
-
-          {formattedOldPrice && (
-            <p className="whitespace-nowrap text-xs text-muted-foreground line-through">
-              {formattedOldPrice}
+        {/* Домінантна ціна + акуратний індикатор наявності в одному рядку */}
+        <div className="mt-auto pt-4 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <p className="whitespace-nowrap text-lg sm:text-[19px] font-bold tracking-tight text-foreground">
+              {formattedPrice}
             </p>
-          )}
+
+            {formattedOldPrice && (
+              <p className="whitespace-nowrap text-xs text-muted-foreground line-through">
+                {formattedOldPrice}
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground shrink-0">
+            <span
+              className={`size-1.5 shrink-0 rounded-full ${
+                isOutOfStock ? "bg-red-400" : "bg-emerald-500/85"
+              }`}
+              aria-hidden="true"
+            />
+            <span>{isOutOfStock ? "Немає" : "В наявності"}</span>
+          </div>
         </div>
 
-        <div className="mt-auto flex items-center gap-1.5 pt-3 text-xs text-muted-foreground">
-          <span
-            className={`size-1.5 shrink-0 rounded-full ${
-              isOutOfStock ? "bg-red-400" : "bg-emerald-500/80"
-            }`}
-            aria-hidden="true"
-          />
-          <p>
-            {isOutOfStock ? "Немає в наявності" : "Є в наявності"}
-          </p>
-        </div>
-
-        {/* h-auto + whitespace-normal: длинный текст («Максимум у кошику»)
-            переносится внутри кнопки, а не вылезает за её край. */}
+        {/* Елегантна кнопка без візуального шуму: акцентна при наведенні на картку */}
         <Button
-          className={`mt-3.5 h-auto min-h-8 w-full whitespace-normal rounded-full border-0 py-2 text-center text-xs font-semibold leading-tight tracking-wide uppercase transition-all duration-200 ${
+          className={`mt-3.5 h-auto min-h-9 w-full whitespace-normal rounded-full py-2 text-center text-xs font-semibold leading-tight tracking-wider uppercase transition-all duration-300 cursor-pointer ${
             isAdded
-              ? "bg-[#1B3527] text-white scale-[1.01]"
-              : "bg-foreground text-background hover:bg-foreground/90 active:scale-[0.98] shadow-xs"
+              ? "bg-[#1B3527] text-white border-transparent scale-[1.01]"
+              : "bg-secondary/85 text-foreground border border-border/90 group-hover/card:bg-[#181512] group-hover/card:text-[#FAF8F5] group-hover/card:border-transparent dark:group-hover/card:bg-[#D4AF37] dark:group-hover/card:text-[#0B0F0E] active:scale-[0.98] shadow-xs"
           }`}
           disabled={isOutOfStock || isMaxQuantityReached}
           onClick={handleAddToCart}

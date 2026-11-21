@@ -34,57 +34,73 @@ export default async function Home({ searchParams }: HomeProps) {
       <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
         <HeroBanner />
 
-        {/* Чому обирають ялинки Jingle Decor — витриманий дизайнерський блок замість шаблонних плашок */}
-        <div className="mt-8 sm:mt-12 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4">
-          <div className="group rounded-2xl border border-border/80 bg-card p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-luxury">
+        {/* Чому обирають Jingle Decor — затишний преміальний блок переваг із золотими медальйонами */}
+        <div className="mt-8 sm:mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="group relative overflow-hidden rounded-2xl border border-border/80 bg-card p-5 sm:p-6 shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:border-[#D4AF37]/45 hover:shadow-luxury">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono font-bold text-muted-foreground/80">01</span>
-              <Factory className="size-4 text-[#C8923A] dark:text-[#D4AF37]" strokeWidth={1.75} />
+              <div className="flex size-10 items-center justify-center rounded-xl border border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#8C5E14] dark:text-[#F3D078] transition-transform duration-300 group-hover:scale-105">
+                <Factory className="size-4.5" strokeWidth={1.75} />
+              </div>
+              <span className="text-[11px] font-semibold tracking-widest uppercase text-[#8C5E14]/70 dark:text-[#F3D078]/60">
+                Власна фабрика
+              </span>
             </div>
-            <h3 className="mt-3 text-sm font-bold uppercase tracking-wider text-foreground">
+            <h3 className="mt-4 text-sm font-bold tracking-wide text-foreground">
               Прямо з виробництва
             </h3>
             <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
-              Чесна ціна без націнок посередників. Усі замовлення пакуються та відправляються напряму з фабрики.
+              Чесна ціна без націнок посередників. Усі замовлення дбайливо пакуються та відправляються напряму з фабрики.
             </p>
           </div>
 
-          <div className="group rounded-2xl border border-border/80 bg-card p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-luxury">
+          <div className="group relative overflow-hidden rounded-2xl border border-border/80 bg-card p-5 sm:p-6 shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:border-[#D4AF37]/45 hover:shadow-luxury">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono font-bold text-muted-foreground/80">02</span>
-              <ShieldCheck className="size-4 text-[#C8923A] dark:text-[#D4AF37]" strokeWidth={1.75} />
+              <div className="flex size-10 items-center justify-center rounded-xl border border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#8C5E14] dark:text-[#F3D078] transition-transform duration-300 group-hover:scale-105">
+                <ShieldCheck className="size-4.5" strokeWidth={1.75} />
+              </div>
+              <span className="text-[11px] font-semibold tracking-widest uppercase text-[#8C5E14]/70 dark:text-[#F3D078]/60">
+                Еко-безпека
+              </span>
             </div>
-            <h3 className="mt-3 text-sm font-bold uppercase tracking-wider text-foreground">
+            <h3 className="mt-4 text-sm font-bold tracking-wide text-foreground">
               100% Лита хвоя
             </h3>
             <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
-              Первинний харчовий полімер. Безпечно для дітей та улюбленців, не обсипається і не має запаху.
+              Первинний харчовий полімер. Безпечно для дітей та улюбленців, не обсипається і не має стороннього запаху.
             </p>
           </div>
 
-          <div className="group rounded-2xl border border-border/80 bg-card p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-luxury">
+          <div className="group relative overflow-hidden rounded-2xl border border-border/80 bg-card p-5 sm:p-6 shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:border-[#D4AF37]/45 hover:shadow-luxury">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono font-bold text-muted-foreground/80">03</span>
-              <Box className="size-4 text-[#C8923A] dark:text-[#D4AF37]" strokeWidth={1.75} />
+              <div className="flex size-10 items-center justify-center rounded-xl border border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#8C5E14] dark:text-[#F3D078] transition-transform duration-300 group-hover:scale-105">
+                <Box className="size-4.5" strokeWidth={1.75} />
+              </div>
+              <span className="text-[11px] font-semibold tracking-widest uppercase text-[#8C5E14]/70 dark:text-[#F3D078]/60">
+                Надійне пакування
+              </span>
             </div>
-            <h3 className="mt-3 text-sm font-bold uppercase tracking-wider text-foreground">
+            <h3 className="mt-4 text-sm font-bold tracking-wide text-foreground">
               Заводська коробка
             </h3>
             <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
-              Цупкий 5-шаровий гофрокартон захищає виріб у пошті та зручно служить для зберігання щороку.
+              Цупкий 5-шаровий гофрокартон захищає декор у дорозі та зручно служить для дбайливого зберігання щороку.
             </p>
           </div>
 
-          <div className="group rounded-2xl border border-border/80 bg-card p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-luxury">
+          <div className="group relative overflow-hidden rounded-2xl border border-border/80 bg-card p-5 sm:p-6 shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:border-[#D4AF37]/45 hover:shadow-luxury">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono font-bold text-muted-foreground/80">04</span>
-              <Truck className="size-4 text-[#C8923A] dark:text-[#D4AF37]" strokeWidth={1.75} />
+              <div className="flex size-10 items-center justify-center rounded-xl border border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#8C5E14] dark:text-[#F3D078] transition-transform duration-300 group-hover:scale-105">
+                <Truck className="size-4.5" strokeWidth={1.75} />
+              </div>
+              <span className="text-[11px] font-semibold tracking-widest uppercase text-[#8C5E14]/70 dark:text-[#F3D078]/60">
+                1–2 дні по Україні
+              </span>
             </div>
-            <h3 className="mt-3 text-sm font-bold uppercase tracking-wider text-foreground">
+            <h3 className="mt-4 text-sm font-bold tracking-wide text-foreground">
               Оплата при отриманні
             </h3>
             <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
-              Швидка доставка Новою Поштою 1–2 дні. Оглядайте якість хвої у відділенні перед оплатою.
+              Швидка доставка Новою Поштою. Спокійно оглядайте пишність та якість хвої у відділенні перед оплатою.
             </p>
           </div>
         </div>
