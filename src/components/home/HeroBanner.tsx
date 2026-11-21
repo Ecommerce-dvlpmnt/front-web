@@ -165,17 +165,22 @@ export function HeroBanner() {
 
       {/* 2-колонкова сітка банера */}
       <div className="grid grid-cols-1 items-center gap-10 p-6 sm:p-10 lg:grid-cols-12 lg:gap-12 lg:p-16 min-h-[540px] sm:min-h-[580px]">
-        {/* Ліва колонка — Плавний перехід тексту для кожного слайду */}
-        <div className="relative flex flex-col justify-center lg:col-span-7 min-h-[360px] sm:min-h-[400px]">
+        {/* Ліва колонка — тексти слайдів.
+            Усі слайди лежать в ОДНІЙ клітинці grid (col-start-1 row-start-1),
+            тому висота колонки завжди дорівнює найвищому слайду
+            і банер не змінює розмір при перемиканні. */}
+        <div className="relative grid items-center lg:col-span-7 min-h-[360px] sm:min-h-[400px]">
           {HERO_SLIDES.map((s, idx) => {
             const isActive = idx === currentSlide
             return (
               <div
                 key={s.id}
-                className={`flex flex-col justify-center transition-all duration-700 ease-out ${
+                // inert: неактивний слайд недоступний для Tab і скрінрідера
+                inert={!isActive}
+                className={`col-start-1 row-start-1 flex flex-col justify-center transition-all duration-700 ease-out ${
                   isActive
-                    ? "opacity-100 translate-y-0 relative z-10"
-                    : "opacity-0 translate-y-2 absolute inset-x-0 top-0 pointer-events-none z-0"
+                    ? "visible opacity-100 translate-y-0 z-10"
+                    : "invisible opacity-0 translate-y-2 pointer-events-none z-0"
                 }`}
               >
                 <div className="w-fit rounded-full border border-white/20 bg-white/10 px-3.5 py-1 text-xs font-semibold tracking-wider text-white/90 backdrop-blur-md uppercase">
@@ -262,6 +267,7 @@ export function HeroBanner() {
               return (
                 <div
                   key={s.id}
+                  inert={!isActive}
                   className={`absolute right-4 bottom-4 left-4 z-20 rounded-2xl border border-white/25 bg-black/65 p-3.5 sm:p-4 backdrop-blur-md shadow-xl transition-all duration-700 ease-out ${
                     isActive
                       ? "opacity-100 translate-y-0 pointer-events-auto"
@@ -301,8 +307,10 @@ export function HeroBanner() {
         </div>
       </div>
 
-      {/* Керування слайдером: Стрілки та крапки навігації */}
-      <div className="absolute bottom-5 left-6 sm:left-10 lg:left-16 z-20 flex items-center gap-4">
+      {/* Керування слайдером: Стрілки та крапки навігації.
+          До lg — звичайний блок під карткою (по центру), щоб не налазити на фото.
+          На lg і ширше — поверх банера внизу зліва, як раніше. */}
+      <div className="relative z-20 flex items-center justify-center gap-4 px-6 pb-6 sm:px-10 sm:pb-8 lg:absolute lg:bottom-5 lg:left-16 lg:justify-start lg:p-0">
         {/* Індикатори-крапки */}
         <div className="flex items-center gap-1.5" role="tablist" aria-label="Слайди банера">
           {HERO_SLIDES.map((s, idx) => (
@@ -322,13 +330,13 @@ export function HeroBanner() {
           ))}
         </div>
 
-        {/* Стрілки попередня / наступна */}
-        <div className="flex items-center gap-1 ml-2">
+        {/* Стрілки попередня / наступна (на мобільному трохи більші — зручніше натискати пальцем) */}
+        <div className="flex items-center gap-1.5 ml-2 lg:gap-1">
           <button
             type="button"
             onClick={handlePrev}
             aria-label="Попередній слайд"
-            className="flex size-7 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-sm transition-all hover:bg-white/25 active:scale-95 cursor-pointer"
+            className="flex size-9 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-sm transition-all hover:bg-white/25 active:scale-95 cursor-pointer lg:size-7"
           >
             <ChevronLeft className="size-4" />
           </button>
@@ -336,7 +344,7 @@ export function HeroBanner() {
             type="button"
             onClick={handleNext}
             aria-label="Наступний слайд"
-            className="flex size-7 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-sm transition-all hover:bg-white/25 active:scale-95 cursor-pointer"
+            className="flex size-9 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-sm transition-all hover:bg-white/25 active:scale-95 cursor-pointer lg:size-7"
           >
             <ChevronRight className="size-4" />
           </button>

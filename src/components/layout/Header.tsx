@@ -80,12 +80,20 @@ export function Header({ categories = [] }: HeaderProps) {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-border/80 bg-background/90 backdrop-blur-md">
-        <div className="border-b border-[#D4A853] dark:border-[#20362C] bg-gradient-to-r from-[#DFB76C] via-[#F4DC9E] to-[#DFB76C] dark:from-[#0B1511] dark:via-[#15271F] dark:to-[#0B1511] px-4 py-1.5 text-center text-[11px] sm:text-[12px] font-medium tracking-wide text-[#382500] dark:text-[#E8D9C0] shadow-xs transition-colors">
+      {/* Сенсорные устройства (pointer: coarse): сплошной фон без backdrop-blur.
+          Размытие поверх прокручиваемой страницы и анимированного снега
+          пересчитывается каждый кадр и на слабых GPU даёт подёргивание хедера.
+          Устройства с мышью (pointer-fine): полупрозрачный фон с размытием, как раньше.
+          transform-gpu выносит хедер в отдельный GPU-слой — это стабилизирует
+          sticky в iOS Safari. */}
+      <header className="sticky top-0 z-50 transform-gpu border-b border-border/80 bg-background pointer-fine:bg-background/90 pointer-fine:backdrop-blur-md">
+        <div className="border-b border-[#D4A853] dark:border-[#20362C] bg-gradient-to-r from-[#DFB76C] via-[#F4DC9E] to-[#DFB76C] dark:from-[#0B1511] dark:via-[#15271F] dark:to-[#0B1511] px-4 py-1.5 text-center text-[0.6875rem] sm:text-[0.75rem] font-medium tracking-wide text-[#382500] dark:text-[#E8D9C0] shadow-xs transition-colors">
           <span>{shopConfig.seasonal.announcement}</span>
         </div>
 
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:h-18 lg:gap-6 lg:px-8">
+        {/* На узких экранах (до sm) отступы и промежутки меньше,
+            чтобы строка хедера помещалась даже в 320–360px. */}
+        <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-3 sm:gap-3 sm:px-6 lg:h-18 lg:gap-6 lg:px-8">
           {/* Кнопка мобільного меню */}
           <Button
             variant="ghost"
@@ -99,17 +107,21 @@ export function Header({ categories = [] }: HeaderProps) {
             {isMenuOpen ? <X /> : <Menu />}
           </Button>
 
-          {/* Логотип бренду */}
+          {/* Логотип бренду.
+              min-w-0 разрешает логотипу сжиматься: если места не хватит,
+              надпись обрежется «…», а не растянет страницу шире экрана. */}
           <Link
             href="/"
-            className="group flex min-w-fit items-center gap-2.5 shrink-0"
+            className="group flex min-w-0 items-center gap-2 sm:gap-2.5 lg:shrink-0"
             aria-label={`${shopConfig.name} — на головну`}
           >
-            <span className="flex size-9 items-center justify-center rounded-full bg-foreground text-xs font-black tracking-widest text-background transition-transform duration-200 group-hover:scale-105 shadow-xs">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-black tracking-widest text-background transition-transform duration-200 group-hover:scale-105 shadow-xs sm:size-9">
               JD
             </span>
 
-            <span className="text-sm font-bold tracking-[0.16em] uppercase text-foreground">
+            {/* До sm — компактнее (12px, меньший межбуквенный интервал);
+                уже 336px (21rem) — скрыта, остаётся круг «JD» и aria-label. */}
+            <span className="truncate text-xs font-bold tracking-[0.08em] uppercase text-foreground max-[21rem]:hidden sm:text-sm sm:tracking-[0.16em]">
               {shopConfig.name}
             </span>
           </Link>
@@ -210,8 +222,10 @@ export function Header({ categories = [] }: HeaderProps) {
             />
           </form>
 
-          {/* Дії справа: Пошук для планшетів + Тема + Обране + Кошик */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Дії справа: Пошук для планшетів + Тема + Обране + Кошик.
+              ml-auto прижимает иконки вправо, пока поле поиска скрыто (до md);
+              на md поле поиска само делает ml-auto, поэтому здесь md:ml-0. */}
+          <div className="ml-auto flex shrink-0 items-center gap-0.5 sm:gap-2 md:ml-0">
             <Button
               variant="ghost"
               size="icon"
@@ -245,7 +259,7 @@ export function Header({ categories = [] }: HeaderProps) {
               <ShoppingBag className="size-4" />
 
               {itemCount > 0 && (
-                <Badge className="absolute -right-0.5 -top-0.5 min-w-4.5 h-4.5 rounded-full border-2 border-background bg-foreground px-1 text-[10px] font-bold leading-none text-background flex items-center justify-center">
+                <Badge className="absolute -right-0.5 -top-0.5 min-w-4.5 h-4.5 rounded-full border-2 border-background bg-foreground px-1 text-[0.625rem] font-bold leading-none text-background flex items-center justify-center">
                   {itemCount}
                 </Badge>
               )}

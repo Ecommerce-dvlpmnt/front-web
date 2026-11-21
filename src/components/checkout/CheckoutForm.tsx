@@ -24,6 +24,7 @@ import {
   pushBeginCheckout,
 } from "@/lib/analytics/data-layer"
 import { formatPrice } from "@/lib/formatters/price"
+import { getWarehousesByCity } from "@/lib/api/novaposhta"
 import type { NovaPoshtaWarehouse } from "./NovaPoshtaMap"
 import { NovaPoshtaPickerModal } from "./NovaPoshtaPickerModal"
 
@@ -121,19 +122,22 @@ export function CheckoutForm() {
     return () => { window.clearTimeout(timer); controller.abort() }
   }, [citySearch, form])
 
-  useEffect(() => {
+    useEffect(() => {
     if (!cityRef) return
     const controller = new AbortController()
     const loadingTimer = window.setTimeout(() => setIsLoadingWarehouses(true), 0)
-    fetch(`/api/novaposhta/warehouses?cityRef=${encodeURIComponent(cityRef)}`, { signal: controller.signal })
-      .then(async response => {
-        const result = await response.json()
-        if (!response.ok || !result.success) throw new Error(result.errors?.join(" ") || "Не вдалося завантажити відділення")
-        setWarehouses(result.data ?? [])
+    getWarehousesByCity(cityRef, controller.signal)
+      .then(data => {
+        setWarehouses(data)
         setLookupError(null)
       })
       .catch(error => { if (!controller.signal.aborted) setLookupError(error instanceof Error ? error.message : "Помилка завантаження відділень") })
-      .finally(() => { if (!controller.signal.aborted) setIsLoadingWarehouses(false) })
+      .finally(() => {
+        // Данные из кэша приходят быстрее, чем срабатывает таймер,
+        // поэтому таймер нужно отменить, иначе индикатор загрузки «залипнет».
+        window.clearTimeout(loadingTimer)
+        if (!controller.signal.aborted) setIsLoadingWarehouses(false)
+      })
     return () => { window.clearTimeout(loadingTimer); controller.abort() }
   }, [cityRef])
 
