@@ -15,7 +15,9 @@ export const shopConfig = {
     iban: process.env.NEXT_PUBLIC_IBAN ?? "",
   },
   returns: {
-    address: process.env.NEXT_PUBLIC_RETURNS_ADDRESS ?? "",
+    address:
+      process.env.NEXT_PUBLIC_RETURNS_ADDRESS?.trim() ||
+      "64102, Харківська обл., м. Златопіль, мікрорайон 4, буд. 13, кв. 61",
     email: process.env.NEXT_PUBLIC_SHOP_EMAIL ?? "",
   },
   seasonal: {

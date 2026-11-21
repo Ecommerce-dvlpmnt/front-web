@@ -14,6 +14,9 @@ import "leaflet/dist/leaflet.css";
 export const metadata: Metadata = {
   title: "Jingle Decor — литі ялинки та святковий декор",
   description: "Штучні литі ялинки, різдвяні вінки та хвойні гірлянди від українського бренду Jingle Decor.",
+  verification: {
+    google: "tPPCgIQXOn90KqtTyOWijD8BJbErg1Pj-kNWpFqty4",
+  },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
