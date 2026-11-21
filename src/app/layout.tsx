@@ -6,6 +6,7 @@ import { WinterSnow } from "@/components/ambient/WinterSnow";
 import { SmoothScroll } from "@/components/ambient/SmoothScroll";
 import { GoogleTagManager } from "@/components/analytics/GoogleTagManager";
 import { CartProvider } from "@/components/cart/CartContext";
+import { ReferralCapture } from "@/components/referral/ReferralCapture";
 import { buildCategoryTree, getCategories } from "@/lib/api/categories";
 
 import "./globals.css";
@@ -29,6 +30,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     >
       <body className="flex min-h-full flex-col" suppressHydrationWarning>
         <GoogleTagManager id={process.env.NEXT_PUBLIC_GTM_ID} />
+        <ReferralCapture />
         <SmoothScroll />
         <WinterSnow />
         <CartProvider>
