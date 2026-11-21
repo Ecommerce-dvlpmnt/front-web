@@ -2,7 +2,6 @@ import { z } from "zod"
 
 import type { EcommerceItem } from "@/lib/analytics/data-layer"
 import { CART_STORAGE_KEY } from "@/lib/cart/constants"
-import { getReferralCode } from "@/lib/referral/storage"
 
 export const checkoutDetailsSchema = z.object({
   customerFirstName: z.string().trim().min(2, "Вкажіть ім’я").max(100),
@@ -78,17 +77,16 @@ export async function createOrder(
   const parsed = orderSchema.safeParse(input)
   if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "Перевірте дані замовлення")
 
-  const referralCode = getReferralCode()
-
   const response = await fetch("/api/orders", {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({
       ...parsed.data,
+      // OrderService prefixes DeliveryWarehouseName with DeliveryType when it is absent.
+      // Match the localized NP description to avoid adding an extra type prefix.
       deliveryType: parsed.data.deliveryType === "Postomat" ? "Поштомат" : parsed.data.deliveryType === "Courier" ? "Кур'єр" : "Відділення",
       customerEmail: parsed.data.customerEmail || null,
       customerComment: parsed.data.customerComment || null,
-      ...(referralCode ? { referralCode } : {}),
     }),
   })
   const payload: unknown = await response.json().catch(() => null)
