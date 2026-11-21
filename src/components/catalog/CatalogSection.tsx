@@ -185,7 +185,7 @@ export function CatalogSection({
             {eyebrow}
           </p>
 
-          <h2 className="mt-2 font-heading text-3xl font-semibold tracking-tight sm:text-4xl text-foreground transition-all duration-300">
+          <h2 className="mt-2 font-heading text-3xl font-semibold tracking-tight sm:text-4xl lg:text-[2.75rem] leading-[1.08] text-foreground transition-all duration-300">
             {currentTitle}
           </h2>
         </div>

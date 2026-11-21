@@ -7,9 +7,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-sans-loaded), Inter, ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  --font-heading: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-heading-loaded), Georgia, serif;
   --color-gold: #D4AF37;
   --color-gold-light: #F3D078;
   --color-ruby: #7A1C24;
@@ -92,20 +92,20 @@
   /* Тёмная тема: глубокий хвойно-ночной фон (#0B0F0E), тёплое золото (#D4AF37/#F3D078) и бордово-рубиновый (#7A1C24) */
   --background: #0B0F0E;
   --foreground: #F5F3EC;
-  --card: #121816;
+  --card: #131B18;
   --card-foreground: #F5F3EC;
-  --popover: #121816;
+  --popover: #131B18;
   --popover-foreground: #F5F3EC;
   --primary: #D4AF37;
   --primary-foreground: #0B0F0E;
-  --secondary: #17211D;
+  --secondary: #18231E;
   --secondary-foreground: #F5F3EC;
-  --muted: #17211D;
-  --muted-foreground: #94A39B;
+  --muted: #18231E;
+  --muted-foreground: #98A8A0;
   --accent: #1C2822;
   --accent-foreground: #F3D078;
   --destructive: #7A1C24;
-  --border: #1E2824;
+  --border: #22302A;
   --input: #23302B;
   --ring: #D4AF37;
   --chart-1: #D4AF37;
@@ -113,13 +113,13 @@
   --chart-3: #7A1C24;
   --chart-4: #2D3D36;
   --chart-5: #17211D;
-  --sidebar: #121816;
+  --sidebar: #131B18;
   --sidebar-foreground: #F5F3EC;
   --sidebar-primary: #D4AF37;
   --sidebar-primary-foreground: #0B0F0E;
   --sidebar-accent: #1C2822;
   --sidebar-accent-foreground: #F3D078;
-  --sidebar-border: #1E2824;
+  --sidebar-border: #22302A;
   --sidebar-ring: #D4AF37;
 }
 

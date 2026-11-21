@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Clock3, Globe, Mail, MessageCircle, Phone } from "lucide-react"
 
+import { BrandLogo } from "@/components/layout/BrandLogo"
 import { shopConfig } from "@/lib/config/shop"
 
 export function Footer() {
@@ -8,8 +9,12 @@ export function Footer() {
     <footer className="border-t border-border bg-muted/30">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1.4fr_1fr_1fr] lg:px-8 lg:py-16">
         <div>
-          <Link href="/" className="text-sm font-semibold tracking-[0.18em] uppercase">
-            {shopConfig.name}
+          <Link
+            href="/"
+            className="inline-flex items-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label={`${shopConfig.name} — на головну`}
+          >
+            <BrandLogo animated={false} />
           </Link>
           <p className="mt-4 max-w-xs text-sm leading-6 text-muted-foreground">
             {shopConfig.description}. Обирайте деталі, які роблять кожен день

@@ -80,7 +80,7 @@ export function ProductCard({
     <article className="group/card relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/80 bg-card shadow-luxury transition-all duration-300 hover:-translate-y-1 hover:border-foreground/25 dark:hover:border-[#d4af37]/50 hover:shadow-luxury-hover">
       <Link
         href={`/product/${product.slug}`}
-        className="group relative aspect-square overflow-hidden bg-muted/40"
+        className="group relative aspect-[2/3] overflow-hidden bg-muted/40"
         aria-label={`Переглянути товар: ${product.name}`}
       >
         {!isImageLoaded && (
@@ -203,7 +203,7 @@ export function ProductCard({
 export function ProductCardSkeleton() {
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-border/80 bg-card/90 shadow-luxury">
-      <Skeleton className="aspect-square w-full rounded-none" />
+      <Skeleton className="aspect-[2/3] w-full rounded-none" />
 
       <div className="flex flex-1 flex-col p-4 sm:p-5">
         <div className="space-y-2">
