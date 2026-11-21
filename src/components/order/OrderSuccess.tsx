@@ -31,12 +31,6 @@ export function OrderSuccess() {
   useEffect(() => {
     if (!order || hasReportedPurchase.current) return
 
-    const reportKey = `lumiere:purchase-reported:${order.publicId}`
-    if (window.sessionStorage.getItem(reportKey)) {
-      hasReportedPurchase.current = true
-      return
-    }
-
     hasReportedPurchase.current = true
     const analyticsItems = getLastOrder(order.publicId)?.analyticsItems ??
       ("analyticsItems" in order ? order.analyticsItems : order.items.map(item => ({
@@ -51,7 +45,6 @@ export function OrderSuccess() {
       analyticsItems,
       "totalPrice" in order ? order.totalPrice : order.total
     )
-    window.sessionStorage.setItem(reportKey, "1")
   }, [order])
 
   async function copyPaymentDetails() {

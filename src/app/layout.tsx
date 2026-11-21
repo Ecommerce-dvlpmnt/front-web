@@ -28,7 +28,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col" suppressHydrationWarning>
-        <GoogleTag id={process.env.NEXT_PUBLIC_GOOGLE_TAG_ID} />
+        <GoogleTag id={process.env.NEXT_PUBLIC_GOOGLE_TAG_ID} ga4Id={process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID} />
         <SmoothScroll />
         <WinterSnow />
         <CartProvider>
