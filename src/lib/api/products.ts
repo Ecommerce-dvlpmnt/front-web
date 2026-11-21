@@ -219,16 +219,13 @@ export async function getProducts(
   const totalPages = firstPage.totalPages ?? 1
 
   for (let pageNumber = 2; pageNumber <= totalPages; pageNumber += 1) {
-    try {
-      const page = await getProductsPage({
-        ...options,
-        pageNumber,
-        pageSize,
-      })
-      products.push(...(page.items ?? []))
-    } catch {
-      break
-    }
+    // Propagate failures so consumers never receive a silently truncated catalog.
+    const page = await getProductsPage({
+      ...options,
+      pageNumber,
+      pageSize,
+    })
+    products.push(...(page.items ?? []))
   }
 
   return products.map(toProduct)

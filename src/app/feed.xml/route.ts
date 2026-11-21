@@ -3,7 +3,7 @@ import { shopConfig } from "@/lib/config/shop"
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "") ||
-  "http://localhost:3000"
+  "https://www.jingledecor.com.ua"
 
 function escapeXml(value: string): string {
   return value
@@ -15,7 +15,12 @@ function escapeXml(value: string): string {
 }
 
 function stripHtml(value: string): string {
-  return value.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
+  return value
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/(?:^|\s+)Відеоогляд$/iu, "")
+    .trim()
 }
 
 function absoluteUrl(value: string): string {
@@ -59,6 +64,7 @@ function getProductIdentifiers(attributes: string | null | undefined) {
 }
 
 export async function GET(): Promise<Response> {
+  // Backend caps each page at 100; getProducts loads every page with OnlyActive=true.
   const products = await getProducts({ pageSize: 100 })
 
   const items = products
