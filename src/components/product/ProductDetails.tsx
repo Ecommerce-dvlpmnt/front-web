@@ -407,6 +407,65 @@ export function ProductDetails({
             )}
           </div>
 
+          {/* Перемикач доступних висот / розмірів товару */}
+          {product.variants && product.variants.length > 1 && (
+            <div className="mt-6 rounded-2xl border border-border/80 bg-muted/30 p-4 sm:p-5 shadow-xs">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold text-foreground uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                  <span className="inline-block size-2 rounded-full bg-[#D4AF37]" />
+                  Доступні розміри (висота):
+                </span>
+                <span className="text-muted-foreground text-[11px]">
+                  {product.variants.length} варіанти
+                </span>
+              </div>
+              <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                {product.variants.map((v) => {
+                  const isCurrent = v.isCurrent ?? v.id === product.id
+                  return (
+                    <Link
+                      key={v.slug}
+                      href={`/product/${encodeURIComponent(v.slug)}`}
+                      prefetch={true}
+                      className={cn(
+                        "group relative flex flex-col items-center justify-center rounded-xl p-2.5 text-center transition-all cursor-pointer border",
+                        isCurrent
+                          ? "border-[#D4AF37] bg-[#D4AF37]/15 shadow-xs ring-2 ring-[#D4AF37]/60"
+                          : "border-border/70 bg-background/80 hover:border-[#D4AF37]/60 hover:bg-muted/60"
+                      )}
+                    >
+                      {isCurrent && (
+                        <span className="absolute -top-2 right-2 rounded-full bg-[#D4AF37] px-1.5 py-0.5 text-[9px] font-bold text-black uppercase tracking-wider">
+                          Обрано
+                        </span>
+                      )}
+                      <span
+                        className={cn(
+                          "text-xs font-bold",
+                          isCurrent
+                            ? "text-foreground"
+                            : "text-foreground/90 group-hover:text-foreground"
+                        )}
+                      >
+                        {v.height}
+                      </span>
+                      <span
+                        className={cn(
+                          "text-[11px] font-medium mt-0.5",
+                          isCurrent
+                            ? "text-[#8C5E14] dark:text-[#F3D078] font-semibold"
+                            : "text-muted-foreground"
+                        )}
+                      >
+                        {formatPrice(v.price)}
+                      </span>
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Быстрые гарантии магазина */}
           <div className="mt-6 grid grid-cols-2 gap-3 border-t border-border/80 pt-5 text-xs text-muted-foreground">
             <div className="flex items-center gap-2">
