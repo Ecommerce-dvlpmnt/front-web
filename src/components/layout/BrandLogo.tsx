@@ -115,7 +115,7 @@ export function BrandNameLogo({
 
   return (
     <svg
-      viewBox="0 2 332 111"
+      viewBox="0 0 348 114"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
@@ -130,13 +130,13 @@ export function BrandNameLogo({
         {animated && (
           <>
             <linearGradient id={shimmerId} x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0" />
-              <stop offset="50%" stopColor="#FFFFFF" stopOpacity="0.85" />
-              <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+              <stop offset="0%" stopColor="#FFF6D6" stopOpacity="0" />
+              <stop offset="50%" stopColor="#FFFDF5" stopOpacity="0.98" />
+              <stop offset="100%" stopColor="#FFF6D6" stopOpacity="0" />
             </linearGradient>
             <radialGradient id={sparkleGlowId} cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#FFF6D6" stopOpacity="0.95" />
-              <stop offset="45%" stopColor="#F3D078" stopOpacity="0.45" />
+              <stop offset="0%" stopColor="#FFFDF2" stopOpacity="1" />
+              <stop offset="40%" stopColor="#F3D078" stopOpacity="0.7" />
               <stop offset="100%" stopColor="#D4AF37" stopOpacity="0" />
             </radialGradient>
             <mask id={maskId}>
@@ -182,32 +182,35 @@ export function BrandNameLogo({
               className="animate-logo-shimmer"
               x="0"
               y="-20"
-              width="80"
+              width="95"
               height="160"
               fill={`url(#${shimmerId})`}
             />
           </g>
 
-          {/* Ювелірний спалах зірочки біля слова DECOR через ~0.5с після проходження шимера */}
+          {/* Виразна ювелірна зірочка біля слова DECOR: загоряється в момент підходу блику і повільно згасає */}
           <g className="animate-logo-sparkle pointer-events-none" aria-hidden="true">
-            <circle cx="321" cy="87" r="10.5" fill={`url(#${sparkleGlowId})`} />
+            <circle cx="327" cy="88" r="19" fill={`url(#${sparkleGlowId})`} />
+            {/* Діагональні тонкі промені */}
             <path
-              d="M321 75.5C321 84.8 322.2 87 331.5 87C322.2 87 321 89.2 321 98.5C321 89.2 319.8 87 310.5 87C319.8 87 321 84.8 321 75.5Z"
-              className="fill-[#B87D14] dark:fill-[#FFDF85]"
+              d="M319 80L335 96M335 80L319 96"
+              strokeWidth="1.4"
+              strokeLinecap="round"
+              className="stroke-[#C88A14]/75 dark:stroke-[#FFDF85]/80"
             />
+            {/* Головна 4-променева зірка */}
+            <path
+              d="M327 68C327 82.8 329.8 88 347 88C329.8 88 327 93.2 327 108C327 93.2 324.2 88 307 88C324.2 88 327 82.8 327 68Z"
+              strokeWidth="1.1"
+              strokeLinejoin="round"
+              className="fill-[#C88A14] stroke-[#8C5E14] dark:fill-[#FFDF85] dark:stroke-[#FFF6D6]"
+            />
+            {/* Яскраве діамантове ядро */}
             <circle
-              cx="321"
-              cy="87"
-              r="2"
-              className="fill-[#FFF8E1] dark:fill-[#FFFFFF]"
-            />
-          </g>
-
-          {/* Додаткова ніжна мікро-іскра трохи вище літер OR */}
-          <g className="animate-logo-sparkle-delayed pointer-events-none" aria-hidden="true">
-            <path
-              d="M302 70C302 74.2 302.7 75 307 75C302.7 75 302 75.8 302 80C302 75.8 301.3 75 297 75C301.3 75 302 74.2 302 70Z"
-              className="fill-[#C8923A] dark:fill-[#FFF0B8]"
+              cx="327"
+              cy="88"
+              r="3.2"
+              className="fill-[#FFFFFF]"
             />
           </g>
         </>
