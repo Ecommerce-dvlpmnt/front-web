@@ -76,7 +76,7 @@ function StructuredDescription({ description }: { description?: string | null })
           <p className="mt-0.5 text-xs sm:text-sm font-semibold text-foreground">
             100% Лита
           </p>
-          <p className="text-[11px] text-muted-foreground">Первинний полімер</p>
+          <p className="text-[11px] text-muted-foreground">Як жива лісова хвоя</p>
         </div>
 
         <div>
@@ -86,7 +86,7 @@ function StructuredDescription({ description }: { description?: string | null })
           <p className="mt-0.5 text-xs sm:text-sm font-semibold text-foreground">
             Без запаху
           </p>
-          <p className="text-[11px] text-muted-foreground">Гіпоалергенна, не горить</p>
+          <p className="text-[11px] text-muted-foreground">Безпечна для родини</p>
         </div>
 
         <div>
@@ -94,9 +94,9 @@ function StructuredDescription({ description }: { description?: string | null })
             Конструкція
           </span>
           <p className="mt-0.5 text-xs sm:text-sm font-semibold text-foreground">
-            Швидка збірка
+            Зручне складання
           </p>
-          <p className="text-[11px] text-muted-foreground">Гілки на шарнірах</p>
+          <p className="text-[11px] text-muted-foreground">Пишні пружні гілочки</p>
         </div>
 
         <div>
@@ -104,9 +104,9 @@ function StructuredDescription({ description }: { description?: string | null })
             Пакування
           </span>
           <p className="mt-0.5 text-xs sm:text-sm font-semibold text-foreground">
-            Заводська коробка
+            Фірмова коробка
           </p>
-          <p className="text-[11px] text-muted-foreground">Для щороку зберігання</p>
+          <p className="text-[11px] text-muted-foreground">Зручно зберігати щороку</p>
         </div>
       </div>
 
@@ -243,14 +243,14 @@ export function ProductDetails({
   return (
     <>
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1.08fr)_minmax(24rem,0.92fr)] lg:gap-16">
-        {/* Галерея изображений */}
+        {/* Галерея изображений в вертикальном портретном формате 2:3 */}
         <section aria-label="Галерея товару">
           <div className="md:hidden">
-            <div className="flex snap-x snap-mandatory overflow-x-auto rounded-3xl border border-border bg-muted">
+            <div className="flex snap-x snap-mandatory overflow-x-auto rounded-3xl border border-border bg-muted shadow-luxury">
               {galleryImages.map((image, index) => (
                 <div
                   key={image.src}
-                  className="relative aspect-square min-w-full snap-center"
+                  className="relative aspect-[2/3] min-w-full snap-center"
                 >
                   <Image
                     src={image.src}
@@ -275,9 +275,9 @@ export function ProductDetails({
                 <button
                   key={image.src}
                   type="button"
-                  className={`relative aspect-square overflow-hidden rounded-xl border bg-muted transition-opacity focus-visible:ring-3 focus-visible:ring-ring/50 ${
+                  className={`relative aspect-[2/3] overflow-hidden rounded-xl border bg-muted transition-all focus-visible:ring-3 focus-visible:ring-ring/50 cursor-pointer ${
                     selectedImageIndex === index
-                      ? "border-foreground"
+                      ? "border-[#D4AF37] ring-1 ring-[#D4AF37]/40 opacity-100"
                       : "border-border opacity-65 hover:opacity-100"
                   }`}
                   aria-label={`Показати фото ${index + 1}`}
@@ -295,7 +295,7 @@ export function ProductDetails({
               ))}
             </div>
 
-            <div className="relative aspect-square overflow-hidden rounded-3xl border border-border bg-muted">
+            <div className="relative aspect-[2/3] w-full max-w-[26rem] overflow-hidden rounded-3xl border border-border bg-muted shadow-luxury">
               {selectedImage && (
                 <Image
                   key={selectedImage.src}
@@ -303,7 +303,7 @@ export function ProductDetails({
                   alt={selectedImage.alt}
                   fill
                   priority
-                  sizes="(min-width: 1280px) 54vw, 50vw"
+                  sizes="(min-width: 1280px) 45vw, 50vw"
                   className="object-cover transition-opacity duration-300"
                 />
               )}
@@ -320,16 +320,16 @@ export function ProductDetails({
             {category ? (
               <Link
                 href={`/catalog/${category.slug}`}
-                className="text-xs font-semibold tracking-[0.18em] text-muted-foreground uppercase underline-offset-4 hover:underline"
+                className="text-xs font-semibold tracking-[0.18em] text-[#8C5E14] dark:text-[#D4AF37] uppercase underline-offset-4 hover:underline"
               >
                 {category.name}
               </Link>
             ) : product.categoryName ? (
-              <span className="text-xs font-semibold tracking-[0.18em] text-muted-foreground uppercase">
+              <span className="text-xs font-semibold tracking-[0.18em] text-[#8C5E14] dark:text-[#D4AF37] uppercase">
                 {product.categoryName}
               </span>
             ) : (
-              <span className="text-xs font-semibold tracking-[0.18em] text-muted-foreground uppercase">
+              <span className="text-xs font-semibold tracking-[0.18em] text-[#8C5E14] dark:text-[#D4AF37] uppercase">
                 Товар
               </span>
             )}
@@ -341,7 +341,7 @@ export function ProductDetails({
 
           <h1
             id="product-title"
-            className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl text-foreground"
+            className="mt-3 font-heading text-3xl font-semibold tracking-[-0.02em] sm:text-4xl text-foreground"
           >
             {product.name}
           </h1>
@@ -429,16 +429,17 @@ export function ProductDetails({
             </label>
 
             <div className="mt-3 flex gap-3">
-              <div className="flex h-10 items-center rounded-lg border border-border bg-background">
+              <div className="flex h-11 items-center rounded-full border border-border bg-background px-1">
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
+                  className="size-9 rounded-full"
                   aria-label="Зменшити кількість"
                   disabled={isOutOfStock || quantity <= 1}
                   onClick={() => updateQuantity(quantity - 1)}
                 >
-                  <Minus />
+                  <Minus className="size-3.5" />
                 </Button>
                 <input
                   id="product-quantity"
@@ -448,7 +449,7 @@ export function ProductDetails({
                   value={quantity}
                   disabled={isOutOfStock}
                   aria-label="Кількість товару"
-                  className="h-10 w-12 border-x border-border bg-transparent text-center text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  className="h-9 w-11 bg-transparent text-center text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring/50 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                   onChange={(event) =>
                     updateQuantity(Number(event.target.value))
                   }
@@ -457,17 +458,22 @@ export function ProductDetails({
                   type="button"
                   variant="ghost"
                   size="icon"
+                  className="size-9 rounded-full"
                   aria-label="Збільшити кількість"
                   disabled={isOutOfStock || quantity >= product.stock}
                   onClick={() => updateQuantity(quantity + 1)}
                 >
-                  <Plus />
+                  <Plus className="size-3.5" />
                 </Button>
               </div>
 
               <Button
                 type="button"
-                className="h-10 flex-1 rounded-lg bg-foreground text-background font-semibold uppercase tracking-wider text-xs shadow-xs hover:bg-foreground/90 cursor-pointer"
+                className={`h-11 flex-1 rounded-full font-semibold uppercase tracking-wider text-xs shadow-sm transition-all duration-200 cursor-pointer ${
+                  isAdded
+                    ? "bg-[#1B3527] text-white"
+                    : "bg-[#181512] text-[#FAF8F5] hover:bg-[#2A231D] dark:bg-gradient-to-r dark:from-[#E5C158] dark:via-[#F3D078] dark:to-[#D4AF37] dark:text-[#14110C] dark:hover:brightness-105"
+                }`}
                 disabled={!canAddToCart}
                 onClick={handleAddToCart}
               >
@@ -559,7 +565,7 @@ export function ProductDetails({
                 <div className="rounded-2xl border border-border/80 bg-card p-4 shadow-xs">
                   <ShieldCheck className="size-5 text-[#C8923A] dark:text-[#D4AF37]" />
                   <p className="mt-2 text-sm font-semibold text-foreground">100% Безпечні матеріали</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Харчовий еко-полімер, гіпоалергенна хвоя без неприємного запаху.</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Безпечний еко-матеріал, гіпоалергенна хвоя без стороннього запаху.</p>
                 </div>
 
                 <div className="rounded-2xl border border-border/80 bg-card p-4 shadow-xs">
