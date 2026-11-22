@@ -424,3 +424,139 @@ test("referral attribution survives navigation and reaches the order within the 
     else delete globalThis.window
   }
 })
+
+function elementNodes(element) {
+  if (!element || typeof element !== "object") return []
+  const children = element.props?.children
+  return [element, ...(Array.isArray(children) ? children.flat(Infinity) : [children]).flatMap(elementNodes)]
+}
+
+// Drive the actual component's event handlers without a browser or a new test package.
+function hookState() {
+  const slots = []
+  let cursor = 0
+  return {
+    react: {
+      ...React,
+      useEffect() {},
+      useState(initial) {
+        const index = cursor++
+        if (!(index in slots)) slots[index] = typeof initial === "function" ? initial() : initial
+        return [slots[index], value => { slots[index] = typeof value === "function" ? value(slots[index]) : value }]
+      },
+      useRef(initial) {
+        const index = cursor++
+        if (!(index in slots)) slots[index] = { current: initial }
+        return slots[index]
+      },
+    },
+    render(Component, props) { cursor = 0; return Component(props) },
+  }
+}
+
+test("catalog height selection adds the chosen SKU's own price, stock, SKU and image", async () => {
+  const base = product(1, { name: "Штучна ялинка Мрія зелена 1.8 м", categoryId: "trees", sku: "BASE", stock: 50, price: 200, oldPrice: 300 })
+  const tall = product(2, { name: "Штучна ялинка Мрія зелена 2.1 м", categoryId: "trees", sku: "TALL", stock: 1, price: 450, oldPrice: null, mainImageUrl: "https://demo.supabase.co/tall.webp" })
+  const unavailable = product(3, { name: "Штучна ялинка Мрія зелена 2.5 м", categoryId: "trees", sku: "SOLD-OUT", stock: 0, price: 800 })
+  const hooks = hookState()
+  const requests = []
+  const added = []
+  let cart = []
+  const load = sourceLoader({
+    fetch: async url => { requests.push(url); return Response.json([base, tall, unavailable]) },
+    overrides: {
+      react: hooks.react,
+      "@/components/cart/CartContext": { useCart: () => ({ items: cart, addItem(item) { added.push(item); cart = [{ product: item, quantity: 1 }] } }) },
+    },
+  })
+  const Card = load("@/components/catalog/ProductCard").ProductCard
+  const render = () => elementNodes(hooks.render(Card, { product: base }))
+  let nodes = render()
+  assert.equal(requests.length, 0, "catalog render must not eagerly request variants")
+  await nodes.find(node => node.type === "button" && String(node.props.children).startsWith("Обрати висоту")).props.onClick()
+  assert.deepEqual(requests, ["/api/products/product-1/height-variants"])
+  nodes = render()
+  let focused = false
+  nodes.find(node => node.props?.["aria-label"] === "Висота 1.8 м").props.ref({ focus() { focused = true } })
+  assert.equal(focused, true, "loading heights must preserve keyboard focus")
+  nodes.find(node => node.props?.["aria-label"] === "Висота 2.1 м").props.onClick()
+  nodes = render()
+  assert.equal(nodes.find(node => node.props?.fill).props.src, tall.mainImageUrl)
+  assert.ok(nodes.some(node => node.props?.href === "/product/product-2"))
+  assert.equal(nodes.find(node => node.props?.["aria-label"] === "Висота 2.1 м").props["aria-pressed"], true)
+  const buy = nodes.find(node => node.props?.children === "До кошика")
+  assert.equal(buy.props.disabled, false)
+  buy.props.onClick()
+  assert.deepEqual(Object.fromEntries(["id", "name", "slug", "price", "oldPrice", "stock", "sku", "mainImageUrl"].map(key => [key, added[0][key]])),
+    Object.fromEntries(["id", "name", "slug", "price", "oldPrice", "stock", "sku", "mainImageUrl"].map(key => [key, tall[key]])))
+  nodes = render()
+  assert.equal(nodes.find(node => node.props?.children === "Максимум у кошику").props.disabled, true)
+  nodes.find(node => node.props?.["aria-label"]?.startsWith("Висота 2.5 м")).props.onClick()
+  nodes = render()
+  assert.equal(nodes.find(node => node.props?.children === "Немає в наявності" && typeof node.props.onClick === "function").props.disabled, true)
+  assert.equal(added.length, 1)
+})
+
+test("PDP loads one targeted Summary page and keeps the linked SKU authoritative", async () => {
+  const base = product(1, { name: "Штучна ялинка Мрія зелена 1,8 м", categoryId: "trees", sku: "BASE", price: 200 })
+  const tall = product(2, { name: "Штучна ялинка Мрія зелена 210 см", categoryId: "trees", sku: "TALL", price: 450, stock: 1 })
+  const calls = []
+  const load = sourceLoader({ fetch: async (url, init) => {
+    calls.push({ url, init })
+    if (url.includes("by-slug")) return Response.json(base)
+    if (url.includes("/categories?")) return Response.json([])
+    return Response.json({
+      items: [tall, product(3, { name: "Штучна ялинка Мрія зелена 2.5 м", categoryId: "trees", isActive: false }),
+        product(4, { name: "Штучна ялинка Мрія засніжена 2.5 м", categoryId: "trees" }),
+        product(5, { name: "Штучна ялинка Мрія зелена 2.5 м", categoryId: "other" })],
+      totalCount: 441, totalPages: 19, pageSize: 24,
+    })
+  } })
+  const page = load("@/app/product/[slug]/page")
+  const tree = await page.default({ params: Promise.resolve({ slug: base.slug }) })
+  const metadata = await page.generateMetadata({ params: Promise.resolve({ slug: base.slug }) })
+  const lists = calls.filter(call => call.url.includes("/products?"))
+  assert.equal(lists.length, 1, "PDP and metadata must not walk catalog pages")
+  const query = new URL(lists[0].url).searchParams
+  assert.equal(query.get("Search"), "Штучна ялинка Мрія зелена")
+  assert.equal(query.get("Summary"), "true")
+  assert.equal(query.get("PageSize"), "24")
+  assert.equal(query.get("PageNumber"), "1")
+  assert.equal(query.get("CategoryId"), "trees")
+  assert.equal(lists[0].init.next.revalidate, 300)
+  const nodes = elementNodes(tree)
+  const details = nodes.find(node => node.type === load("@/components/product/ProductDetails").ProductDetails)
+  assert.equal(details.key, base.id)
+  assert.equal(details.props.product.id, base.id)
+  assert.deepEqual(details.props.heightVariants.map(variant => variant.id), [base.id, tall.id])
+  assert.equal(metadata.alternates.canonical, `${origin}/product/${base.slug}`)
+  const jsonLd = JSON.parse(nodes.find(node => node.type === "script").props.dangerouslySetInnerHTML.__html)
+  assert.equal(jsonLd.offers.price, base.price)
+  assert.equal(jsonLd.sku, base.sku)
+  const html = renderToStaticMarkup(React.createElement(load("@/features/product/ProductHeightLinks").ProductHeightLinks,
+    { productId: base.id, variants: details.props.heightVariants }))
+  assert.match(html, /href="\/product\/product-2"/)
+  assert.match(html, /aria-current="page"/)
+  assert.match(html, /1.8 м/)
+  assert.match(html, /2.1 м/)
+})
+
+test("height matching excludes ornaments, other series and duplicate heights", () => {
+  const { getTreeHeightModel, selectHeightVariants } = sourceLoader()("@/features/product/height-variants")
+  for (const name of ["Набір ялинкових куль 8 см", "Гірлянда хвойна 2 м", "Ялинка 1 м x 2 м"]) assert.equal(getTreeHeightModel(name), null)
+  const base = product(1, { name: "Ялинка Мрія 1.8 м", categoryId: "trees" })
+  const variants = selectHeightVariants(base, [
+    product(2, { name: "Ялина Мрія 180 см", categoryId: "trees" }),
+    product(3, { name: "Ялинка Мрія 2.5 м", categoryId: "trees", stock: 0 }),
+    product(4, { name: "Ялинка Мрія засніжена 2.1 м", categoryId: "trees" }),
+  ])
+  assert.deepEqual(variants.map(variant => variant.id), [base.id, "p-3"])
+})
+
+test("variant endpoint reports lookup failures without breaking the catalog", async () => {
+  for (const status of [404, 503]) {
+    const load = sourceLoader({ fetch: async () => new Response("Unavailable", { status }) })
+    const response = await load("@/app/api/products/[slug]/height-variants/route").GET(new Request(origin), { params: Promise.resolve({ slug: "missing" }) })
+    assert.equal(response.status, status)
+  }
+})

@@ -31,12 +31,15 @@ import { formatPrice } from "@/lib/formatters/price"
 import { cn } from "@/lib/utils"
 import type { Category } from "@/types/category"
 import type { Product } from "@/types/product"
+import { ProductHeightLinks } from "@/features/product/ProductHeightLinks"
+import type { ProductHeightVariant } from "@/features/product/height-variants"
 
 const GALLERY_IMAGE_SIZES = "(min-width: 1280px) 416px, (min-width: 1024px) min(416px, calc(54vw - 170px)), (min-width: 768px) min(416px, calc(100vw - 148px)), calc(100vw - 32px)"
 
 interface ProductDetailsProps {
   product: Product
   category?: Category
+  heightVariants?: ProductHeightVariant[]
 }
 
 function StructuredDescription({ description }: { description?: string | null }) {
@@ -185,6 +188,7 @@ function StructuredDescription({ description }: { description?: string | null })
 export function ProductDetails({
   product,
   category,
+  heightVariants = [],
 }: ProductDetailsProps) {
   const galleryImages = getProductGalleryImages(product)
   const attributes = parseProductAttributes(product.attributes)
@@ -366,6 +370,8 @@ export function ProductDetails({
               </span>
             )}
           </div>
+
+          <ProductHeightLinks variants={heightVariants} productId={product.id} />
 
           {/* Быстрые гарантии магазина */}
           <div className="mt-6 grid grid-cols-2 gap-3 border-t border-border/80 pt-5 text-xs text-muted-foreground">

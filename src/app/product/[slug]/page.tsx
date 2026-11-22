@@ -7,6 +7,7 @@ import { ProductDetails } from "@/components/product/ProductDetails"
 import { ProductViewTracker } from "@/components/product/ProductViewTracker"
 import { getCategories } from "@/lib/api/categories"
 import { getProductBySlug } from "@/lib/api/products"
+import { getProductHeightVariants } from "@/lib/api/product-height-variants"
 import { getProductGalleryImages, getProductMetaDescription } from "@/features/product/product-utils"
 import { shopConfig } from "@/lib/config/shop"
 
@@ -109,7 +110,10 @@ export default async function ProductPage({
 
   if (!product) notFound()
 
-  const categories = await getCategories({ onlyActive: true }).catch(() => [])
+  const [categories, heightVariants] = await Promise.all([
+    getCategories({ onlyActive: true }).catch(() => []),
+    getProductHeightVariants(product).catch(() => []),
+  ])
   const category = categories.find((item) => item.id === product.categoryId)
   const productUrl = await getProductUrl(product.slug)
   const galleryImages = getProductGalleryImages(product)
@@ -174,7 +178,7 @@ export default async function ProductPage({
               __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
             }}
           />
-          <ProductDetails product={product} category={category} />
+          <ProductDetails key={product.id} product={product} category={category} heightVariants={heightVariants} />
         </div>
       </div>
     </div>
