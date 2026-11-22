@@ -233,10 +233,12 @@ export function NovaPoshtaPickerModal({
                       type="button"
                       onClick={() => setFocusedRef(item.Ref)}
                       className={`block w-full min-w-0 border-b border-border p-4 text-left transition-colors hover:bg-muted/80 ${
-                        focusedRef === item.Ref ? "bg-muted border-l-4 border-l-[#DA291C]" : ""
+                        focusedRef === item.Ref ? "bg-muted/90 border-l-4 border-l-[#D4AF37]" : ""
                       }`}
                     >
-                      <span className="text-xs font-semibold uppercase tracking-wide text-[#DA291C] dark:text-[#f87171]">
+                      <span className={`text-xs font-semibold uppercase tracking-wide ${
+                        type === "Postomat" ? "text-emerald-700 dark:text-emerald-400" : "text-[#B82228] dark:text-[#f87171]"
+                      }`}>
                         {type === "Postomat" ? "Поштомат" : "Відділення"}
                         {item.Number ? ` №${item.Number}` : ""}
                       </span>
@@ -247,7 +249,11 @@ export function NovaPoshtaPickerModal({
                         {item.Description}
                       </span>
                       <span
-                        className="mt-3 inline-flex rounded-lg bg-[#DA291C] px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-[#b91c1c]"
+                        className={`mt-3 inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold text-white shadow-xs transition-all active:scale-95 cursor-pointer ${
+                          type === "Postomat"
+                            ? "bg-[#1B4332] hover:bg-[#245942]"
+                            : "bg-[#B82228] hover:bg-[#9E2A2B]"
+                        }`}
                         onClick={event => {
                           event.stopPropagation()
                           onSelect(item)

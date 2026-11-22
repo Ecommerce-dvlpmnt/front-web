@@ -26,6 +26,7 @@ import {
   pushBeginCheckout,
 } from "@/lib/analytics/data-layer"
 import { formatPrice } from "@/lib/formatters/price"
+import { cn } from "@/lib/utils"
 import { getWarehousesByCity } from "@/lib/api/novaposhta"
 import type { NovaPoshtaWarehouse } from "./NovaPoshtaMap"
 import { NovaPoshtaPickerModal } from "./NovaPoshtaPickerModal"
@@ -415,45 +416,99 @@ export function CheckoutForm() {
               <label htmlFor="checkout-warehouse" className="text-sm font-medium">
                 {deliveryType === "Postomat" ? "Поштомат" : "Відділення"} <span aria-hidden="true">*</span>
               </label>
-              {form.getValues("deliveryWarehouseRef") ? <div className="rounded-xl border border-primary/30 bg-muted/50 p-4"><p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Пункт отримання</p><p className="mt-1 text-sm font-medium">{form.getValues("deliveryWarehouseName")}</p><Button type="button" variant="outline" size="sm" className="mt-3" disabled={!cityRef} onClick={() => setIsMapOpen(true)}><MapPin className="mr-2 size-4" />Змінити на мапі</Button></div> : <>
-              <Input id="checkout-warehouse" placeholder={cityRef ? "Пошук за номером або адресою" : "Спочатку оберіть місто"} value={warehouseSearch} disabled={!cityRef || isLoadingWarehouses} onChange={event => {
-                setWarehouseSearch(event.target.value)
-                form.setValue("deliveryWarehouseRef", "", { shouldValidate: true })
-                form.setValue("deliveryWarehouseName", "", { shouldValidate: true })
-              }} />
-              {isLoadingWarehouses && (
-                <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <span className="inline-block size-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                  Завантаження точок Нової Пошти…
-                </p>
-              )}
-              {cityRef && filteredWarehouses.length > 0 && (
-                <ul className="max-h-48 overflow-auto rounded-lg border border-border" role="listbox" aria-label="Точки Нової Пошти">
-                  {filteredWarehouses.slice(0, 50).map(item => (
-                    <li key={item.Ref}>
-                      <button
-                        type="button"
-                        role="option"
-                        aria-selected={form.getValues("deliveryWarehouseRef") === item.Ref}
-                        className="w-full px-3 py-2 text-left text-sm hover:bg-muted focus-visible:bg-muted"
-                        onClick={() => {
-                          form.setValue("deliveryWarehouseRef", item.Ref, { shouldValidate: true })
-                          form.setValue("deliveryWarehouseName", item.Description, { shouldValidate: true })
-                          setWarehouseSearch(item.Description)
-                        }}
-                      >
-                        {item.Description}{item.ShortAddress && item.ShortAddress !== item.Description ? ` — ${item.ShortAddress}` : ""}
-                      </button>
-                    </li>
-                  ))}
-                  {filteredWarehouses.length > 50 && (
-                    <li className="bg-muted/40 px-3 py-2 text-center text-xs text-muted-foreground">
-                      Показано перші 50 точок із {filteredWarehouses.length}. Введіть номер або адресу для точного пошуку.
-                    </li>
+              {form.getValues("deliveryWarehouseRef") ? (
+                <div className="rounded-2xl border border-[#D4AF37]/50 bg-[#D4AF37]/10 p-4 shadow-xs">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-[#8C5E14] dark:text-[#F3D078] flex items-center gap-1.5">
+                        <span className="size-2 rounded-full bg-emerald-500" />
+                        Вибраний пункт отримання
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-foreground">
+                        {form.getValues("deliveryWarehouseName")}
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="shrink-0 rounded-full border-border/80 text-xs font-medium hover:border-[#D4AF37]"
+                      disabled={!cityRef}
+                      onClick={() => setIsMapOpen(true)}
+                    >
+                      <MapPin className="mr-1.5 size-3.5 text-[#8C5E14] dark:text-[#F3D078]" />
+                      Змінити
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <Input
+                    id="checkout-warehouse"
+                    placeholder={cityRef ? "Пошук за номером або адресою" : "Спочатку оберіть місто"}
+                    value={warehouseSearch}
+                    disabled={!cityRef || isLoadingWarehouses}
+                    onChange={event => {
+                      setWarehouseSearch(event.target.value)
+                      form.setValue("deliveryWarehouseRef", "", { shouldValidate: true })
+                      form.setValue("deliveryWarehouseName", "", { shouldValidate: true })
+                    }}
+                  />
+                  {isLoadingWarehouses && (
+                    <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <span className="inline-block size-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                      Завантаження точок Нової Пошти…
+                    </p>
                   )}
-                </ul>
+                  {cityRef && filteredWarehouses.length > 0 && (
+                    <ul className="max-h-48 overflow-auto rounded-lg border border-border" role="listbox" aria-label="Точки Нової Пошти">
+                      {filteredWarehouses.slice(0, 50).map(item => (
+                        <li key={item.Ref}>
+                          <button
+                            type="button"
+                            role="option"
+                            aria-selected={form.getValues("deliveryWarehouseRef") === item.Ref}
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-muted focus-visible:bg-muted"
+                            onClick={() => {
+                              form.setValue("deliveryWarehouseRef", item.Ref, { shouldValidate: true })
+                              form.setValue("deliveryWarehouseName", item.Description, { shouldValidate: true })
+                              setWarehouseSearch(item.Description)
+                            }}
+                          >
+                            {item.Description}{item.ShortAddress && item.ShortAddress !== item.Description ? ` — ${item.ShortAddress}` : ""}
+                          </button>
+                        </li>
+                      ))}
+                      {filteredWarehouses.length > 50 && (
+                        <li className="bg-muted/40 px-3 py-2 text-center text-xs text-muted-foreground">
+                          Показано перші 50 точок із {filteredWarehouses.length}. Введіть номер або адресу для точного пошуку.
+                        </li>
+                      )}
+                    </ul>
+                  )}
+                  <Button
+                    type="button"
+                    disabled={!cityRef || isLoadingWarehouses}
+                    onClick={() => setIsMapOpen(true)}
+                    className={cn(
+                      "w-full h-11 rounded-xl font-semibold transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 shadow-xs",
+                      customerErrors.deliveryWarehouseRef
+                        ? "bg-gradient-to-r from-[#B82228] to-[#DA291C] text-white hover:brightness-110 ring-2 ring-red-400/50 animate-pulse"
+                        : cityRef
+                          ? "bg-[#181512] text-[#FAF8F5] hover:bg-[#2A231D] dark:bg-gradient-to-r dark:from-[#E5C158] dark:via-[#F3D078] dark:to-[#D4AF37] dark:text-[#14110C] hover:scale-[1.01]"
+                          : "bg-muted text-muted-foreground border border-border"
+                    )}
+                  >
+                    <MapPin className="size-4 shrink-0 text-[#F3D078] dark:text-[#14110C]" />
+                    <span>{isLoadingWarehouses ? "Завантажуємо точки…" : "Обрати на інтерактивній мапі"}</span>
+                    {cityRef && warehouses.length > 0 && (
+                      <span className="ml-1 rounded-full bg-white/20 dark:bg-black/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                        {warehouses.length} {deliveryType === "Postomat" ? "поштоматів" : "точок"}
+                      </span>
+                    )}
+                  </Button>
+                </>
               )}
-              <Button type="button" variant="outline" className="w-full" disabled={!cityRef || isLoadingWarehouses} onClick={() => setIsMapOpen(true)}><MapPin className="mr-2 size-4" />Обрати на мапі</Button></>}
               <FieldError message={customerErrors.deliveryWarehouseRef?.message} />
             </div>}
           </div>

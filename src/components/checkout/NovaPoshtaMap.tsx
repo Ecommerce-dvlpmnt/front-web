@@ -11,8 +11,12 @@ export type { NovaPoshtaWarehouse } from "@/lib/api/novaposhta"
 
 const DEFAULT_CENTER: L.LatLngTuple = [50.4501, 30.5234]
 
-const WAREHOUSE_COLOR = "#DA291C"
-const POSTOMAT_COLOR = "#0F8B66"
+// Фірмові кольори бренду Jingle Decor:
+// Відділення: глибокий рубіново-червоний (благородний відтінок Нової Пошти)
+// Поштомати: насичений темно-смарагдовий (хвоя / темна ялина)
+// Акценти: тепле золото (#D4AF37 / #F3D078)
+const WAREHOUSE_COLOR = "#B82228"
+const POSTOMAT_COLOR = "#1B4332"
 
 // Кэш иконок пинов
 const pinIconCache = new Map<string, L.DivIcon>()
@@ -24,10 +28,10 @@ function getPinIcon(isPostomat: boolean, isHighlighted: boolean) {
 
   const color = isPostomat ? POSTOMAT_COLOR : WAREHOUSE_COLOR
   const size = isHighlighted ? 34 : 26
-  const dotSize = isHighlighted ? 10 : 8
+  const dotSize = isHighlighted ? 10 : 7
   const shadow = isHighlighted
-    ? `0 4px 14px rgba(218, 41, 28, 0.48), 0 0 0 5px ${isPostomat ? "rgba(15, 139, 102, 0.28)" : "rgba(218, 41, 28, 0.28)"}`
-    : "0 2px 6px rgba(0, 0, 0, 0.35)"
+    ? `0 6px 18px rgba(0, 0, 0, 0.45), 0 0 0 5px rgba(212, 175, 55, 0.7)`
+    : "0 2px 8px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(212, 175, 55, 0.35)"
 
   const icon = L.divIcon({
     className: "custom-np-pin",
@@ -40,7 +44,7 @@ function getPinIcon(isPostomat: boolean, isHighlighted: boolean) {
         width: ${size}px;
         height: ${size}px;
         background-color: ${color};
-        border: 2.5px solid #ffffff;
+        border: 2px solid #ffffff;
         border-radius: 50% 50% 50% 0;
         transform: rotate(-45deg);
         box-shadow: ${shadow};
@@ -52,9 +56,10 @@ function getPinIcon(isPostomat: boolean, isHighlighted: boolean) {
         <div style="
           width: ${dotSize}px;
           height: ${dotSize}px;
-          background-color: #ffffff;
+          background-color: #F3D078;
           border-radius: 50%;
           transform: rotate(45deg);
+          box-shadow: 0 0 3px rgba(0,0,0,0.25);
         "></div>
       </div>
     `,
@@ -163,14 +168,13 @@ function MarkerClusterLayer({
   useEffect(() => {
     if (!map) return
 
-    // Офіційний фірмовий стиль Нової Пошти:
-    // maxClusterRadius = 40 (кружки розбавлені, кластери не збиваються у величезні купи, а рівномірно розподіляються по районах)
-    // spiderfyOnMaxZoom = плавне розкриття спіраллю для точок за однією адресою
-    // chunkedLoading = плавне додавання маркерів без підвисання браузера
+    // Стилізована під бутік-дизайн кластеризація:
+    // Динамічний радіус залежно від зуму: на загальному плані міста (zoom <= 12) кружки комфортно
+    // об'єднуються у райони (65px), а при наближенні (13-14) розпадаються на затишні групи (48px) та окремі вулиці (38px).
     const clusterGroup = (L as unknown as {
       markerClusterGroup: (options?: unknown) => L.MarkerClusterGroup
     }).markerClusterGroup({
-      maxClusterRadius: 40,
+      maxClusterRadius: (zoom: number) => (zoom <= 12 ? 65 : zoom <= 14 ? 48 : 38),
       showCoverageOnHover: false,
       zoomToBoundsOnClick: false,
       spiderfyOnMaxZoom: true,
@@ -180,8 +184,22 @@ function MarkerClusterLayer({
       chunkedLoading: true,
       chunkInterval: 80,
       chunkDelay: 8,
-      iconCreateFunction: (cluster: { getChildCount: () => number }) => {
+      iconCreateFunction: (cluster: { getChildCount: () => number; getAllChildMarkers: () => L.Marker[] }) => {
         const count = cluster.getChildCount()
+        const childMarkers = cluster.getAllChildMarkers()
+        let postomatCount = 0
+        for (const m of childMarkers) {
+          // @ts-expect-error custom tag
+          if (m._isPostomat) postomatCount++
+        }
+        const isPostomatCluster = postomatCount > childMarkers.length / 2
+
+        const baseColor = isPostomatCluster ? POSTOMAT_COLOR : WAREHOUSE_COLOR
+        const haloColor = isPostomatCluster
+          ? "rgba(27, 67, 50, 0.35)"
+          : "rgba(184, 34, 40, 0.35)"
+        const goldRing = "rgba(212, 175, 55, 0.55)"
+
         let size = 34
         let fontSize = "11px"
         if (count >= 100) {
@@ -197,9 +215,9 @@ function MarkerClusterLayer({
             <div style="
               width: ${size}px;
               height: ${size}px;
-              background-color: #DA291C;
+              background-color: ${baseColor};
               border: 2px solid #ffffff;
-              box-shadow: 0 4px 14px rgba(218, 41, 28, 0.45), 0 0 0 4px rgba(218, 41, 28, 0.22);
+              box-shadow: 0 4px 14px ${haloColor}, 0 0 0 3px ${goldRing};
               border-radius: 50%;
               display: flex;
               align-items: center;
@@ -210,7 +228,7 @@ function MarkerClusterLayer({
               color: #ffffff;
               letter-spacing: -0.02em;
               transition: transform 0.22s cubic-bezier(0.2, 1, 0.3, 1), box-shadow 0.22s ease;
-            " onmouseover="this.style.transform='scale(1.12)';this.style.boxShadow='0 6px 18px rgba(218, 41, 28, 0.6), 0 0 0 6px rgba(218, 41, 28, 0.3)'" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 4px 14px rgba(218, 41, 28, 0.45), 0 0 0 4px rgba(218, 41, 28, 0.22)'">
+            " onmouseover="this.style.transform='scale(1.12)';this.style.boxShadow='0 6px 18px ${haloColor}, 0 0 0 5px ${goldRing}'" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 4px 14px ${haloColor}, 0 0 0 3px ${goldRing}'">
               ${count}
             </div>
           `,
@@ -241,6 +259,8 @@ function MarkerClusterLayer({
       const marker = L.marker([item.lat, item.lng], {
         icon: getPinIcon(item.isPostomat, false),
       })
+      // @ts-expect-error custom tag for cluster color determination
+      marker._isPostomat = item.isPostomat
 
       // Popup
       const popupDiv = document.createElement("div")
@@ -274,21 +294,21 @@ function MarkerClusterLayer({
           id="btn-np-select-${item.warehouse.Ref}"
           style="
             width: 100%;
-            background-color: ${WAREHOUSE_COLOR};
+            background-color: ${item.isPostomat ? POSTOMAT_COLOR : WAREHOUSE_COLOR};
             color: #ffffff;
             font-weight: 700;
-            padding: 8px 12px;
-            border-radius: 10px;
+            padding: 9px 14px;
+            border-radius: 9999px;
             font-size: 12px;
-            border: none;
+            border: 1px solid rgba(255, 255, 255, 0.3);
             cursor: pointer;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-            transition: background-color 0.15s, transform 0.1s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+            transition: opacity 0.15s, transform 0.1s;
           "
-          onmouseover="this.style.backgroundColor='#b82216'"
-          onmouseout="this.style.backgroundColor='${WAREHOUSE_COLOR}'"
+          onmouseover="this.style.opacity='0.9'"
+          onmouseout="this.style.opacity='1'"
         >
-          ✓ Вибрати ${item.isPostomat ? "цей поштомат" : "це відділення"}
+          ✓ Обрати ${item.isPostomat ? "цей поштомат" : "це відділення"}
         </button>
       `
 
