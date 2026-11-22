@@ -4,15 +4,12 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 
-import { Star } from "lucide-react"
-
 import type { Product } from "@/types/product"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/components/cart/CartContext"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatPrice } from "@/lib/formatters/price"
-import { formatReviewsDeclension, getProductRating } from "@/lib/reviews/reviews-store"
 
 interface ProductCardProps {
   product: Product
@@ -54,8 +51,6 @@ export function ProductCard({
   const activeOldPrice =
     activeVariant !== null ? (activeVariant.oldPrice ?? null) : (product.oldPrice ?? null)
   const activeInStock = activeVariant !== null ? activeVariant.inStock : product.stock > 0
-
-  const rating = getProductRating(product.id)
 
   const cartItem = items.find(
     (item) => item.product.id === activeId
@@ -149,30 +144,6 @@ export function ProductCard({
             {activeName}
           </Link>
         </h3>
-
-        {/* Зірковий рейтинг */}
-        <div className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs">
-          <div className="flex shrink-0 items-center gap-1.5">
-            <div className="flex items-center gap-0.5 text-[#D99B26] dark:text-[#F3D078]" aria-hidden="true">
-              {Array.from({ length: 5 }, (_, i) => (
-                <Star
-                  key={i}
-                  className={`size-3.5 ${
-                    i < Math.round(rating.score)
-                      ? "fill-current text-[#D99B26] dark:text-[#F3D078]"
-                      : "text-muted-foreground/30 fill-muted-foreground/15"
-                  }`}
-                />
-              ))}
-            </div>
-            <span className="font-bold text-foreground text-xs tracking-tight">
-              {rating.score.toFixed(1)}
-            </span>
-          </div>
-          <span className="whitespace-nowrap text-[11px] text-muted-foreground">
-            ({rating.count} {formatReviewsDeclension(rating.count)})
-          </span>
-        </div>
 
         {/* Швидкий вибір висоти ялинки прямо на картці в каталозі */}
         {variants && (
