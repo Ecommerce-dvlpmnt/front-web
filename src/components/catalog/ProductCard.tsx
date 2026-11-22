@@ -74,7 +74,7 @@ export function ProductCard({
     <article className="group/card relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/80 bg-card shadow-luxury transition-all duration-300 hover:-translate-y-1 hover:border-foreground/25 dark:hover:border-[#d4af37]/50 hover:shadow-luxury-hover">
       <Link
         href={`/product/${product.slug}`}
-        className="group relative aspect-square overflow-hidden bg-muted/40"
+        className="group relative aspect-[2/3] overflow-hidden bg-muted/40"
         aria-label={`Переглянути товар: ${product.name}`}
       >
         {!isImageLoaded && (
@@ -110,7 +110,7 @@ export function ProductCard({
         {/* min-h-[2.75em] = ровно 2 строки (2 × leading-snug 1.375em).
             Раньше min-h-12 был выше двух строк, и из-под line-clamp
             выглядывал верх третьей строки. */}
-        <h3 className="min-h-[2.75em] line-clamp-2 break-words font-medium text-[15px] leading-snug text-foreground transition-colors group-hover/card:text-[#d4af37]">
+        <h3 className="min-h-[2.75em] line-clamp-2 break-words font-medium text-[15px] leading-snug text-foreground transition-colors group-hover/card:text-[#8C5E14] dark:group-hover/card:text-[#F3D078]">
           <Link
             href={`/product/${product.slug}`}
             className="rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
@@ -170,7 +170,7 @@ export function ProductCard({
 export function ProductCardSkeleton() {
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-border/80 bg-card/90 shadow-luxury">
-      <Skeleton className="aspect-square w-full rounded-none" />
+      <Skeleton className="aspect-[2/3] w-full rounded-none" />
 
       <div className="flex flex-1 flex-col p-4 sm:p-5">
         <div className="space-y-2">

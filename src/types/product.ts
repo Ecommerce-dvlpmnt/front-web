@@ -41,3 +41,11 @@ export interface AdminProduct extends Product {
   dropPrice: number
   isActive: boolean
 }
+
+export interface ProductPage {
+  items: Product[]
+  totalCount: number
+  pageNumber: number
+  pageSize: number
+  totalPages: number
+}

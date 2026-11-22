@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
@@ -6,6 +7,7 @@ import { WinterSnow } from "@/components/ambient/WinterSnow";
 import { SmoothScroll } from "@/components/ambient/SmoothScroll";
 import { GoogleTag } from "@/components/analytics/GoogleTag";
 import { CartProvider } from "@/components/cart/CartContext";
+import { ReferralCapture } from "@/components/referral/ReferralCapture";
 import { buildCategoryTree, getCategories } from "@/lib/api/categories";
 
 import "./globals.css";
@@ -32,6 +34,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     >
       <body className="flex min-h-full flex-col" suppressHydrationWarning>
         <GoogleTag id={process.env.NEXT_PUBLIC_GOOGLE_TAG_ID} ga4Id={process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID} />
+        <Suspense fallback={null}>
+          <ReferralCapture />
+        </Suspense>
         <SmoothScroll />
         <WinterSnow />
         <CartProvider>

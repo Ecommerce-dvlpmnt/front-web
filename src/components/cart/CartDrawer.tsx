@@ -14,6 +14,14 @@ interface CartDrawerProps {
   onClose: () => void
 }
 
+function formatItemsDeclension(count: number): string {
+  const mod10 = count % 10
+  const mod100 = count % 100
+  if (mod10 === 1 && mod100 !== 11) return "товар"
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "товари"
+  return "товарів"
+}
+
 export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const {
     items,
@@ -42,12 +50,12 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         {/* Заголовок */}
         <div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-5">
           <div>
-            <h2 id="cart-title" className="text-xl font-semibold">
+            <h2 id="cart-title" className="font-heading text-xl font-semibold tracking-tight">
               Кошик
             </h2>
 
             <p className="mt-1 text-sm text-muted-foreground">
-              {itemCount} товарів
+              {itemCount} {formatItemsDeclension(itemCount)}
             </p>
           </div>
 
@@ -87,20 +95,20 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             <div className="flex-1 space-y-5 overflow-y-auto p-5">
               {items.map(({ product, quantity }) => (
                 <article
-  key={product.id}
-  className="grid grid-cols-[80px_minmax(0,1fr)] gap-3 border-b border-border pb-5 sm:grid-cols-[112px_minmax(0,1fr)] sm:gap-4"
->
-  {/* Изображение товара */}
-  <div className="relative aspect-square w-full shrink-0 overflow-hidden rounded-lg bg-muted">
-    <Image
-      src={product.mainImageUrl}
-      alt={product.name}
-      fill
-      loading="eager"
-      sizes="(min-width: 640px) 112px, 80px"
-      className="object-cover"
-    />
-  </div>
+                  key={product.id}
+                  className="grid grid-cols-[72px_minmax(0,1fr)] gap-3.5 border-b border-border pb-5 sm:grid-cols-[88px_minmax(0,1fr)] sm:gap-4"
+                >
+                  {/* Изображение товара в формате 2:3 */}
+                  <div className="relative aspect-[2/3] w-full shrink-0 overflow-hidden rounded-xl border border-border/60 bg-muted">
+                    <Image
+                      src={product.mainImageUrl}
+                      alt={product.name}
+                      fill
+                      loading="eager"
+                      sizes="(min-width: 640px) 88px, 72px"
+                      className="object-cover"
+                    />
+                  </div>
 
   {/* Информация о товаре */}
   <div className="flex min-w-0 flex-col gap-2">
@@ -179,7 +187,11 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               </div>
 
               <p className="text-sm text-muted-foreground">Доставка — за тарифами Нової Пошти.</p>
-              <Button className="w-full" size="lg" asChild>
+              <Button
+                className="w-full rounded-full bg-[#181512] text-[#FAF8F5] hover:bg-[#2A231D] dark:bg-gradient-to-r dark:from-[#E5C158] dark:via-[#F3D078] dark:to-[#D4AF37] dark:text-[#14110C] font-semibold tracking-wide"
+                size="lg"
+                asChild
+              >
                 <Link href="/checkout" onClick={onClose}>
                   Оформити замовлення
                 </Link>

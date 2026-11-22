@@ -32,7 +32,7 @@ import { cn } from "@/lib/utils"
 import type { Category } from "@/types/category"
 import type { Product } from "@/types/product"
 
-const GALLERY_IMAGE_SIZES = "(min-width: 1280px) 522px, (min-width: 1024px) calc(54vw - 170px), (min-width: 768px) calc(100vw - 148px), calc(100vw - 32px)"
+const GALLERY_IMAGE_SIZES = "(min-width: 1280px) 416px, (min-width: 1024px) min(416px, calc(54vw - 170px)), (min-width: 768px) min(416px, calc(100vw - 148px)), calc(100vw - 32px)"
 
 interface ProductDetailsProps {
   product: Product
@@ -240,7 +240,7 @@ export function ProductDetails({
               {galleryImages.map((image, index) => (
                 <div
                   key={image.src}
-                  className="relative aspect-square min-w-full snap-center"
+                  className="relative aspect-[2/3] min-w-full snap-center"
                 >
                   <Image
                     src={image.src}
@@ -266,7 +266,7 @@ export function ProductDetails({
                 <button
                   key={image.src}
                   type="button"
-                  className={`relative aspect-square overflow-hidden rounded-xl border bg-muted transition-opacity focus-visible:ring-3 focus-visible:ring-ring/50 ${
+                  className={`relative aspect-[2/3] overflow-hidden rounded-xl border bg-muted transition-opacity focus-visible:ring-3 focus-visible:ring-ring/50 ${
                     selectedImageIndex === index
                       ? "border-foreground"
                       : "border-border opacity-65 hover:opacity-100"
@@ -286,7 +286,7 @@ export function ProductDetails({
               ))}
             </div>
 
-            <div className="relative aspect-square overflow-hidden rounded-3xl border border-border bg-muted">
+            <div className="relative aspect-[2/3] w-full max-w-[26rem] overflow-hidden rounded-3xl border border-border bg-muted shadow-luxury">
               {selectedImage && (
                 <Image
                   key={selectedImage.src}
@@ -427,7 +427,7 @@ export function ProductDetails({
 
               <Button
                 type="button"
-                className="h-10 flex-1 rounded-lg bg-foreground text-background font-semibold uppercase tracking-wider text-xs shadow-xs hover:bg-foreground/90 cursor-pointer"
+                className="h-11 flex-1 rounded-full bg-foreground text-background font-semibold uppercase tracking-wider text-xs shadow-sm hover:bg-foreground/90 cursor-pointer"
                 disabled={!canAddToCart}
                 onClick={handleAddToCart}
               >
