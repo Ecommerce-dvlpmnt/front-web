@@ -16,11 +16,13 @@ interface ProductGridProps {
 
 export function ProductGrid({ products, searchQuery, itemListName }: ProductGridProps) {
   const lastReportedList = useRef("")
-  const [visibleCount, setVisibleCount] = useState(PAGE_BATCH_SIZE)
-
-  useEffect(() => {
-    setVisibleCount(PAGE_BATCH_SIZE)
-  }, [itemListName, searchQuery, products.length])
+  const listKey = `${itemListName}:${searchQuery ?? ""}:${products.length}`
+  const [paginationState, setPaginationState] = useState({
+    key: listKey,
+    count: PAGE_BATCH_SIZE,
+  })
+  const visibleCount =
+    paginationState.key === listKey ? paginationState.count : PAGE_BATCH_SIZE
 
   useEffect(() => {
     if (products.length === 0) return
@@ -81,7 +83,10 @@ export function ProductGrid({ products, searchQuery, itemListName }: ProductGrid
             type="button"
             variant="outline"
             onClick={() =>
-              setVisibleCount((prev) => Math.min(prev + PAGE_BATCH_SIZE, products.length))
+              setPaginationState({
+                key: listKey,
+                count: Math.min(visibleCount + PAGE_BATCH_SIZE, products.length),
+              })
             }
             className="rounded-full border-[#D4AF37]/50 bg-card px-8 py-5 text-xs font-semibold tracking-wider uppercase text-foreground shadow-xs transition-all duration-300 hover:border-[#D4AF37] hover:bg-[#D4AF37]/12 active:scale-[0.98] cursor-pointer"
           >

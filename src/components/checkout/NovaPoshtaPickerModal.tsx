@@ -1,7 +1,7 @@
 "use client"
 
 import dynamic from "next/dynamic"
-import { useMemo, useState, useSyncExternalStore } from "react"
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react"
 import { X } from "lucide-react"
 import type { NovaPoshtaWarehouse } from "./NovaPoshtaMap"
 
@@ -16,6 +16,8 @@ const NovaPoshtaMap = dynamic(() => import("./NovaPoshtaMap"), {
 
 // Совпадает с брейкпоинтом md в Tailwind (48rem = 768px).
 const DESKTOP_MEDIA_QUERY = "(min-width: 48rem)"
+const INITIAL_BATCH_SIZE = 40
+const BATCH_INCREMENT = 40
 
 function subscribeToDesktopQuery(onChange: () => void) {
   const mediaQuery = window.matchMedia(DESKTOP_MEDIA_QUERY)
@@ -50,6 +52,11 @@ export function NovaPoshtaPickerModal({
   const [query, setQuery] = useState("")
   const [focusedRef, setFocusedRef] = useState(selectedRef)
   const [mobileMap, setMobileMap] = useState(false)
+  const [paginationState, setPaginationState] = useState({
+    key: `${type}:`,
+    count: INITIAL_BATCH_SIZE,
+  })
+
   // Карту монтируем только когда она впервые становится видимой:
   // Leaflet должен измерить настоящий размер контейнера, а не 0×0.
   // После первого показа карта остаётся смонтированной, чтобы не терять zoom.
@@ -61,6 +68,7 @@ export function NovaPoshtaPickerModal({
     setHasShownMobileMap(true)
   }
 
+  // Быстрая фильтрация по типу и строке поиска
   const filtered = useMemo(
     () =>
       warehouses.filter(item => {
@@ -72,6 +80,55 @@ export function NovaPoshtaPickerModal({
       }),
     [warehouses, type, query],
   )
+
+  // Ключ для автоматического сброса пагинации при смене типа или поисковой строки
+  const filterKey = `${type}:${query.trim()}`
+  const visibleCount = paginationState.key === filterKey ? paginationState.count : INITIAL_BATCH_SIZE
+
+  // Если выбран пин на карте, гарантируем, что он попал в видимый срез
+  const focusedIndex = useMemo(
+    () => (focusedRef ? filtered.findIndex(item => item.Ref === focusedRef) : -1),
+    [filtered, focusedRef],
+  )
+
+  const effectiveCount = Math.max(
+    visibleCount,
+    focusedIndex >= 0 ? focusedIndex + 1 : INITIAL_BATCH_SIZE,
+  )
+
+  const visibleItems = useMemo(
+    () => filtered.slice(0, effectiveCount),
+    [filtered, effectiveCount],
+  )
+
+  // Плавная прокрутка к элементу в списке при выборе на карте
+  useEffect(() => {
+    if (!focusedRef) return
+    const el = document.getElementById(`np-modal-item-${focusedRef}`)
+    if (el) {
+      el.scrollIntoView({ block: "nearest", behavior: "smooth" })
+    }
+  }, [focusedRef])
+
+  const loadMore = (amount: number) => {
+    setPaginationState(prev => {
+      const current = prev.key === filterKey ? prev.count : INITIAL_BATCH_SIZE
+      return {
+        key: filterKey,
+        count: Math.min(current + amount, filtered.length),
+      }
+    })
+  }
+
+  // Подгрузка следующей порции элементов при прокрутке списка (infinite scroll)
+  const handleListScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget
+    if (scrollTop + clientHeight >= scrollHeight - 300) {
+      if (effectiveCount < filtered.length) {
+        loadMore(BATCH_INCREMENT)
+      }
+    }
+  }
 
   return (
     <div
@@ -103,24 +160,43 @@ export function NovaPoshtaPickerModal({
           </button>
         </header>
 
-        {/* grid-cols-1 = minmax(0, 1fr): колонка может сжиматься до ширины экрана,
-            а не растягиваться под самый длинный текст. */}
+        {/* grid-cols-1 = minmax(0, 1fr): колонка может сжиматься до ширины экрана */}
         <div className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)] md:grid-cols-[minmax(19rem,0.8fr)_minmax(0,1.5fr)]">
           <div
             className={`min-h-0 min-w-0 flex-col border-border md:border-r ${mobileMap ? "hidden md:flex" : "flex"}`}
           >
             <div className="border-b border-border p-4">
-              <label className="text-sm font-medium" htmlFor="np-map-search">
-                Пошук пункту
-              </label>
-              {/* text-base (16px) на мобильном: иначе iOS Safari увеличивает страницу при фокусе. */}
-              <input
-                id="np-map-search"
-                value={query}
-                onChange={event => setQuery(event.target.value)}
-                placeholder="Номер або адреса"
-                className="mt-2 h-10 w-full min-w-0 rounded-xl border border-input bg-background px-3 text-base outline-none focus:ring-2 focus:ring-ring md:text-sm"
-              />
+              <div className="flex items-center justify-between gap-2">
+                <label className="text-sm font-medium" htmlFor="np-map-search">
+                  Пошук пункту
+                </label>
+                <span className="text-xs text-muted-foreground">
+                  {filtered.length > 0
+                    ? `Знайдено: ${filtered.length}`
+                    : warehouses.length > 0
+                      ? "Не знайдено"
+                      : ""}
+                </span>
+              </div>
+              <div className="relative mt-2">
+                <input
+                  id="np-map-search"
+                  value={query}
+                  onChange={event => setQuery(event.target.value)}
+                  placeholder="Номер або адреса (напр. 15)"
+                  className="h-10 w-full min-w-0 rounded-xl border border-input bg-background pl-3 pr-8 text-base outline-none focus:ring-2 focus:ring-ring md:text-sm"
+                />
+                {query && (
+                  <button
+                    type="button"
+                    onClick={() => setQuery("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    aria-label="Очистити пошук"
+                  >
+                    <X className="size-4" />
+                  </button>
+                )}
+              </div>
               <button
                 type="button"
                 className="mt-3 w-full rounded-lg border border-border px-3 py-2 text-sm md:hidden"
@@ -130,38 +206,53 @@ export function NovaPoshtaPickerModal({
               </button>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
-              {filtered.length ? (
-                filtered.map(item => (
-                  <button
-                    key={item.Ref}
-                    type="button"
-                    onClick={() => setFocusedRef(item.Ref)}
-                    className={`block w-full min-w-0 border-b border-border p-4 text-left transition-colors hover:bg-muted/80 ${
-                      focusedRef === item.Ref ? "bg-muted border-l-4 border-l-[#DA291C]" : ""
-                    }`}
-                  >
-                    <span className="text-xs font-semibold uppercase tracking-wide text-[#DA291C] dark:text-[#f87171]">
-                      {type === "Postomat" ? "Поштомат" : "Відділення"}
-                      {item.Number ? ` №${item.Number}` : ""}
-                    </span>
-                    <span className="mt-1 block break-words text-sm font-medium">
-                      {item.ShortAddress || item.Description}
-                    </span>
-                    <span className="mt-1 block break-words text-xs text-muted-foreground">
-                      {item.Description}
-                    </span>
-                    <span
-                      className="mt-3 inline-flex rounded-lg bg-[#DA291C] px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-[#b91c1c]"
-                      onClick={event => {
-                        event.stopPropagation()
-                        onSelect(item)
-                      }}
+            <div
+              onScroll={handleListScroll}
+              className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain"
+            >
+              {visibleItems.length ? (
+                <>
+                  {visibleItems.map(item => (
+                    <button
+                      key={item.Ref}
+                      id={`np-modal-item-${item.Ref}`}
+                      type="button"
+                      onClick={() => setFocusedRef(item.Ref)}
+                      className={`block w-full min-w-0 border-b border-border p-4 text-left transition-colors hover:bg-muted/80 ${
+                        focusedRef === item.Ref ? "bg-muted border-l-4 border-l-[#DA291C]" : ""
+                      }`}
                     >
-                      Обрати
-                    </span>
-                  </button>
-                ))
+                      <span className="text-xs font-semibold uppercase tracking-wide text-[#DA291C] dark:text-[#f87171]">
+                        {type === "Postomat" ? "Поштомат" : "Відділення"}
+                        {item.Number ? ` №${item.Number}` : ""}
+                      </span>
+                      <span className="mt-1 block break-words text-sm font-medium">
+                        {item.ShortAddress || item.Description}
+                      </span>
+                      <span className="mt-1 block break-words text-xs text-muted-foreground">
+                        {item.Description}
+                      </span>
+                      <span
+                        className="mt-3 inline-flex rounded-lg bg-[#DA291C] px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-[#b91c1c]"
+                        onClick={event => {
+                          event.stopPropagation()
+                          onSelect(item)
+                        }}
+                      >
+                        Обрати
+                      </span>
+                    </button>
+                  ))}
+                  {effectiveCount < filtered.length && (
+                    <button
+                      type="button"
+                      onClick={() => loadMore(BATCH_INCREMENT * 2)}
+                      className="w-full py-3 text-center text-xs text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
+                    >
+                      Показати ще ({filtered.length - effectiveCount} залишилось)…
+                    </button>
+                  )}
+                </>
               ) : (
                 <p className="p-5 text-sm text-muted-foreground">
                   {warehouses.length ? "За цим запитом нічого не знайдено." : "Точки не знайдено."}
@@ -187,7 +278,12 @@ export function NovaPoshtaPickerModal({
                 не перекрывали кнопку «До списку». */}
             {shouldRenderMap && (
               <div className="absolute inset-0 z-0">
-                <NovaPoshtaMap warehouses={filtered} selectedRef={focusedRef} onSelect={onSelect} />
+                <NovaPoshtaMap
+                  warehouses={filtered}
+                  selectedRef={focusedRef}
+                  onFocus={wh => setFocusedRef(wh.Ref)}
+                  onSelect={onSelect}
+                />
               </div>
             )}
             <button

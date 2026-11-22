@@ -10,6 +10,8 @@ export interface NovaPoshtaWarehouse {
   Longitude?: string | null
   ShortAddress?: string | null
   CategoryOfWarehouse?: string | null
+  TypeOfWarehouse?: string | null
+  TotalMaxWeightAllowed?: string | number | null
 }
 
 interface ApiResult<T> {
@@ -19,12 +21,12 @@ interface ApiResult<T> {
   detail?: string
 }
 
-// Сколько хранить список точек города в памяти (10 минут).
-const CACHE_TTL_MS = 10 * 60 * 1000
+// Время жизни кэша: 30 минут в памяти и в sessionStorage
+const CACHE_TTL_MS = 30 * 60 * 1000
+const SESSION_STORAGE_PREFIX = "np_wh_cache_"
 
-// Ключ — cityRef. Храним именно Promise, а не готовые данные:
-// так два одновременных запроса одного города превращаются в один.
-const warehousesCache = new Map<
+// In-memory кэш (Promise для дедупликации одновременных вызовов)
+const memoryCache = new Map<
   string,
   { expiresAt: number; promise: Promise<NovaPoshtaWarehouse[]> }
 >()
@@ -37,13 +39,58 @@ export function isPostomatWarehouse(warehouse: NovaPoshtaWarehouse): boolean {
   )
 }
 
+// Нормализуем данные, сохраняя только нужные поля (экономит до 70% памяти и места в sessionStorage)
+function normalizeWarehouse(item: NovaPoshtaWarehouse): NovaPoshtaWarehouse {
+  return {
+    Ref: item.Ref,
+    Description: item.Description,
+    Number: item.Number ?? null,
+    Latitude: item.Latitude ?? null,
+    Longitude: item.Longitude ?? null,
+    ShortAddress: item.ShortAddress ?? null,
+    CategoryOfWarehouse: item.CategoryOfWarehouse ?? null,
+    TypeOfWarehouse: item.TypeOfWarehouse ?? null,
+    TotalMaxWeightAllowed: item.TotalMaxWeightAllowed ?? null,
+  }
+}
+
 // Убираем возможные дубликаты по Ref, чтобы не было двойных маркеров.
-function dedupeByRef(warehouses: NovaPoshtaWarehouse[]): NovaPoshtaWarehouse[] {
+function dedupeAndNormalize(warehouses: NovaPoshtaWarehouse[]): NovaPoshtaWarehouse[] {
   const byRef = new Map<string, NovaPoshtaWarehouse>()
   for (const warehouse of warehouses) {
-    if (!byRef.has(warehouse.Ref)) byRef.set(warehouse.Ref, warehouse)
+    if (!byRef.has(warehouse.Ref)) {
+      byRef.set(warehouse.Ref, normalizeWarehouse(warehouse))
+    }
   }
   return [...byRef.values()]
+}
+
+function getFromSessionStorage(cityRef: string): NovaPoshtaWarehouse[] | null {
+  if (typeof window === "undefined") return null
+  try {
+    const raw = window.sessionStorage.getItem(`${SESSION_STORAGE_PREFIX}${cityRef}`)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as { timestamp: number; data: NovaPoshtaWarehouse[] }
+    if (Date.now() - parsed.timestamp > CACHE_TTL_MS) {
+      window.sessionStorage.removeItem(`${SESSION_STORAGE_PREFIX}${cityRef}`)
+      return null
+    }
+    return parsed.data
+  } catch {
+    return null
+  }
+}
+
+function saveToSessionStorage(cityRef: string, data: NovaPoshtaWarehouse[]): void {
+  if (typeof window === "undefined") return
+  try {
+    window.sessionStorage.setItem(
+      `${SESSION_STORAGE_PREFIX}${cityRef}`,
+      JSON.stringify({ timestamp: Date.now(), data }),
+    )
+  } catch {
+    // Безопасно игнорируем превышение квоты или приватный режим
+  }
 }
 
 async function requestWarehouses(cityRef: string): Promise<NovaPoshtaWarehouse[]> {
@@ -59,7 +106,10 @@ async function requestWarehouses(cityRef: string): Promise<NovaPoshtaWarehouse[]
       result?.errors?.join(" ") || result?.detail || "Не вдалося завантажити відділення",
     )
   }
-  return dedupeByRef(result.data ?? [])
+
+  const cleaned = dedupeAndNormalize(result.data ?? [])
+  saveToSessionStorage(cityRef, cleaned)
+  return cleaned
 }
 
 // Позволяет вызывающему коду «перестать ждать» общий Promise,
@@ -89,20 +139,32 @@ export function getWarehousesByCity(
   signal?: AbortSignal,
 ): Promise<NovaPoshtaWarehouse[]> {
   const now = Date.now()
-  let entry = warehousesCache.get(cityRef)
+  let entry = memoryCache.get(cityRef)
 
-  if (!entry || entry.expiresAt <= now) {
-    const promise = requestWarehouses(cityRef)
-    entry = { expiresAt: now + CACHE_TTL_MS, promise }
-    warehousesCache.set(cityRef, entry)
-
-    // Ошибки не кэшируем: следующая попытка сделает новый запрос.
-    promise.catch(() => {
-      if (warehousesCache.get(cityRef)?.promise === promise) {
-        warehousesCache.delete(cityRef)
-      }
-    })
+  // 1. Проверяем память
+  if (entry && entry.expiresAt > now) {
+    return waitWithAbort(entry.promise, signal)
   }
 
-  return waitWithAbort(entry.promise, signal)
+  // 2. Проверяем sessionStorage (быстрый доступ при перезагрузке страницы или смене вкладок)
+  const sessionCached = getFromSessionStorage(cityRef)
+  if (sessionCached && sessionCached.length > 0) {
+    const resolvedPromise = Promise.resolve(sessionCached)
+    memoryCache.set(cityRef, { expiresAt: now + CACHE_TTL_MS, promise: resolvedPromise })
+    return waitWithAbort(resolvedPromise, signal)
+  }
+
+  // 3. Загружаем по сети
+  const promise = requestWarehouses(cityRef)
+  entry = { expiresAt: now + CACHE_TTL_MS, promise }
+  memoryCache.set(cityRef, entry)
+
+  // Ошибки не кэшируем: следующая попытка сделает новый запрос.
+  promise.catch(() => {
+    if (memoryCache.get(cityRef)?.promise === promise) {
+      memoryCache.delete(cityRef)
+    }
+  })
+
+  return waitWithAbort(promise, signal)
 }
