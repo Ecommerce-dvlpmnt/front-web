@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation"
 import { useState } from "react"
 import {
   ChevronDown,
-  Heart,
   Menu,
   Search,
   ShoppingBag,
@@ -229,15 +228,6 @@ export function Header({ categories = [] }: HeaderProps) {
             </Button>
 
             <ThemeToggle />
-
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Обране"
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <Heart className="size-4" />
-            </Button>
 
             <Button
               variant="ghost"
