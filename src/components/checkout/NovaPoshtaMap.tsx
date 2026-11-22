@@ -12,11 +12,13 @@ export type { NovaPoshtaWarehouse } from "@/lib/api/novaposhta"
 const DEFAULT_CENTER: L.LatLngTuple = [50.4501, 30.5234]
 
 // Фірмові кольори бренду Jingle Decor:
-// Відділення: глибокий рубіново-червоний (благородний відтінок Нової Пошти)
-// Поштомати: насичений темно-смарагдовий (хвоя / темна ялина)
+// Відділення: глибокий фірмовий обсидіан / темне дерево (#1E1B18) з теплим золотим акцентом (#D4AF37)
+// Поштомати: насичений темно-смарагдовий хвойний (#1B4332) зі світло-золотим акцентом (#F3D078)
 // Акценти: тепле золото (#D4AF37 / #F3D078)
-const WAREHOUSE_COLOR = "#B82228"
+const WAREHOUSE_COLOR = "#1E1B18"
 const POSTOMAT_COLOR = "#1B4332"
+const GOLD_ACCENT = "#D4AF37"
+const GOLD_LIGHT = "#F3D078"
 
 // Кэш иконок пинов
 const pinIconCache = new Map<string, L.DivIcon>()
@@ -27,11 +29,12 @@ function getPinIcon(isPostomat: boolean, isHighlighted: boolean) {
   if (cached) return cached
 
   const color = isPostomat ? POSTOMAT_COLOR : WAREHOUSE_COLOR
+  const dotColor = isPostomat ? GOLD_LIGHT : GOLD_ACCENT
   const size = isHighlighted ? 34 : 26
   const dotSize = isHighlighted ? 10 : 7
   const shadow = isHighlighted
-    ? `0 6px 18px rgba(0, 0, 0, 0.45), 0 0 0 5px rgba(212, 175, 55, 0.7)`
-    : "0 2px 8px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(212, 175, 55, 0.35)"
+    ? `0 6px 18px rgba(0, 0, 0, 0.45), 0 0 0 4px rgba(212, 175, 55, 0.75)`
+    : "0 2px 8px rgba(0, 0, 0, 0.25), 0 0 0 2px rgba(212, 175, 55, 0.4)"
 
   const icon = L.divIcon({
     className: "custom-np-pin",
@@ -56,10 +59,10 @@ function getPinIcon(isPostomat: boolean, isHighlighted: boolean) {
         <div style="
           width: ${dotSize}px;
           height: ${dotSize}px;
-          background-color: #F3D078;
+          background-color: ${dotColor};
           border-radius: 50%;
           transform: rotate(45deg);
-          box-shadow: 0 0 3px rgba(0,0,0,0.25);
+          box-shadow: 0 0 2px rgba(0,0,0,0.3);
         "></div>
       </div>
     `,
@@ -150,11 +153,13 @@ function parseWarehouses(warehouses: NovaPoshtaWarehouse[]): ParsedWarehouse[] {
 
 function MarkerClusterLayer({
   parsedList,
+  type,
   selectedRef,
   onFocus,
   onSelect,
 }: {
   parsedList: ParsedWarehouse[]
+  type?: "Warehouse" | "Postomat"
   selectedRef: string
   onFocus?: (w: NovaPoshtaWarehouse) => void
   onSelect: (w: NovaPoshtaWarehouse) => void
@@ -192,12 +197,17 @@ function MarkerClusterLayer({
           // @ts-expect-error custom tag
           if (m._isPostomat) postomatCount++
         }
-        const isPostomatCluster = postomatCount > childMarkers.length / 2
+        const isPostomatCluster =
+          type === "Postomat"
+            ? true
+            : type === "Warehouse"
+              ? false
+              : postomatCount >= childMarkers.length / 2
 
         const baseColor = isPostomatCluster ? POSTOMAT_COLOR : WAREHOUSE_COLOR
         const haloColor = isPostomatCluster
           ? "rgba(27, 67, 50, 0.35)"
-          : "rgba(184, 34, 40, 0.35)"
+          : "rgba(30, 27, 24, 0.35)"
         const goldRing = "rgba(212, 175, 55, 0.55)"
 
         let size = 34
@@ -268,7 +278,7 @@ function MarkerClusterLayer({
       popupDiv.innerHTML = `
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px;">
           <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: ${
-            item.isPostomat ? POSTOMAT_COLOR : WAREHOUSE_COLOR
+            item.isPostomat ? "#166534" : "#8C5E14"
           };">
             <span>№${item.warehouse.Number || "—"}</span>
             <span style="color: #cbd5e1; margin: 0 3px;">•</span>
@@ -335,7 +345,7 @@ function MarkerClusterLayer({
     return () => {
       map.removeLayer(clusterGroup)
     }
-  }, [map, parsedList, onFocus, onSelect])
+  }, [map, parsedList, type, onFocus, onSelect])
 
   // Плавный перелет к маркеру при клике в левой колонке (zoomToShowLayer)
   useEffect(() => {
@@ -397,11 +407,13 @@ function ViewBoundsController({ bounds }: { bounds: L.LatLngBounds | null }) {
 
 export default function NovaPoshtaMap({
   warehouses,
+  type,
   selectedRef,
   onFocus,
   onSelect,
 }: {
   warehouses: NovaPoshtaWarehouse[]
+  type?: "Warehouse" | "Postomat"
   selectedRef: string
   onFocus?: (warehouse: NovaPoshtaWarehouse) => void
   onSelect: (warehouse: NovaPoshtaWarehouse) => void
@@ -443,6 +455,7 @@ export default function NovaPoshtaMap({
 
         <MarkerClusterLayer
           parsedList={parsedList}
+          type={type}
           selectedRef={selectedRef}
           onFocus={onFocus}
           onSelect={onSelect}

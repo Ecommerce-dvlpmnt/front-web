@@ -491,21 +491,14 @@ export function CheckoutForm() {
                     disabled={!cityRef || isLoadingWarehouses}
                     onClick={() => setIsMapOpen(true)}
                     className={cn(
-                      "w-full h-11 rounded-xl font-semibold transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 shadow-xs",
-                      customerErrors.deliveryWarehouseRef
-                        ? "bg-gradient-to-r from-[#B82228] to-[#DA291C] text-white hover:brightness-110 ring-2 ring-red-400/50 animate-pulse"
-                        : cityRef
-                          ? "bg-[#181512] text-[#FAF8F5] hover:bg-[#2A231D] dark:bg-gradient-to-r dark:from-[#E5C158] dark:via-[#F3D078] dark:to-[#D4AF37] dark:text-[#14110C] hover:scale-[1.01]"
-                          : "bg-muted text-muted-foreground border border-border"
+                      "w-full cursor-pointer font-medium transition-colors",
+                      cityRef
+                        ? "bg-[#181512] text-[#FAF8F5] hover:bg-[#2A231D] dark:bg-[#D4AF37] dark:text-[#181512] dark:hover:bg-[#C59F2D] border-transparent shadow-xs"
+                        : "bg-muted text-muted-foreground border border-border"
                     )}
                   >
-                    <MapPin className="size-4 shrink-0 text-[#F3D078] dark:text-[#14110C]" />
-                    <span>{isLoadingWarehouses ? "Завантажуємо точки…" : "Обрати на інтерактивній мапі"}</span>
-                    {cityRef && warehouses.length > 0 && (
-                      <span className="ml-1 rounded-full bg-white/20 dark:bg-black/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
-                        {warehouses.length} {deliveryType === "Postomat" ? "поштоматів" : "точок"}
-                      </span>
-                    )}
+                    <MapPin className="mr-2 size-4 text-[#D4AF37] dark:text-[#181512] shrink-0" />
+                    <span>{isLoadingWarehouses ? "Завантаження точок…" : "Обрати на мапі"}</span>
                   </Button>
                 </>
               )}
