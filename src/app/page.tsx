@@ -1,33 +1,18 @@
-
+import { Suspense } from "react"
 import { Box, Factory, ShieldCheck, Truck } from "lucide-react"
-
 import { HeroBanner } from "@/components/home/HeroBanner"
-import { CatalogSection } from "@/components/catalog/CatalogSection"
-import {
-  buildCategoryTree,
-  getCategories,
-} from "@/lib/api/categories"
-import { getProducts } from "@/lib/api/products"
-import { shopConfig } from "@/lib/config/shop"
+import { CatalogSkeleton } from "@/features/catalog/CatalogSkeleton"
+import { StorefrontCatalog } from "@/features/catalog/StorefrontCatalog"
+import { getCatalogPageNumber, getCatalogQuery, type CatalogSearchParams } from "@/features/catalog/navigation"
 
 interface HomeProps {
-  searchParams: Promise<{
-    [key: string]: string | string[] | undefined
-  }>
+  searchParams: Promise<CatalogSearchParams>
 }
 
 export default async function Home({ searchParams }: HomeProps) {
   const params = await searchParams
-  const rawQuery = params.query
-  const query = (
-    Array.isArray(rawQuery) ? rawQuery[0] : rawQuery
-  )?.trim() ?? ""
-  const [products, categories] = await Promise.all([
-    getProducts({ search: query }),
-    getCategories({ onlyActive: true })
-      .then(buildCategoryTree)
-      .catch(() => []),
-  ])
+  const query = getCatalogQuery(params.query)
+  const pageNumber = getCatalogPageNumber(params.page)
 
   return (
     <div className="bg-background">
@@ -105,18 +90,9 @@ export default async function Home({ searchParams }: HomeProps) {
           </div>
         </div>
 
-        <CatalogSection
-          eyebrow={shopConfig.seasonal.catalogEyebrow}
-          title={shopConfig.seasonal.catalogTitle}
-          description={
-            query
-              ? `Результати пошуку для «${query}».`
-              : "Обирайте подарунки та декор для особливих моментів."
-          }
-          products={products}
-          categories={categories}
-          searchQuery={query}
-        />
+        <Suspense key={`${query}:${pageNumber}`} fallback={<CatalogSkeleton />}>
+          <StorefrontCatalog searchQuery={query} pageNumber={pageNumber} />
+        </Suspense>
       </div>
     </div>
   )

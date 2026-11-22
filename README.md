@@ -43,11 +43,16 @@ pnpm dev                 # development server
 pnpm lint                # ESLint
 pnpm exec tsc --noEmit   # проверка TypeScript
 pnpm build               # production-сборка
+node tests/storefront.test.mjs # регрессии каталога, XML-фида, IBAN и контактов
 pnpm start               # запуск production-сборки
 ```
 
 Шрифты подключаются через системный offline-совместимый стек, поэтому production-сборка
 не зависит от доступа к `fonts.googleapis.com`.
+
+Production-сборка использует Webpack. Tailwind CSS 4 обрабатывается плагином
+`@tailwindcss/postcss` из `postcss.config.mjs`; загрузчик в `next.config.ts`
+применяется только при работе через Turbopack.
 
 ## Подключение к .NET API
 

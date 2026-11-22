@@ -1,4 +1,4 @@
-import type { Product, ProductImage, ProductVariant } from "@/types/product"
+import type { Product, ProductImage, ProductPage } from "@/types/product"
 
 import { ApiError, apiFetch } from "@/lib/api/client"
 
@@ -56,7 +56,9 @@ interface ProductPageDto {
 interface GetProductsOptions {
   search?: string
   categoryId?: string
+  categoryIds?: string[]
   pageSize?: number
+  includeDetails?: boolean
 }
 
 const DEFAULT_PAGE_SIZE = 100
@@ -113,19 +115,17 @@ function isProductPageDto(value: unknown): value is ProductPageDto {
   const page = value as Record<string, unknown>
   const items = page.items ?? page.Items
 
-  return (
-    (Array.isArray(items) && items.every(isProductDto)) ||
-    (typeof page.totalPages === "number" || typeof page.TotalPages === "number" || page.totalPages == null || page.TotalPages == null)
-  )
+  return Array.isArray(items) && items.every(isProductDto)
 }
 
-async function getProductsPage(
+async function fetchProductsPage(
   options: GetProductsOptions & { pageNumber: number }
 ): Promise<ProductPageDto> {
   const query = new URLSearchParams({
     OnlyActive: "true",
     PageNumber: String(options.pageNumber),
     PageSize: String(options.pageSize ?? DEFAULT_PAGE_SIZE),
+    Summary: String(!options.includeDetails),
   })
 
   const search = options.search?.trim()
@@ -138,19 +138,21 @@ async function getProductsPage(
     query.set("CategoryId", options.categoryId)
   }
 
+  for (const categoryId of [...new Set(options.categoryIds ?? [])].sort()) {
+    query.append("CategoryIds", categoryId)
+  }
+
   const payload = await apiFetch<unknown>(
     `products?${query.toString()}`,
-    {
-      next: {
-        revalidate: 60,
-        tags: ["products"],
-      },
-    }
+    productFetchOptions
   )
 
   if (Array.isArray(payload)) {
     return {
-      items: payload.filter(isProductDto),
+      items: payload.map((item) => {
+        if (!isProductDto(item)) throw new Error("Backend returned an invalid product")
+        return item
+      }),
       totalCount: payload.length,
       pageNumber: options.pageNumber,
       pageSize: options.pageSize ?? DEFAULT_PAGE_SIZE,
@@ -164,15 +166,24 @@ async function getProductsPage(
 
   const raw = payload as unknown as Record<string, unknown>
   const items = ((raw.items ?? raw.Items) as ProductDto[] | null) ?? []
-  const totalPages = Number(raw.totalPages ?? raw.TotalPages) || 1
-  const totalCount = Number(raw.totalCount ?? raw.TotalCount) || items.length
+  const pageSize = Number(raw.pageSize ?? raw.PageSize) || items.length || options.pageSize || DEFAULT_PAGE_SIZE
+  const totalCount = raw.totalCount ?? raw.TotalCount
+  const totalPages = raw.totalPages ?? raw.TotalPages
+
+  // Use the server's effective page size: the API may cap it below the request.
+  const pageCount = totalPages ?? (typeof totalCount === "number"
+    ? Math.ceil(totalCount / pageSize)
+    : undefined)
+  if (pageCount !== undefined && (!Number.isSafeInteger(pageCount) || Number(pageCount) < 0)) {
+    throw new Error("Backend returned invalid product pagination")
+  }
 
   return {
     items,
-    totalCount,
+    totalCount: typeof totalCount === "number" ? totalCount : undefined,
     pageNumber: options.pageNumber,
-    pageSize: options.pageSize ?? DEFAULT_PAGE_SIZE,
-    totalPages,
+    pageSize,
+    totalPages: pageCount as number | undefined,
   }
 }
 
@@ -203,6 +214,8 @@ function toProduct(product: ProductDto): Product {
     dropPrice,
     oldPrice,
     stock,
+    isActive: product.isActive === true,
+    updatedAt: product.updatedAt,
     mainImageUrl: product.mainImageUrl?.trim() || PRODUCT_IMAGE_PLACEHOLDER,
     categoryId: String(product.categoryId || ""),
     categoryName: product.categoryName ?? null,
@@ -228,32 +241,71 @@ function toProduct(product: ProductDto): Product {
   }
 }
 
+// Storefront pages must request only one page. The full-catalog loader below
+// is reserved for exports such as feed.xml and sitemap.xml.
+export async function getCatalogProductsPage(
+  options: Omit<GetProductsOptions, "pageSize" | "includeDetails"> & { pageNumber?: number } = {}
+): Promise<ProductPage> {
+  const pageNumber = options.pageNumber ?? 1
+  if (!Number.isSafeInteger(pageNumber) || pageNumber < 1 || pageNumber > 2147483647) {
+    throw new Error("Invalid catalog page number")
+  }
+  const page = await fetchProductsPage({ ...options, pageNumber, pageSize: 24 })
+  if (page.totalCount === undefined || !Number.isSafeInteger(page.totalCount) || page.totalCount < 0 ||
+      page.totalPages === undefined || !page.pageSize || page.pageSize > 24 || page.items.length > 24) {
+    throw new Error("Backend returned invalid catalog pagination")
+  }
+  return {
+    items: page.items.map(toProduct),
+    totalCount: page.totalCount,
+    pageNumber,
+    pageSize: page.pageSize,
+    totalPages: page.totalPages,
+  }
+}
+
 export async function getProducts(
   options: GetProductsOptions = {}
 ): Promise<Product[]> {
   const pageSize = options.pageSize ?? DEFAULT_PAGE_SIZE
-  const firstPage = await getProductsPage({
+  const firstPage = await fetchProductsPage({
     ...options,
     pageNumber: 1,
     pageSize,
   })
-  const products = [...(firstPage.items ?? [])]
-  const totalPages = firstPage.totalPages ?? 1
+  const products = [...firstPage.items]
+  const seen = new Set(products.map((product) => product.id))
+  const appendPage = (page: ProductPageDto) => {
+    const newItems = page.items.filter((product) => !seen.has(product.id))
+    if (page.items.length > 0 && newItems.length === 0) {
+      throw new Error("Backend repeated a products page; refusing a truncated catalog")
+    }
+    for (const product of newItems) seen.add(product.id)
+    products.push(...newItems)
+  }
 
-  if (totalPages > 1) {
-    const remainingPages = await Promise.all(
-      Array.from({ length: totalPages - 1 }, (_, i) =>
-        getProductsPage({
-          ...options,
-          pageNumber: i + 2,
-          pageSize,
-        }).catch(() => null)
+  if (firstPage.totalPages !== undefined) {
+    // Bound concurrency so a cold catalog does not wait for every page in series.
+    for (let start = 2; start <= firstPage.totalPages; start += 4) {
+      const pages = await Promise.all(
+        Array.from({ length: Math.min(4, firstPage.totalPages - start + 1) }, (_, index) =>
+          fetchProductsPage({ ...options, pageNumber: start + index, pageSize })
+        )
       )
-    )
-    for (const page of remainingPages) {
-      if (page?.items) {
-        products.push(...page.items)
-      }
+      for (const page of pages) appendPage(page)
+    }
+    if (firstPage.totalCount !== undefined && products.length !== firstPage.totalCount) {
+      throw new Error("Backend returned an incomplete products catalog")
+    }
+  } else if (firstPage.items.length > 0) {
+    // Older API deployments may omit totals. Continue until an empty page,
+    // rather than treating their first (possibly capped) page as the catalog.
+    for (let pageNumber = 2; ; pageNumber += 1) {
+      const page = await fetchProductsPage({ ...options, pageNumber, pageSize })
+      if (page.items.length === 0) break
+      appendPage(page)
+    }
+  }
     }
   }
 

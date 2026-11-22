@@ -4,7 +4,8 @@ export const REFERRAL_QUERY_PARAM = "ref"
 export function normalizeReferralCode(value: unknown): string | null {
   if (typeof value !== "string") return null
   const trimmed = value.trim()
-  return trimmed.length > 0 ? trimmed : null
+  // Matches CreateOrderRequest.ReferralCode's StringLength(32) in the API.
+  return trimmed.length > 0 && trimmed.length <= 32 ? trimmed : null
 }
 
 export function saveReferralCode(value: string | null | undefined): void {

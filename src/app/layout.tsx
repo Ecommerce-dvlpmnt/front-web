@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Manrope, Onest } from "next/font/google";
 
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { WinterSnow } from "@/components/ambient/WinterSnow";
 import { SmoothScroll } from "@/components/ambient/SmoothScroll";
-import { GoogleTagManager } from "@/components/analytics/GoogleTagManager";
+import { GoogleTag } from "@/components/analytics/GoogleTag";
 import { CartProvider } from "@/components/cart/CartContext";
 import { ReferralCapture } from "@/components/referral/ReferralCapture";
 import { buildCategoryTree, getCategories } from "@/lib/api/categories";
@@ -32,6 +33,9 @@ const fontHeading = Onest({
 export const metadata: Metadata = {
   title: "Jingle Decor — литі ялинки та святковий декор",
   description: "Штучні литі ялинки, різдвяні вінки та хвойні гірлянди від українського бренду Jingle Decor.",
+  verification: {
+    google: "tPPCgIQXOn90KqtTyOWijD8BJbErg1Pj-kNWpFqty4",
+  },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -46,8 +50,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col" suppressHydrationWarning>
-        <GoogleTagManager id={process.env.NEXT_PUBLIC_GTM_ID} />
-        <ReferralCapture />
+        <GoogleTag id={process.env.NEXT_PUBLIC_GOOGLE_TAG_ID} ga4Id={process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID} />
+        <Suspense fallback={null}>
+          <ReferralCapture />
+        </Suspense>
         <SmoothScroll />
         <WinterSnow />
         <CartProvider>

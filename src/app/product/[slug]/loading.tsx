@@ -6,8 +6,11 @@ export default function Loading() {
       <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
         <div className="py-8 sm:py-12" aria-label="Завантаження товару">
           <Skeleton className="h-4 w-56" />
-          <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-16">
-            <Skeleton className="aspect-square w-full rounded-3xl" />
+          <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1.08fr)_minmax(24rem,0.92fr)] lg:gap-16">
+            <div className="grid gap-4 md:grid-cols-[5.25rem_minmax(0,1fr)]">
+              <div className="hidden md:block" />
+              <Skeleton className="aspect-[2/3] w-full md:max-w-[26rem] rounded-3xl" />
+            </div>
             <div>
               <Skeleton className="h-4 w-36" />
               <Skeleton className="mt-5 h-12 w-4/5" />

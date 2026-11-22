@@ -186,6 +186,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 <span>{formatPrice(totalPrice)}</span>
               </div>
 
+              <p className="text-sm text-muted-foreground">Доставка — за тарифами Нової Пошти.</p>
               <Button
                 className="w-full rounded-full bg-[#181512] text-[#FAF8F5] hover:bg-[#2A231D] dark:bg-gradient-to-r dark:from-[#E5C158] dark:via-[#F3D078] dark:to-[#D4AF37] dark:text-[#14110C] font-semibold tracking-wide"
                 size="lg"

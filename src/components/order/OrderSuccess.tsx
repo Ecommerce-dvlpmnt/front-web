@@ -2,17 +2,16 @@
 
 import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
-import { Check, Clipboard, CreditCard, Landmark, PackageCheck } from "lucide-react"
+import { Check, CreditCard, Landmark, PackageCheck } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { getLastOrder, getOrderByPublicId, type BackendOrder, type LocalOrder } from "@/lib/api/orders"
 import { pushPurchase } from "@/lib/analytics/data-layer"
 import { formatPrice } from "@/lib/formatters/price"
-import { shopConfig } from "@/lib/config/shop"
+import { IbanPaymentDetails } from "@/features/checkout/IbanPaymentDetails"
 
 export function OrderSuccess() {
   const [order, setOrder] = useState<(BackendOrder | LocalOrder) | null | undefined>(undefined)
-  const [isCopied, setIsCopied] = useState(false)
   const hasReportedPurchase = useRef(false)
 
   useEffect(() => {
@@ -31,12 +30,6 @@ export function OrderSuccess() {
   useEffect(() => {
     if (!order || hasReportedPurchase.current) return
 
-    const reportKey = `lumiere:purchase-reported:${order.publicId}`
-    if (window.sessionStorage.getItem(reportKey)) {
-      hasReportedPurchase.current = true
-      return
-    }
-
     hasReportedPurchase.current = true
     const analyticsItems = getLastOrder(order.publicId)?.analyticsItems ??
       ("analyticsItems" in order ? order.analyticsItems : order.items.map(item => ({
@@ -51,26 +44,7 @@ export function OrderSuccess() {
       analyticsItems,
       "totalPrice" in order ? order.totalPrice : order.total
     )
-    window.sessionStorage.setItem(reportKey, "1")
   }, [order])
-
-  async function copyPaymentDetails() {
-    if (!order || !isOnlinePayment(order)) return
-
-    const details = [
-      `Отримувач: ${shopConfig.payment.ibanRecipient || "Не налаштовано"}`,
-      `IBAN: ${shopConfig.payment.iban || "Не налаштовано"}`,
-      `Призначення: Оплата замовлення №${orderNumber(order)}`,
-    ].join("\n")
-
-    try {
-      await navigator.clipboard.writeText(details)
-      setIsCopied(true)
-      window.setTimeout(() => setIsCopied(false), 2200)
-    } catch {
-      setIsCopied(false)
-    }
-  }
 
   if (order === undefined) {
     return (
@@ -145,40 +119,10 @@ export function OrderSuccess() {
         </div>
 
         {isIban && (
-          <div className="mt-6 rounded-xl border border-border bg-muted/40 p-4 sm:p-5">
-            <div className="space-y-3 text-sm">
-              <div>
-                <p className="text-xs text-muted-foreground">Отримувач</p>
-                <p className="mt-1 font-medium">
-                  {shopConfig.payment.ibanRecipient || "Реквізити ще не налаштовані"}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">IBAN</p>
-                <p className="mt-1 break-all font-mono font-medium">
-                  {shopConfig.payment.iban || "Реквізити ще не налаштовані"}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Призначення платежу</p>
-                <p className="mt-1 font-medium">Оплата замовлення №{orderNumber(order)}</p>
-              </div>
-            </div>
-            <Button className="mt-5 w-full sm:w-auto" variant="outline" onClick={copyPaymentDetails}>
-              {isCopied ? <Check /> : <Clipboard />}
-              {isCopied ? "Скопійовано" : "Скопіювати реквізити"}
-            </Button>
-            {isCopied && (
-              <p className="mt-2 text-sm text-emerald-700 dark:text-emerald-300" role="status">
-                Реквізити скопійовано в буфер обміну.
-              </p>
-            )}
-            {!shopConfig.payment.iban && (
-              <p className="mt-3 text-xs text-amber-700 dark:text-amber-300">
-                Перед запуском оплату потрібно доповнити реальними реквізитами у налаштуваннях магазину.
-              </p>
-            )}
-          </div>
+          <IbanPaymentDetails
+            amount={"totalPrice" in order ? order.totalPrice : order.total}
+            orderNumber={orderNumber(order)}
+          />
         )}
       </div>
 

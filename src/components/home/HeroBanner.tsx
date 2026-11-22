@@ -6,7 +6,7 @@ import Image from "next/image"
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { scrollToElement } from "@/lib/scroll"
+import { getCatalogHref } from "@/features/catalog/navigation"
 
 interface HeroSlide {
   id: string
@@ -34,7 +34,7 @@ const HERO_SLIDES: HeroSlide[] = [
     description:
       "100% лита хвоя від українського виробника. Не обсипається, не має хімічного запаху та дарує святковий настрій вашій оселі понад 10 років.",
     ctaText: "Обрати ялинку",
-    categorySlug: "yalynky",
+    categorySlug: "lyti-yalynky",
     image:
       "https://images.unsplash.com/photo-1543589077-47d81606c1bf?auto=format&fit=crop&w=1200&q=80",
     imageAlt: "Затишна новорічна ялинка з вогниками у вітальні",
@@ -127,18 +127,6 @@ export function HeroBanner() {
     setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length)
   }
 
-  const handleCategoryClick = (e: React.MouseEvent, slug: string) => {
-    e.preventDefault()
-    window.dispatchEvent(
-      new CustomEvent("selectCatalogCategory", { detail: slug })
-    )
-    window.history.pushState(
-      null,
-      "",
-      slug === "yalynky" ? "/#catalog" : `/catalog/${slug}#catalog`
-    )
-    scrollToElement("catalog", 1.5)
-  }
 
   return (
     <section
@@ -199,8 +187,8 @@ export function HeroBanner() {
                     className="relative group h-12 rounded-full border-0 bg-[#181512] text-[#FAF8F5] hover:bg-[#2A231D] dark:bg-gradient-to-r dark:from-[#E5C158] dark:via-[#F3D078] dark:to-[#D4AF37] dark:text-[#14110C] dark:hover:brightness-105 px-8 text-sm font-bold tracking-wide shadow-[0_10px_28px_-6px_rgba(24,21,18,0.28)] dark:shadow-[0_10px_28px_-6px_rgba(212,175,55,0.45)] transition-all duration-200 hover:scale-[1.015] active:scale-[0.99] cursor-pointer"
                   >
                     <Link
-                      href="#catalog"
-                      onClick={(e) => handleCategoryClick(e, s.categorySlug)}
+                      href={getCatalogHref({ categorySlug: s.categorySlug })}
+                      prefetch={false}
                       className="flex items-center gap-2.5"
                     >
                       <span>{s.ctaText}</span>
@@ -242,8 +230,8 @@ export function HeroBanner() {
                   src={s.image}
                   alt={s.imageAlt}
                   fill
-                  priority={index === 0}
-                  loading="eager"
+                  loading={index === 0 ? "eager" : "lazy"}
+                  fetchPriority={index === 0 ? "high" : "auto"}
                   sizes="(min-width: 1024px) 45vw, (min-width: 640px) 70vw, 90vw"
                   className="object-cover transition-transform duration-1000 ease-out group-hover:scale-105"
                 />
@@ -291,8 +279,8 @@ export function HeroBanner() {
                         {s.card.price}
                       </span>
                       <Link
-                        href="#catalog"
-                        onClick={(e) => handleCategoryClick(e, s.categorySlug)}
+                        href={getCatalogHref({ categorySlug: s.categorySlug })}
+                        prefetch={false}
                         className="inline-block text-[11px] font-medium text-white/90 underline underline-offset-2 hover:text-[#F3D078] transition-colors cursor-pointer"
                       >
                         Обрати →

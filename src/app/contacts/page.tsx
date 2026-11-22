@@ -35,6 +35,8 @@ export default function ContactsPage() {
       <h2>Графік роботи</h2>
       <p className="whitespace-pre-line">{shopConfig.contact.hours.replace("; ", "\n")}</p>
       <p>Відповідаємо на звернення у робочі години та підтверджуємо замовлення перед відправленням.</p>
+      <h2>Адреса повернення</h2>
+      <p>{shopConfig.returns.address}</p>
     </InfoPage>
   )
 }

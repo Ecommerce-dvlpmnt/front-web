@@ -26,14 +26,20 @@ import {
   getProductGalleryImages,
   parseProductAttributes,
 } from "@/features/product/product-utils"
+import { shopConfig } from "@/lib/config/shop"
 import { formatPrice } from "@/lib/formatters/price"
 import { cn } from "@/lib/utils"
 import type { Category } from "@/types/category"
 import type { Product } from "@/types/product"
+import { ProductHeightLinks } from "@/features/product/ProductHeightLinks"
+import type { ProductHeightVariant } from "@/features/product/height-variants"
+
+const GALLERY_IMAGE_SIZES = "(min-width: 1280px) 416px, (min-width: 1024px) min(416px, calc(54vw - 170px)), (min-width: 768px) min(416px, calc(100vw - 148px)), calc(100vw - 32px)"
 
 interface ProductDetailsProps {
   product: Product
   category?: Category
+  heightVariants?: ProductHeightVariant[]
 }
 
 function StructuredDescription({ description }: { description?: string | null }) {
@@ -182,6 +188,7 @@ function StructuredDescription({ description }: { description?: string | null })
 export function ProductDetails({
   product,
   category,
+  heightVariants = [],
 }: ProductDetailsProps) {
   const galleryImages = getProductGalleryImages(product)
   const attributes = parseProductAttributes(product.attributes)
@@ -243,8 +250,9 @@ export function ProductDetails({
                     src={image.src}
                     alt={image.alt}
                     fill
-                    priority={index === 0}
-                    sizes="100vw"
+                    loading={index === 0 ? "eager" : "lazy"}
+                    fetchPriority={index === 0 ? "high" : "auto"}
+                    sizes={GALLERY_IMAGE_SIZES}
                     className="object-cover"
                   />
                 </div>
@@ -289,8 +297,9 @@ export function ProductDetails({
                   src={selectedImage.src}
                   alt={selectedImage.alt}
                   fill
-                  priority
-                  sizes="(min-width: 1280px) 45vw, 50vw"
+                  loading="eager"
+                  fetchPriority="high"
+                  sizes={GALLERY_IMAGE_SIZES}
                   className="object-cover transition-opacity duration-300"
                 />
               )}
@@ -362,64 +371,7 @@ export function ProductDetails({
             )}
           </div>
 
-          {/* Перемикач доступних висот / розмірів товару */}
-          {product.variants && product.variants.length > 1 && (
-            <div className="mt-6 rounded-2xl border border-border/80 bg-muted/30 p-4 sm:p-5 shadow-xs">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-foreground uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-                  <span className="inline-block size-2 rounded-full bg-[#D4AF37]" />
-                  Доступні розміри (висота):
-                </span>
-                <span className="text-muted-foreground text-[11px]">
-                  {product.variants.length} варіанти
-                </span>
-              </div>
-              <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                {product.variants.map((v) => {
-                  const isCurrent = v.isCurrent ?? v.id === product.id
-                  return (
-                    <Link
-                      key={v.slug}
-                      href={`/product/${encodeURIComponent(v.slug)}`}
-                      prefetch={true}
-                      className={cn(
-                        "group relative flex flex-col items-center justify-center rounded-xl p-2.5 text-center transition-all cursor-pointer border",
-                        isCurrent
-                          ? "border-[#D4AF37] bg-[#D4AF37]/15 shadow-xs ring-2 ring-[#D4AF37]/60"
-                          : "border-border/70 bg-background/80 hover:border-[#D4AF37]/60 hover:bg-muted/60"
-                      )}
-                    >
-                      {isCurrent && (
-                        <span className="absolute -top-2 right-2 rounded-full bg-[#D4AF37] px-1.5 py-0.5 text-[9px] font-bold text-black uppercase tracking-wider">
-                          Обрано
-                        </span>
-                      )}
-                      <span
-                        className={cn(
-                          "text-xs font-bold",
-                          isCurrent
-                            ? "text-foreground"
-                            : "text-foreground/90 group-hover:text-foreground"
-                        )}
-                      >
-                        {v.height}
-                      </span>
-                      <span
-                        className={cn(
-                          "text-[11px] font-medium mt-0.5",
-                          isCurrent
-                            ? "text-[#8C5E14] dark:text-[#F3D078] font-semibold"
-                            : "text-muted-foreground"
-                        )}
-                      >
-                        {formatPrice(v.price)}
-                      </span>
-                    </Link>
-                  )
-                })}
-              </div>
-            </div>
-          )}
+          <ProductHeightLinks variants={heightVariants} productId={product.id} />
 
           {/* Быстрые гарантии магазина */}
           <div className="mt-6 grid grid-cols-2 gap-3 border-t border-border/80 pt-5 text-xs text-muted-foreground">
@@ -503,13 +455,15 @@ export function ProductDetails({
             </div>
 
             <p className="mt-3 text-xs text-muted-foreground">
-              Оплата при отриманні на пошті або онлайн на IBAN ФОП.
+              {shopConfig.payment.iban
+                ? "Оплата при отриманні Новою Поштою або за реквізитами IBAN ФОП."
+                : "Оплата при отриманні Новою Поштою."}
             </p>
           </div>
         </section>
       </div>
 
-      {/* Продуманная система описания, характеристик, доставки и отзывов */}
+      {/* Опис, характеристики, доставка та оплата */}
       <div id="product-tabs" className="mt-16 border-t border-border pt-10 sm:mt-24 sm:pt-14 scroll-mt-28">
         <div className="flex flex-wrap items-center gap-2 border-b border-border pb-4">
           <button
@@ -622,8 +576,9 @@ export function ProductDetails({
                 <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                   Швидка відправка по всій Україні протягом 1–2 робочих днів. Доставка у будь-яке відділення, поштомат або адресна доставка кур&apos;єром.
                 </p>
-                <p className="mt-3 text-xs font-medium text-muted-foreground">
-                  Вартість доставки розраховується за тарифами перевізника «Нова Пошта».
+                <p className="mt-3 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                  Доставка оплачується за тарифами Нової Пошти
+                </p>
                 </p>
               </div>
 
@@ -631,8 +586,8 @@ export function ProductDetails({
                 <CreditCard className="size-6 text-[#C8923A] dark:text-[#D4AF37]" />
                 <h4 className="mt-3 text-base font-semibold text-foreground">Зручні способи оплати</h4>
                 <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                  • Оплата при отриманні (післяплата) після огляду виробу у відділенні.<br />
-                  • Офіційна онлайн-оплата за реквізитами IBAN ФОП.
+                  • Оплата при отриманні (післяплата) після огляду виробу у відділенні.
+                  {shopConfig.payment.iban && <><br />• Оплата за реквізитами IBAN ФОП.</>}
                 </p>
               </div>
 

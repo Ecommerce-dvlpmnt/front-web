@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 
+import { shopConfig } from "@/lib/config/shop"
 import { InfoPage } from "@/components/content/InfoPage"
 
 export const metadata: Metadata = {
@@ -26,7 +27,9 @@ export default function DeliveryAndPaymentPage() {
       <h2>Оплата</h2>
       <ul>
         <li>Оплата при отриманні — накладений платіж у вибраній точці Нової Пошти.</li>
-        <li>Оплата за реквізитами IBAN — реквізити відображаються після створення замовлення.</li>
+        {shopConfig.payment.iban && (
+          <li>Оплата за реквізитами IBAN — реквізити відображаються після створення замовлення.</li>
+        )}
       </ul>
       <p>
         Ціни на сайті вказані у гривнях (UAH). Jingle Decor не додає прихованих комісій до вартості товарів; можливі платежі перевізника або банку відображаються окремо відповідно до їхніх тарифів.

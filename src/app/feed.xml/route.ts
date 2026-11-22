@@ -3,7 +3,7 @@ import { shopConfig } from "@/lib/config/shop"
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "") ||
-  "http://localhost:3000"
+  "https://www.jingledecor.com.ua"
 
 function escapeXml(value: string): string {
   return value
@@ -15,7 +15,12 @@ function escapeXml(value: string): string {
 }
 
 function stripHtml(value: string): string {
-  return value.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
+  return value
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/(?:^|\s+)Відеоогляд$/iu, "")
+    .trim()
 }
 
 function absoluteUrl(value: string): string {
@@ -59,11 +64,14 @@ function getProductIdentifiers(attributes: string | null | undefined) {
 }
 
 export async function GET(): Promise<Response> {
-  const products = await getProducts({ pageSize: 100 })
+  // Backend caps each page at 100; getProducts loads every page with OnlyActive=true.
+  const products = await getProducts({ pageSize: 100, includeDetails: true })
 
   const items = products
     .filter(
       (product) =>
+        product.isActive === true &&
+        product.stock > 0 &&
         product.slug &&
         typeof product.price === "number" &&
         Number.isFinite(product.price) &&
@@ -76,7 +84,16 @@ export async function GET(): Promise<Response> {
       const title = product.name.trim() || product.sku || product.id
       const description =
         stripHtml(product.description ?? "") || title
-      const imageUrl = absoluteUrl(product.mainImageUrl.trim())
+      // Serve the Storage image through Next's configured optimizer on our canonical
+      // domain. Replacing a Supabase hostname alone would produce a broken URL.
+      const imageUrl = new URL("/_next/image", `${SITE_URL}/`)
+      imageUrl.search = new URLSearchParams({
+        url: absoluteUrl(product.mainImageUrl.trim()),
+        w: "1200",
+        q: "75",
+      }).toString()
+      const hasSalePrice = product.oldPrice != null &&
+        Number.isFinite(product.oldPrice) && product.oldPrice > product.price
       const productUrl = absoluteUrl(
         `/product/${encodeURIComponent(product.slug)}`
       )
@@ -99,9 +116,10 @@ export async function GET(): Promise<Response> {
       <g:title>${escapeXml(title)}</g:title>
       <g:description>${escapeXml(description)}</g:description>
       <g:link>${escapeXml(productUrl)}</g:link>
-      <g:image_link>${escapeXml(imageUrl)}</g:image_link>
-      <g:availability>${product.stock > 0 ? "in_stock" : "out_of_stock"}</g:availability>
-      <g:price>${formatPrice(product.price)}</g:price>
+      <g:image_link>${escapeXml(imageUrl.toString())}</g:image_link>
+      <g:availability>in_stock</g:availability>
+      <g:price>${formatPrice(hasSalePrice ? product.oldPrice! : product.price)}</g:price>
+      ${hasSalePrice ? `<g:sale_price>${formatPrice(product.price)}</g:sale_price>` : ""}
       ${productBrand ? `<g:brand>${escapeXml(productBrand)}</g:brand>` : ""}
       ${identifiers.gtin ? `<g:gtin>${escapeXml(identifiers.gtin)}</g:gtin>` : ""}
       ${identifiers.mpn ? `<g:mpn>${escapeXml(identifiers.mpn)}</g:mpn>` : ""}

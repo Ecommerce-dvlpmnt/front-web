@@ -83,14 +83,15 @@ export function CartPage() {
           {items.map(({ product, quantity }) => (
             <article
               key={product.id}
-              className="grid gap-4 rounded-2xl border border-border bg-card p-4 sm:grid-cols-[7rem_minmax(0,1fr)_auto] sm:items-center"
+              className="grid grid-cols-[72px_minmax(0,1fr)] gap-4 rounded-2xl border border-border bg-card p-4 sm:grid-cols-[7rem_minmax(0,1fr)_auto] sm:items-center"
             >
-              <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
+              <div className="relative aspect-[2/3] overflow-hidden rounded-xl border border-border/60 bg-muted">
                 <Image
                   src={product.mainImageUrl}
                   alt={product.name}
                   fill
-                  sizes="112px"
+                  loading="lazy"
+                  sizes="(min-width: 640px) 112px, 72px"
                   className="object-cover"
                 />
               </div>
@@ -156,7 +157,7 @@ export function CartPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between gap-4 sm:flex-col sm:items-end">
+              <div className="col-span-2 flex items-center justify-between gap-4 sm:col-span-1 sm:flex-col sm:items-end">
                 <p className="font-semibold">{formatPrice(product.price * quantity)}</p>
                 <Button
                   type="button"
@@ -189,7 +190,7 @@ export function CartPage() {
               <span>{formatPrice(totalPrice)}</span>
             </div>
           </div>
-          <Button className="mt-6 w-full" size="lg" asChild>
+          <Button className="mt-6 w-full rounded-full bg-foreground text-background hover:bg-foreground/90" size="lg" asChild>
             <Link href="/checkout">Перейти до оформлення</Link>
           </Button>
           <p className="mt-3 text-center text-xs leading-5 text-muted-foreground">

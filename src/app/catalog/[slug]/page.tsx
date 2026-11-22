@@ -1,47 +1,25 @@
-import { notFound } from "next/navigation"
+import { Suspense } from "react"
 
-import { CatalogSection } from "@/components/catalog/CatalogSection"
-import {
-  buildCategoryTree,
-  getCategories,
-  getCategoryBySlug,
-} from "@/lib/api/categories"
-import { getProducts } from "@/lib/api/products"
+import { CatalogSkeleton } from "@/features/catalog/CatalogSkeleton"
+import { StorefrontCatalog } from "@/features/catalog/StorefrontCatalog"
+import { getCatalogPageNumber, getCatalogQuery, type CatalogSearchParams } from "@/features/catalog/navigation"
 
 interface CategoryPageProps {
-  params: Promise<{
-    slug: string
-  }>
+  params: Promise<{ slug: string }>
+  searchParams: Promise<CatalogSearchParams>
 }
 
-export default async function CategoryPage({
-  params,
-}: CategoryPageProps) {
-  const { slug } = await params
-  const category = await getCategoryBySlug(slug)
-
-  if (!category) {
-    notFound()
-  }
-
-  const [products, categories] = await Promise.all([
-    getProducts(),
-    getCategories({ onlyActive: true })
-      .then(buildCategoryTree)
-      .catch(() => []),
-  ])
+export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
+  const [{ slug }, query] = await Promise.all([params, searchParams])
+  const pageNumber = getCatalogPageNumber(query.page)
+  const searchQuery = getCatalogQuery(query.query)
 
   return (
     <div className="bg-background">
       <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
-        <CatalogSection
-          eyebrow="Категорія"
-          title={category.name}
-          description="Зібрали товари цієї категорії, щоб вам було простіше обрати особливу річ."
-          products={products}
-          categories={categories}
-          activeCategorySlug={category.slug}
-        />
+        <Suspense key={`${slug}:${searchQuery}:${pageNumber}`} fallback={<CatalogSkeleton />}>
+          <StorefrontCatalog categorySlug={slug} searchQuery={searchQuery} pageNumber={pageNumber} />
+        </Suspense>
       </div>
     </div>
   )

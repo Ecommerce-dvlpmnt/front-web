@@ -20,15 +20,29 @@ interface EcommercePayload {
   items: EcommerceItem[]
 }
 
-interface DataLayerEvent {
-  event: string
-  ecommerce?: EcommercePayload | null
-  order_number?: number
-}
-
 declare global {
   interface Window {
-    dataLayer?: DataLayerEvent[]
+    dataLayer?: Array<IArguments | unknown[]>
+    gtag?: (...args: unknown[]) => void
+    __jingleGa4Configured?: boolean
+  }
+}
+
+const reportedPurchases = new Set<string>()
+
+export function pushAnalyticsEvent(event: string, params: Record<string, unknown>): boolean {
+  if (typeof window === "undefined") return false
+
+  try {
+    window.dataLayer = window.dataLayer ?? []
+    if (window.gtag) {
+      window.gtag("event", event, params)
+    } else {
+      window.dataLayer.push(["event", event, params])
+    }
+    return true
+  } catch {
+    return false
   }
 }
 
@@ -49,13 +63,9 @@ export function getEcommerceItem(
 export function pushEcommerceEvent(
   event: string,
   ecommerce: EcommercePayload,
-  eventParams: Pick<DataLayerEvent, "order_number"> = {}
+  eventParams: { order_number?: number } = {}
 ) {
-  if (typeof window === "undefined") return
-
-  window.dataLayer = window.dataLayer ?? []
-  window.dataLayer.push({ ecommerce: null, event: "ecommerce_reset" })
-  window.dataLayer.push({ event, ecommerce, ...eventParams })
+  return pushAnalyticsEvent(event, { ...ecommerce, ...eventParams })
 }
 
 export function pushAddToCart(product: Product, quantity: number) {
@@ -114,12 +124,31 @@ export function pushPurchase(
   items: EcommerceItem[],
   value: number
 ) {
-  pushEcommerceEvent("purchase", {
+  if (typeof window === "undefined" || !transactionId || reportedPurchases.has(transactionId)) return false
+
+  const storageKey = `jingle-decor:purchase-reported:${transactionId}`
+  try {
+    if (window.sessionStorage.getItem(storageKey)) return false
+  } catch {
+    // Storage can be unavailable in private browsing; keep the in-memory guard.
+  }
+
+  const sent = pushEcommerceEvent("purchase", {
     transaction_id: transactionId,
     currency: "UAH",
     value,
     items,
   }, { order_number: orderNumber })
+
+  if (sent) {
+    reportedPurchases.add(transactionId)
+    try {
+      window.sessionStorage.setItem(storageKey, "1")
+    } catch {
+      // The in-memory guard still protects this page load.
+    }
+  }
+  return sent
 }
 
 export function pushAddShippingInfo(items: CartAnalyticsItem[], value: number, shippingTier: string) {
