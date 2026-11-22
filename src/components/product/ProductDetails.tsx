@@ -680,8 +680,8 @@ export function ProductDetails({
                 <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                   Швидка відправка по всій Україні протягом 1–2 робочих днів. Доставка у будь-яке відділення, поштомат або адресна доставка кур&apos;єром.
                 </p>
-                <p className="mt-3 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                  Безкоштовна доставка для замовлень від 1500 ₴
+                <p className="mt-3 text-xs font-medium text-muted-foreground">
+                  Вартість доставки розраховується за тарифами перевізника «Нова Пошта».
                 </p>
               </div>
 
