@@ -78,9 +78,24 @@ export function CatalogSection({ title, eyebrow, description, productPage, categ
         </nav>
       )}
 
-      <p className="mt-5 text-sm text-muted-foreground" role="status">
-        Товарів: {productPage.totalCount}. Сторінка {productPage.pageNumber} із {Math.max(1, productPage.totalPages)}.
-      </p>
+      <div
+        className="mt-6 flex flex-wrap items-center justify-between gap-3 border-b border-border/40 pb-4 text-xs"
+        role="status"
+      >
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <span className="inline-block size-2 rounded-full bg-[#D4AF37] shadow-[0_0_8px_rgba(212,175,55,0.6)]" aria-hidden="true" />
+          <span className="font-medium tracking-wide text-foreground">
+            Товарів: {productPage.totalCount}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1.5 rounded-full border border-border/70 bg-card/60 px-3.5 py-1 text-muted-foreground backdrop-blur-xs shadow-2xs">
+          <span className="size-1.5 rounded-full bg-muted-foreground/50" aria-hidden="true" />
+          <span className="font-medium tracking-wide">
+            Сторінка {productPage.pageNumber} із {Math.max(1, productPage.totalPages)}
+          </span>
+        </div>
+      </div>
       <div className="mt-8">
         <ProductGrid
           key={`${activeCategorySlug ?? "all"}:${searchQuery ?? ""}:${productPage.pageNumber}`}

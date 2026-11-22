@@ -91,6 +91,27 @@ export function ProductCard({
     return () => window.clearTimeout(timeout)
   }, [isAdded])
 
+  // Автоматичне попереднє завантаження доступних висот для ялинок одразу при монтуванні картки,
+  // щоб вибір розмірів відображався одразу, а не лише при наведенні миші
+  useEffect(() => {
+    let cancelled = false
+    if (!heightModel) return
+
+    loadProductHeightVariants(initialProduct)
+      .then((variants) => {
+        if (!cancelled) {
+          setHeightVariants(variants)
+        }
+      })
+      .catch(() => {
+        // Фонове завантаження не блокує інтерфейс, користувач зможе натиснути повторити за потреби
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [heightModel, initialProduct])
+
   function handleAddToCart() {
     if (isOutOfStock || isMaxQuantityReached) return
 
