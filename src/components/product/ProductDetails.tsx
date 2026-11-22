@@ -579,7 +579,6 @@ export function ProductDetails({
                 <p className="mt-3 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                   Доставка оплачується за тарифами Нової Пошти
                 </p>
-                </p>
               </div>
 
               <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-xs">

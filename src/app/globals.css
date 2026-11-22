@@ -133,6 +133,10 @@
     scroll-padding-top: 5.5rem;
   }
 
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+
   /* Адаптив для больших мониторов (QHD, ultrawide, 4K).
      До 1920px ничего не меняется: 1rem = 16px.
      Шире 1920px базовый размер плавно растёт: 2560px → ~18.7px, 3840px → 24px (максимум 150%).
@@ -361,6 +365,33 @@ html.lenis, html.lenis body {
   transform-box: fill-box;
   transform-origin: center;
   animation: logoStarSparkle 7s cubic-bezier(0.22, 1, 0.36, 1) -4.1s infinite;
+}
+
+/* Нова Пошта: плавна анімація кластерів та модалки карти */
+.custom-np-cluster {
+  background: transparent !important;
+  border: none !important;
+}
+.custom-np-cluster div {
+  cursor: pointer;
+  will-change: transform, box-shadow;
+}
+.custom-np-pin {
+  background: transparent !important;
+  border: none !important;
+}
+.leaflet-popup-content-wrapper {
+  border-radius: 1rem !important;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.08) !important;
+  padding: 4px !important;
+}
+.leaflet-popup-content {
+  margin: 12px 14px !important;
+  line-height: 1.4 !important;
+}
+.leaflet-cluster-anim .leaflet-marker-icon,
+.leaflet-cluster-anim .leaflet-marker-shadow {
+  transition: transform 0.3s cubic-bezier(0.2, 1, 0.3, 1), opacity 0.25s ease-in !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

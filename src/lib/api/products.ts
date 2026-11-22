@@ -306,97 +306,8 @@ export async function getProducts(
       appendPage(page)
     }
   }
-    }
-  }
 
   return products.map(toProduct)
-}
-
-function extractHeightForVariant(name: string): { label: string; meters: number } | null {
-  const match = name.match(/(\d+[.,]?\d*)\s*(м|см)(?=\s|$|\))/i)
-  if (!match) return null
-  const rawNum = parseFloat(match[1].replace(",", "."))
-  if (Number.isNaN(rawNum)) return null
-  const unit = match[2].toLowerCase()
-  if (unit === "см") {
-    const meters = rawNum / 100
-    const label = rawNum >= 100 ? `${Number(meters.toFixed(2))} м` : `${Math.round(rawNum)} см`
-    return { label, meters }
-  }
-  return { label: `${Number(rawNum.toFixed(2))} м`, meters: rawNum }
-}
-
-function getTreeModelGroupKey(name: string): string | null {
-  const lower = name.toLowerCase()
-  const isTreeOrGarland =
-    (lower.includes("ялинк") ||
-      lower.includes("ялин") ||
-      lower.includes("сосн") ||
-      lower.includes("смерек") ||
-      lower.includes("гірлянд") ||
-      lower.includes("туя")) &&
-    !lower.includes("куль") &&
-    !lower.includes("фігур")
-
-  if (!isTreeOrGarland) return null
-
-  return name
-    .replace(/\bялина\b/gi, "ялинка")
-    .replace(/,?\s*\(?\d+[.,]?\d*\s*(м|см)\)?(?=\s|$|\))/gi, " ")
-    .replace(/штучна\s+ялинка\s+лита/gi, "лита штучна ялинка")
-    .replace(/лита\s+ялинка\s+штучна/gi, "лита штучна ялинка")
-    .replace(/саморозкладна\s+лита\s+штучна\s+ялинка/gi, "саморозкладна лита ялинка")
-    .replace(/саморозкладна\s+штучна\s+лита\s+ялинка/gi, "саморозкладна лита ялинка")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase()
-}
-
-async function enrichProductVariants(product: Product): Promise<Product> {
-  if (product.variants && product.variants.length > 1) {
-    return product
-  }
-
-  const modelKey = getTreeModelGroupKey(product.name)
-  const heightInfo = extractHeightForVariant(product.name)
-  if (!modelKey || !heightInfo) {
-    return product
-  }
-
-  try {
-    const allProducts = await getProducts()
-    const siblings = allProducts.filter(
-      (item) => getTreeModelGroupKey(item.name) === modelKey && extractHeightForVariant(item.name) !== null
-    )
-
-    if (siblings.length <= 1) {
-      return product
-    }
-
-    siblings.sort((a, b) => {
-      const ha = extractHeightForVariant(a.name)?.meters ?? 999
-      const hb = extractHeightForVariant(b.name)?.meters ?? 999
-      return ha - hb || a.price - b.price
-    })
-
-    const variants: ProductVariant[] = siblings.map((item) => ({
-      id: item.id,
-      name: item.name,
-      slug: item.slug,
-      price: item.price,
-      oldPrice: item.oldPrice ?? null,
-      height: extractHeightForVariant(item.name)?.label ?? item.name,
-      inStock: item.stock > 0,
-      isCurrent: item.id === product.id || item.slug === product.slug,
-    }))
-
-    return {
-      ...product,
-      variants,
-    }
-  } catch {
-    return product
-  }
 }
 
 async function getProductByPath(path: string): Promise<Product> {
@@ -406,7 +317,7 @@ async function getProductByPath(path: string): Promise<Product> {
     throw new Error("Backend returned an invalid product response")
   }
 
-  return enrichProductVariants(toProduct(payload))
+  return toProduct(payload)
 }
 
 export async function getProduct(id: string): Promise<Product | null> {

@@ -68,18 +68,32 @@ export function NovaPoshtaPickerModal({
     setHasShownMobileMap(true)
   }
 
-  // Быстрая фильтрация по типу и строке поиска
-  const filtered = useMemo(
-    () =>
-      warehouses.filter(item => {
-        const postomat =
+  // Надшвидка фільтрація по типу та пошуковому запиту без зайвих алокацій
+  const filtered = useMemo(() => {
+    const isTargetPostomat = type === "Postomat"
+    const trimmed = query.trim().toLowerCase()
+
+    if (!trimmed) {
+      return warehouses.filter(item => {
+        const isPostomat =
           item.CategoryOfWarehouse?.toLowerCase().includes("postomat") ||
           item.Description.toLowerCase().includes("поштомат")
-        const text = `${item.Description} ${item.Number ?? ""} ${item.ShortAddress ?? ""}`.toLocaleLowerCase("uk")
-        return (type === "Postomat" ? postomat : !postomat) && text.includes(query.trim().toLocaleLowerCase("uk"))
-      }),
-    [warehouses, type, query],
-  )
+        return isTargetPostomat ? isPostomat : !isPostomat
+      })
+    }
+
+    return warehouses.filter(item => {
+      const isPostomat =
+        item.CategoryOfWarehouse?.toLowerCase().includes("postomat") ||
+        item.Description.toLowerCase().includes("поштомат")
+      if (isTargetPostomat ? !isPostomat : isPostomat) return false
+
+      if (item.Number && item.Number.includes(trimmed)) return true
+      if (item.Description.toLowerCase().includes(trimmed)) return true
+      if (item.ShortAddress && item.ShortAddress.toLowerCase().includes(trimmed)) return true
+      return false
+    })
+  }, [warehouses, type, query])
 
   // Ключ для автоматического сброса пагинации при смене типа или поисковой строки
   const filterKey = `${type}:${query.trim()}`

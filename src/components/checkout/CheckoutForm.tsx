@@ -146,19 +146,26 @@ export function CheckoutForm() {
   const filteredWarehouses = useMemo(() => {
     if (!warehouses.length) return []
     const isTargetPostomat = deliveryType === "Postomat"
-    const query = warehouseSearch.trim().toLocaleLowerCase("uk")
+    const query = warehouseSearch.trim().toLowerCase()
+
+    if (!query) {
+      return warehouses.filter(item => {
+        const isPostomat =
+          item.CategoryOfWarehouse?.toLowerCase().includes("postomat") ||
+          item.Description.toLowerCase().includes("поштомат")
+        return isTargetPostomat ? isPostomat : !isPostomat
+      })
+    }
 
     return warehouses.filter(item => {
       const isPostomat =
         item.CategoryOfWarehouse?.toLowerCase().includes("postomat") ||
         item.Description.toLowerCase().includes("поштомат")
       if (isTargetPostomat ? !isPostomat : isPostomat) return false
-      if (!query) return true
-      return (
-        item.Description.toLocaleLowerCase("uk").includes(query) ||
-        (item.Number && item.Number.includes(query)) ||
-        (item.ShortAddress && item.ShortAddress.toLocaleLowerCase("uk").includes(query))
-      )
+      if (item.Number && item.Number.includes(query)) return true
+      if (item.Description.toLowerCase().includes(query)) return true
+      if (item.ShortAddress && item.ShortAddress.toLowerCase().includes(query)) return true
+      return false
     })
   }, [warehouses, deliveryType, warehouseSearch])
 

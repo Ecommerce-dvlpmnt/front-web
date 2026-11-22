@@ -163,31 +163,31 @@ function MarkerClusterLayer({
   useEffect(() => {
     if (!map) return
 
-    // Официальный стиль Новой Почты:
-    // maxClusterRadius = 55 (кластеры не слипаются в гигантские плотные кучи, быстрее делятся на группы)
-    // spiderfyOnMaxZoom = плавное раскрытие спиралью, если точки на одном адресе
-    // chunkedLoading = плавное добавление маркеров без зависания браузера
+    // Офіційний фірмовий стиль Нової Пошти:
+    // maxClusterRadius = 40 (кружки розбавлені, кластери не збиваються у величезні купи, а рівномірно розподіляються по районах)
+    // spiderfyOnMaxZoom = плавне розкриття спіраллю для точок за однією адресою
+    // chunkedLoading = плавне додавання маркерів без підвисання браузера
     const clusterGroup = (L as unknown as {
       markerClusterGroup: (options?: unknown) => L.MarkerClusterGroup
     }).markerClusterGroup({
-      maxClusterRadius: 55,
+      maxClusterRadius: 40,
       showCoverageOnHover: false,
-      zoomToBoundsOnClick: true,
+      zoomToBoundsOnClick: false,
       spiderfyOnMaxZoom: true,
       animate: true,
       animateAddingMarkers: false,
       disableClusteringAtZoom: 16,
       chunkedLoading: true,
-      chunkInterval: 100,
-      chunkDelay: 10,
+      chunkInterval: 80,
+      chunkDelay: 8,
       iconCreateFunction: (cluster: { getChildCount: () => number }) => {
         const count = cluster.getChildCount()
-        let size = 36
-        let fontSize = "12px"
+        let size = 34
+        let fontSize = "11px"
         if (count >= 100) {
           size = 46
           fontSize = "13px"
-        } else if (count >= 30) {
+        } else if (count >= 20) {
           size = 40
           fontSize = "12px"
         }
@@ -197,19 +197,20 @@ function MarkerClusterLayer({
             <div style="
               width: ${size}px;
               height: ${size}px;
-              background-color: rgba(184, 188, 222, 0.92);
-              border: 2.5px solid rgba(255, 255, 255, 0.95);
-              box-shadow: 0 3px 10px rgba(45, 47, 72, 0.28), 0 0 0 3px rgba(184, 188, 222, 0.25);
+              background-color: #DA291C;
+              border: 2px solid #ffffff;
+              box-shadow: 0 4px 14px rgba(218, 41, 28, 0.45), 0 0 0 4px rgba(218, 41, 28, 0.22);
               border-radius: 50%;
               display: flex;
               align-items: center;
               justify-content: center;
-              font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-              font-weight: 700;
+              font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              font-weight: 800;
               font-size: ${fontSize};
-              color: #1e2038;
-              transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
-            " onmouseover="this.style.transform='scale(1.12)'" onmouseout="this.style.transform='scale(1)'">
+              color: #ffffff;
+              letter-spacing: -0.02em;
+              transition: transform 0.22s cubic-bezier(0.2, 1, 0.3, 1), box-shadow 0.22s ease;
+            " onmouseover="this.style.transform='scale(1.12)';this.style.boxShadow='0 6px 18px rgba(218, 41, 28, 0.6), 0 0 0 6px rgba(218, 41, 28, 0.3)'" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 4px 14px rgba(218, 41, 28, 0.45), 0 0 0 4px rgba(218, 41, 28, 0.22)'">
               ${count}
             </div>
           `,
@@ -218,6 +219,17 @@ function MarkerClusterLayer({
           iconAnchor: [size / 2, size / 2],
         })
       },
+    })
+
+    // Плавне наближення польотом при кліку на кластер (як на офіційній карті Нової Пошти)
+    clusterGroup.on("clusterclick", (event: { layer: L.MarkerCluster }) => {
+      const bounds = event.layer.getBounds()
+      map.flyToBounds(bounds, {
+        padding: [45, 45],
+        maxZoom: 16,
+        duration: 0.55,
+        easeLinearity: 0.25,
+      })
     })
 
     clusterGroupRef.current = clusterGroup
