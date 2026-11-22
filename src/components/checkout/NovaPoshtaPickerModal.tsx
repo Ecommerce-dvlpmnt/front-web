@@ -95,34 +95,21 @@ export function NovaPoshtaPickerModal({
     })
   }, [warehouses, type, query])
 
-  // Ключ для автоматического сброса пагинации при смене типа или поисковой строки
+  // Ключ для автоматичного сброса пагинации при смене типа или поисковой строки
   const filterKey = `${type}:${query.trim()}`
   const visibleCount = paginationState.key === filterKey ? paginationState.count : INITIAL_BATCH_SIZE
 
-  // Если выбран пин на карте, гарантируем, что он попал в видимый срез
-  const focusedIndex = useMemo(
-    () => (focusedRef ? filtered.findIndex(item => item.Ref === focusedRef) : -1),
-    [filtered, focusedRef],
+  // Знаходимо об'єкт вибраного/клікнутого на мапі пункту для миттєвої закріпленої плашки
+  const focusedItem = useMemo(
+    () => (focusedRef ? warehouses.find(item => item.Ref === focusedRef) ?? null : null),
+    [warehouses, focusedRef],
   )
 
-  const effectiveCount = Math.max(
-    visibleCount,
-    focusedIndex >= 0 ? focusedIndex + 1 : INITIAL_BATCH_SIZE,
-  )
-
+  // Список завжди рендерить тільки легку порцію (30-40 шт), усуваючи зависання та прокрутку через 4000 DOM-вузлів
   const visibleItems = useMemo(
-    () => filtered.slice(0, effectiveCount),
-    [filtered, effectiveCount],
+    () => filtered.slice(0, visibleCount),
+    [filtered, visibleCount],
   )
-
-  // Плавная прокрутка к элементу в списке при выборе на карте
-  useEffect(() => {
-    if (!focusedRef) return
-    const el = document.getElementById(`np-modal-item-${focusedRef}`)
-    if (el) {
-      el.scrollIntoView({ block: "nearest", behavior: "smooth" })
-    }
-  }, [focusedRef])
 
   const loadMore = (amount: number) => {
     setPaginationState(prev => {
@@ -138,7 +125,7 @@ export function NovaPoshtaPickerModal({
   const handleListScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget
     if (scrollTop + clientHeight >= scrollHeight - 300) {
-      if (effectiveCount < filtered.length) {
+      if (visibleCount < filtered.length) {
         loadMore(BATCH_INCREMENT)
       }
     }
@@ -220,6 +207,38 @@ export function NovaPoshtaPickerModal({
               </button>
             </div>
 
+            {/* Закріплена картка вибраного на мапі пункту: миттєва поява 0мс без зависання */}
+            {focusedItem && (
+              <div className="border-b border-[#D4AF37]/50 bg-gradient-to-r from-[#D4AF37]/15 to-[#D4AF37]/5 p-4 shadow-xs shrink-0">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#8C5E14] dark:text-[#F3D078]">
+                    <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+                    Вибрано на мапі:
+                  </span>
+                  <span className="text-xs font-bold text-foreground">
+                    {type === "Postomat" ? "Поштомат" : "Відділення"} №{focusedItem.Number || "—"}
+                  </span>
+                </div>
+                <p className="mt-1 text-sm font-bold text-foreground">
+                  {focusedItem.ShortAddress || focusedItem.Description}
+                </p>
+                {focusedItem.ShortAddress && focusedItem.ShortAddress !== focusedItem.Description && (
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {focusedItem.Description}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  onClick={() => onSelect(focusedItem)}
+                  className={`mt-3 w-full rounded-full py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-transform active:scale-98 cursor-pointer flex items-center justify-center gap-2 ${
+                    type === "Postomat" ? "bg-[#1B4332] hover:bg-[#245942]" : "bg-[#B82228] hover:bg-[#9E2A2B]"
+                  }`}
+                >
+                  ✓ Обрати цей {type === "Postomat" ? "поштомат" : "пункт"}
+                </button>
+              </div>
+            )}
+
             <div
               onScroll={handleListScroll}
               className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain"
@@ -263,13 +282,13 @@ export function NovaPoshtaPickerModal({
                       </span>
                     </button>
                   ))}
-                  {effectiveCount < filtered.length && (
+                  {visibleCount < filtered.length && (
                     <button
                       type="button"
                       onClick={() => loadMore(BATCH_INCREMENT * 2)}
                       className="w-full py-3 text-center text-xs text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
                     >
-                      Показати ще ({filtered.length - effectiveCount} залишилось)…
+                      Показати ще ({filtered.length - visibleCount} залишилось)…
                     </button>
                   )}
                 </>
@@ -306,12 +325,45 @@ export function NovaPoshtaPickerModal({
                 />
               </div>
             )}
+            {/* Мобільна плаваюча картка вибраної точки прямо поверх мапи */}
+            {focusedItem && mobileMap && (
+              <div className="absolute bottom-16 left-3 right-3 z-20 rounded-2xl border border-border/80 bg-card/95 p-3.5 shadow-2xl backdrop-blur-md md:hidden animate-in fade-in slide-in-from-bottom-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className={`text-[11px] font-bold uppercase tracking-wider ${
+                    type === "Postomat" ? "text-emerald-700 dark:text-emerald-400" : "text-[#B82228] dark:text-[#f87171]"
+                  }`}>
+                    {type === "Postomat" ? "Поштомат" : "Відділення"} №{focusedItem.Number || "—"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setFocusedRef("")}
+                    className="p-1 text-muted-foreground hover:text-foreground"
+                    aria-label="Закрити вибір"
+                  >
+                    <X className="size-3.5" />
+                  </button>
+                </div>
+                <p className="mt-1 text-xs font-bold text-foreground truncate">
+                  {focusedItem.ShortAddress || focusedItem.Description}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => onSelect(focusedItem)}
+                  className={`mt-2.5 w-full rounded-full py-2 text-xs font-bold uppercase tracking-wider text-white shadow-xs active:scale-98 cursor-pointer ${
+                    type === "Postomat" ? "bg-[#1B4332] hover:bg-[#245942]" : "bg-[#B82228] hover:bg-[#9E2A2B]"
+                  }`}
+                >
+                  ✓ Обрати цей {type === "Postomat" ? "поштомат" : "пункт"}
+                </button>
+              </div>
+            )}
+
             <button
               type="button"
-              className="absolute bottom-6 left-1/2 z-10 -translate-x-1/2 rounded-lg border border-border bg-card px-4 py-2 text-sm shadow md:hidden"
+              className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 rounded-full border border-border bg-card/90 px-5 py-2 text-xs font-semibold shadow-md backdrop-blur-sm md:hidden"
               onClick={() => setMobileMap(false)}
             >
-              До списку
+              ← До списку ({filtered.length})
             </button>
           </div>
         </div>

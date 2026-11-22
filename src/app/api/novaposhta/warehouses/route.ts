@@ -86,6 +86,7 @@ export async function GET(request: Request) {
       headers: {
         "Content-Type": "application/json",
         "X-Cache": "MEMORY_HIT",
+        "Cache-Control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400",
       },
     })
   }
@@ -102,6 +103,7 @@ export async function GET(request: Request) {
       headers: {
         "Content-Type": "application/json",
         "X-Cache": "DISK_HIT",
+        "Cache-Control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400",
       },
     })
   }
@@ -137,6 +139,7 @@ export async function GET(request: Request) {
           headers: {
             "Content-Type": "application/json",
             "X-Cache": "MISS",
+            "Cache-Control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400",
           },
         })
       }
