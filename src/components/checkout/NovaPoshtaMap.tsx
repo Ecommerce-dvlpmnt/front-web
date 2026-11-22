@@ -12,13 +12,12 @@ export type { NovaPoshtaWarehouse } from "@/lib/api/novaposhta"
 const DEFAULT_CENTER: L.LatLngTuple = [50.4501, 30.5234]
 
 // Фірмові кольори бренду Jingle Decor:
-// Відділення: глибокий фірмовий обсидіан / темне дерево (#1E1B18) з теплим золотим акцентом (#D4AF37)
-// Поштомати: насичений темно-смарагдовий хвойний (#1B4332) зі світло-золотим акцентом (#F3D078)
+// Відділення: тепле святкове бурштинове золото (#C87A14) — яскраве, благородне, помітне на карті
+// Поштомати: соковитий хвойний смарагд (#0D8253) — живий, чистий зелений колір
 // Акценти: тепле золото (#D4AF37 / #F3D078)
-const WAREHOUSE_COLOR = "#1E1B18"
-const POSTOMAT_COLOR = "#1B4332"
-const GOLD_ACCENT = "#D4AF37"
-const GOLD_LIGHT = "#F3D078"
+const WAREHOUSE_COLOR = "#C87A14"
+const POSTOMAT_COLOR = "#0D8253"
+const DOT_COLOR = "#FFFFFF"
 
 // Кэш иконок пинов
 const pinIconCache = new Map<string, L.DivIcon>()
@@ -29,12 +28,11 @@ function getPinIcon(isPostomat: boolean, isHighlighted: boolean) {
   if (cached) return cached
 
   const color = isPostomat ? POSTOMAT_COLOR : WAREHOUSE_COLOR
-  const dotColor = isPostomat ? GOLD_LIGHT : GOLD_ACCENT
   const size = isHighlighted ? 34 : 26
   const dotSize = isHighlighted ? 10 : 7
   const shadow = isHighlighted
-    ? `0 6px 18px rgba(0, 0, 0, 0.45), 0 0 0 4px rgba(212, 175, 55, 0.75)`
-    : "0 2px 8px rgba(0, 0, 0, 0.25), 0 0 0 2px rgba(212, 175, 55, 0.4)"
+    ? `0 6px 18px rgba(0, 0, 0, 0.45), 0 0 0 4px rgba(212, 175, 55, 0.85)`
+    : "0 2px 8px rgba(0, 0, 0, 0.25), 0 0 0 1.5px rgba(255, 255, 255, 0.6)"
 
   const icon = L.divIcon({
     className: "custom-np-pin",
@@ -59,7 +57,7 @@ function getPinIcon(isPostomat: boolean, isHighlighted: boolean) {
         <div style="
           width: ${dotSize}px;
           height: ${dotSize}px;
-          background-color: ${dotColor};
+          background-color: ${DOT_COLOR};
           border-radius: 50%;
           transform: rotate(45deg);
           box-shadow: 0 0 2px rgba(0,0,0,0.3);
@@ -206,9 +204,9 @@ function MarkerClusterLayer({
 
         const baseColor = isPostomatCluster ? POSTOMAT_COLOR : WAREHOUSE_COLOR
         const haloColor = isPostomatCluster
-          ? "rgba(27, 67, 50, 0.35)"
-          : "rgba(30, 27, 24, 0.35)"
-        const goldRing = "rgba(212, 175, 55, 0.55)"
+          ? "rgba(13, 130, 83, 0.35)"
+          : "rgba(200, 122, 20, 0.35)"
+        const goldRing = "rgba(212, 175, 55, 0.6)"
 
         let size = 34
         let fontSize = "11px"
@@ -278,7 +276,7 @@ function MarkerClusterLayer({
       popupDiv.innerHTML = `
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px;">
           <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: ${
-            item.isPostomat ? "#166534" : "#8C5E14"
+            item.isPostomat ? POSTOMAT_COLOR : WAREHOUSE_COLOR
           };">
             <span>№${item.warehouse.Number || "—"}</span>
             <span style="color: #cbd5e1; margin: 0 3px;">•</span>
