@@ -40,23 +40,38 @@ export function ProductCard({
   const [isImageLoaded, setIsImageLoaded] = useState(false)
   const [hasImageError, setHasImageError] = useState(false)
 
+  const variants = product.variants && product.variants.length > 1 ? product.variants : null
+  const [selectedVariantId, setSelectedVariantId] = useState<string>(
+    () => variants?.find((v) => v.isCurrent)?.id ?? product.id
+  )
+
+  const activeVariant = variants?.find((v) => v.id === selectedVariantId) ?? null
+
+  const activeId = activeVariant?.id ?? product.id
+  const activeName = activeVariant?.name ?? product.name
+  const activeSlug = activeVariant?.slug ?? product.slug
+  const activePrice = activeVariant?.price ?? product.price
+  const activeOldPrice =
+    activeVariant !== null ? (activeVariant.oldPrice ?? null) : (product.oldPrice ?? null)
+  const activeInStock = activeVariant !== null ? activeVariant.inStock : product.stock > 0
+
   const rating = getProductRating(product.id)
 
   const cartItem = items.find(
-    (item) => item.product.id === product.id
+    (item) => item.product.id === activeId
   )
 
-  const isOutOfStock = product.stock <= 0
+  const isOutOfStock = !activeInStock
 
   const isMaxQuantityReached =
     cartItem !== undefined &&
-    cartItem.quantity >= product.stock
+    cartItem.quantity >= (product.stock > 0 ? product.stock : 99)
 
-  const formattedPrice = formatPrice(product.price)
+  const formattedPrice = formatPrice(activePrice)
 
   const formattedOldPrice =
-    product.oldPrice != null
-      ? formatPrice(product.oldPrice)
+    activeOldPrice != null && activeOldPrice > activePrice
+      ? formatPrice(activeOldPrice)
       : null
 
   useEffect(() => {
@@ -72,16 +87,23 @@ export function ProductCard({
   function handleAddToCart() {
     if (isOutOfStock || isMaxQuantityReached) return
 
-    addItem(product)
+    addItem({
+      ...product,
+      id: activeId,
+      name: activeName,
+      slug: activeSlug,
+      price: activePrice,
+      oldPrice: activeOldPrice,
+    })
     setIsAdded(true)
   }
 
   return (
     <article className="group/card relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/80 bg-card shadow-luxury transition-all duration-300 hover:-translate-y-1 hover:border-foreground/25 dark:hover:border-[#d4af37]/50 hover:shadow-luxury-hover">
       <Link
-        href={`/product/${product.slug}`}
+        href={`/product/${activeSlug}`}
         className="group relative aspect-[2/3] overflow-hidden bg-muted/40"
-        aria-label={`Переглянути товар: ${product.name}`}
+        aria-label={`Переглянути товар: ${activeName}`}
       >
         {!isImageLoaded && (
           <div className="absolute inset-0 skeleton-shimmer z-0" aria-hidden="true" />
@@ -90,7 +112,7 @@ export function ProductCard({
         <Image
           key={product.mainImageUrl}
           src={hasImageError ? "/product-placeholder.svg" : (product.mainImageUrl || "/product-placeholder.svg")}
-          alt={product.name}
+          alt={activeName}
           fill
           loading={priority ? "eager" : "lazy"}
           sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
@@ -121,10 +143,10 @@ export function ProductCard({
         {/* min-h-[2.75em] = ровно 2 строки (2 × leading-snug 1.375em). */}
         <h3 className="min-h-[2.75em] line-clamp-2 break-words font-medium text-[15px] leading-snug text-foreground transition-colors group-hover/card:text-[#8C5E14] dark:group-hover/card:text-[#F3D078]">
           <Link
-            href={`/product/${product.slug}`}
+            href={`/product/${activeSlug}`}
             className="rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
           >
-            {product.name}
+            {activeName}
           </Link>
         </h3>
 
@@ -151,6 +173,29 @@ export function ProductCard({
             ({rating.count} {formatReviewsDeclension(rating.count)})
           </span>
         </div>
+
+        {/* Швидкий вибір висоти ялинки прямо на картці в каталозі */}
+        {variants && (
+          <div className="mt-2.5 flex flex-wrap gap-1" role="group" aria-label="Вибір висоти">
+            {variants.map((v) => {
+              const isSelected = v.id === activeId
+              return (
+                <button
+                  key={v.id}
+                  type="button"
+                  onClick={() => setSelectedVariantId(v.id)}
+                  className={`rounded-md border px-1.5 py-0.5 text-[11px] font-medium transition-all cursor-pointer ${
+                    isSelected
+                      ? "border-[#D4AF37] bg-[#D4AF37]/15 text-[#8C5E14] dark:text-[#F3D078] font-semibold"
+                      : "border-border/70 bg-muted/40 text-muted-foreground hover:border-[#D4AF37]/50 hover:text-foreground"
+                  }`}
+                >
+                  {v.height}
+                </button>
+              )
+            })}
+          </div>
+        )}
 
         {/* Домінантна ціна + акуратний індикатор наявності в одному рядку */}
         <div className="mt-auto pt-4 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">

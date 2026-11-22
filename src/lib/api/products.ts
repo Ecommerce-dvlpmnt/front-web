@@ -240,16 +240,20 @@ export async function getProducts(
   const products = [...(firstPage.items ?? [])]
   const totalPages = firstPage.totalPages ?? 1
 
-  for (let pageNumber = 2; pageNumber <= totalPages; pageNumber += 1) {
-    try {
-      const page = await getProductsPage({
-        ...options,
-        pageNumber,
-        pageSize,
-      })
-      products.push(...(page.items ?? []))
-    } catch {
-      break
+  if (totalPages > 1) {
+    const remainingPages = await Promise.all(
+      Array.from({ length: totalPages - 1 }, (_, i) =>
+        getProductsPage({
+          ...options,
+          pageNumber: i + 2,
+          pageSize,
+        }).catch(() => null)
+      )
+    )
+    for (const page of remainingPages) {
+      if (page?.items) {
+        products.push(...page.items)
+      }
     }
   }
 

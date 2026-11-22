@@ -50,6 +50,113 @@ function collectCategoryIds(cat: CategoryTreeNode): Set<string> {
   return ids
 }
 
+function extractHeightLabel(name: string): { label: string; meters: number } | null {
+  const match = name.match(/(\d+[.,]?\d*)\s*(м|см)(?=\s|$|\))/i)
+  if (!match) return null
+  const rawNum = parseFloat(match[1].replace(",", "."))
+  if (Number.isNaN(rawNum)) return null
+  const unit = match[2].toLowerCase()
+  if (unit === "см") {
+    const meters = rawNum / 100
+    const label = rawNum >= 100 ? `${Number(meters.toFixed(2))} м` : `${Math.round(rawNum)} см`
+    return { label, meters }
+  }
+  return { label: `${Number(rawNum.toFixed(2))} м`, meters: rawNum }
+}
+
+function getTreeModelKey(product: Product): string | null {
+  const lower = product.name.toLowerCase()
+  const isTreeOrGarland =
+    (lower.includes("ялинк") ||
+      lower.includes("ялин") ||
+      lower.includes("сосн") ||
+      lower.includes("смерек") ||
+      lower.includes("гірлянд") ||
+      lower.includes("туя")) &&
+    !lower.includes("куль") &&
+    !lower.includes("фігур")
+
+  if (!isTreeOrGarland) return null
+
+  return product.name
+    .replace(/\bялина\b/gi, "ялинка")
+    .replace(/,?\s*\(?\d+[.,]?\d*\s*(м|см)\)?(?=\s|$|\))/gi, " ")
+    .replace(/штучна\s+ялинка\s+лита/gi, "лита штучна ялинка")
+    .replace(/саморозкладна\s+лита\s+штучна\s+ялинка/gi, "саморозкладна лита ялинка")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase()
+}
+
+function groupCatalogModels(items: Product[]): Product[] {
+  const groups = new Map<string, Product[]>()
+  const result: Product[] = []
+  const groupPlaceholders = new Map<string, number>()
+
+  for (const item of items) {
+    const key = getTreeModelKey(item)
+    const heightInfo = extractHeightLabel(item.name)
+
+    if (!key || !heightInfo) {
+      result.push(item)
+      continue
+    }
+
+    const existing = groups.get(key)
+    if (!existing) {
+      groups.set(key, [item])
+      groupPlaceholders.set(key, result.length)
+      result.push(item)
+    } else {
+      existing.push(item)
+    }
+  }
+
+  for (const [key, members] of groups.entries()) {
+    if (members.length <= 1) continue
+
+    const sorted = [...members].sort((a, b) => {
+      const ha = extractHeightLabel(a.name)?.meters ?? 999
+      const hb = extractHeightLabel(b.name)?.meters ?? 999
+      return ha - hb || a.price - b.price
+    })
+
+    // Prefer 1.8m or 2.1m as the default selected height on the card
+    const preferred =
+      sorted.find((p) => {
+        const m = extractHeightLabel(p.name)?.meters
+        return m === 1.8 && p.stock > 0
+      }) ??
+      sorted.find((p) => {
+        const m = extractHeightLabel(p.name)?.meters
+        return m === 2.1 && p.stock > 0
+      }) ??
+      sorted.find((p) => p.stock > 0) ??
+      sorted[0]
+
+    const variants = sorted.map((p) => ({
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      price: p.price,
+      oldPrice: p.oldPrice ?? null,
+      height: extractHeightLabel(p.name)?.label ?? p.name,
+      inStock: p.stock > 0,
+      isCurrent: p.id === preferred.id,
+    }))
+
+    const idx = groupPlaceholders.get(key)
+    if (idx !== undefined) {
+      result[idx] = {
+        ...preferred,
+        variants,
+      }
+    }
+  }
+
+  return result
+}
+
 export function CatalogSection({
   title,
   eyebrow,
@@ -97,6 +204,11 @@ export function CatalogSection({
     return () => window.removeEventListener("selectCatalogCategory", onSelectCategory)
   }, [])
 
+  // Групуємо однакові моделі ялинок різної висоти в одну картку з перемикачем висот
+  const groupedProducts = useMemo(() => {
+    return groupCatalogModels(products)
+  }, [products])
+
   // Поточна вибрана категорія
   const currentCategory = useMemo(() => {
     return selectedSlug ? findCategory(categories, selectedSlug) : null
@@ -107,7 +219,7 @@ export function CatalogSection({
     const map = new Map<string, number>()
     for (const cat of topCategories) {
       const ids = collectCategoryIds(cat)
-      const count = products.filter(
+      const count = groupedProducts.filter(
         (p) =>
           (p.categoryId ? ids.has(p.categoryId) : false) ||
           p.categorySlug === cat.slug ||
@@ -116,7 +228,7 @@ export function CatalogSection({
       map.set(cat.id, count)
     }
     return map
-  }, [products, topCategories])
+  }, [groupedProducts, topCategories])
 
   const currentTitle = useMemo(() => {
     if (!selectedSlug) return title
@@ -125,23 +237,23 @@ export function CatalogSection({
 
   // Динамічна фільтрація товарів за реальною категорією
   const displayedProducts = useMemo(() => {
-    if (!selectedSlug) return products
+    if (!selectedSlug) return groupedProducts
 
     if (currentCategory) {
       const ids = collectCategoryIds(currentCategory)
-      const filtered = products.filter(
+      const filtered = groupedProducts.filter(
         (p) =>
           (p.categoryId ? ids.has(p.categoryId) : false) ||
           p.categorySlug === selectedSlug ||
           (p.categoryName &&
             p.categoryName.toLowerCase() === currentCategory.name.toLowerCase())
       )
-      return filtered.length > 0 ? filtered : products
+      return filtered.length > 0 ? filtered : groupedProducts
     }
 
-    const filtered = products.filter((p) => p.categorySlug === selectedSlug)
-    return filtered.length > 0 ? filtered : products
-  }, [products, selectedSlug, currentCategory])
+    const filtered = groupedProducts.filter((p) => p.categorySlug === selectedSlug)
+    return filtered.length > 0 ? filtered : groupedProducts
+  }, [groupedProducts, selectedSlug, currentCategory])
 
   const handleCategoryClick = (
     e: React.MouseEvent,
@@ -213,7 +325,7 @@ export function CatalogSection({
         >
           <span>Усі товари</span>
           <span className="ml-1.5 text-[10px] font-medium opacity-70">
-            {products.length}
+            {groupedProducts.length}
           </span>
         </Link>
 
