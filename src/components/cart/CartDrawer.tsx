@@ -92,7 +92,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           </div>
         ) : (
           <>
-            <div className="flex-1 space-y-5 overflow-y-auto p-5">
+            <div data-lenis-prevent className="flex-1 space-y-5 overflow-y-auto overscroll-contain p-5">
               {items.map(({ product, quantity }) => (
                 <article
                   key={product.id}

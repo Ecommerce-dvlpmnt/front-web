@@ -400,16 +400,37 @@ export function CheckoutForm() {
                 setWarehouseSearch("")
               }} />
               {isLoadingCities && <p className="text-xs text-muted-foreground">Пошук міст…</p>}
-              {cities.length > 0 && <ul className="max-h-48 overflow-auto rounded-lg border border-border" role="listbox" aria-label="Міста Нової Пошти">{cities.map(city => <li key={city.Ref}><button type="button" role="option" aria-selected={false} className="w-full px-3 py-2 text-left text-sm hover:bg-muted focus-visible:bg-muted" onClick={() => {
-                setCitySearch(city.Description)
-                form.setValue("deliveryCityRef", city.Ref, { shouldValidate: true })
-                form.setValue("deliveryCityName", city.Description, { shouldValidate: true })
-                form.setValue("deliveryWarehouseRef", "", { shouldValidate: true })
-                form.setValue("deliveryWarehouseName", "", { shouldValidate: true })
-                setWarehouses([])
-                setCourierAddress({ street: "", building: "", apartment: "" })
-                setCities([])
-              }}>{city.Description}{city.AreaDescription ? `, ${city.AreaDescription} обл.` : ""}</button></li>)}</ul>}
+              {cities.length > 0 && (
+                <ul
+                  data-lenis-prevent
+                  className="max-h-48 overflow-y-auto overscroll-contain rounded-lg border border-border"
+                  role="listbox"
+                  aria-label="Міста Нової Пошти"
+                >
+                  {cities.map(city => (
+                    <li key={city.Ref}>
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={false}
+                        className="w-full px-3 py-2 text-left text-sm hover:bg-muted focus-visible:bg-muted"
+                        onClick={() => {
+                          setCitySearch(city.Description)
+                          form.setValue("deliveryCityRef", city.Ref, { shouldValidate: true })
+                          form.setValue("deliveryCityName", city.Description, { shouldValidate: true })
+                          form.setValue("deliveryWarehouseRef", "", { shouldValidate: true })
+                          form.setValue("deliveryWarehouseName", "", { shouldValidate: true })
+                          setWarehouses([])
+                          setCourierAddress({ street: "", building: "", apartment: "" })
+                          setCities([])
+                        }}
+                      >
+                        {city.Description}{city.AreaDescription ? `, ${city.AreaDescription} обл.` : ""}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
               <FieldError message={customerErrors.deliveryCityRef?.message} />
             </div>
             {deliveryType !== "Courier" && <div className="space-y-2">
@@ -460,7 +481,12 @@ export function CheckoutForm() {
                     </p>
                   )}
                   {cityRef && filteredWarehouses.length > 0 && (
-                    <ul className="max-h-48 overflow-auto rounded-lg border border-border" role="listbox" aria-label="Точки Нової Пошти">
+                    <ul
+                      data-lenis-prevent
+                      className="max-h-48 overflow-y-auto overscroll-contain rounded-lg border border-border"
+                      role="listbox"
+                      aria-label="Точки Нової Пошти"
+                    >
                       {filteredWarehouses.slice(0, 50).map(item => (
                         <li key={item.Ref}>
                           <button
