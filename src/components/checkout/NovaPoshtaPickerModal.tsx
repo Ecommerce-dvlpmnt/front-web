@@ -1,7 +1,7 @@
 "use client"
 
 import dynamic from "next/dynamic"
-import { useMemo, useState, useSyncExternalStore } from "react"
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react"
 import { X } from "lucide-react"
 import type { NovaPoshtaWarehouse } from "./NovaPoshtaMap"
 
@@ -56,6 +56,29 @@ export function NovaPoshtaPickerModal({
     key: `${type}:`,
     count: INITIAL_BATCH_SIZE,
   })
+
+  // Блокируем скролл фона и останавливаем Lenis smooth scroll пока модалка открыта,
+  // чтобы колесо мыши и тачпад гарантированно скроллили список отделений
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    // @ts-expect-error lenis global
+    const lenis = window.__lenis
+    if (lenis && typeof lenis.stop === "function") {
+      lenis.stop()
+    }
+    return () => {
+      document.body.style.overflow = prevOverflow
+      if (lenis && typeof lenis.start === "function") {
+        lenis.start()
+      }
+    }
+  }, [])
+
+  // Стабильный колбэк фокуса, не вызывающий пересоздание группы маркеров на карте
+  const handleFocus = useCallback((wh: NovaPoshtaWarehouse) => {
+    setFocusedRef(wh.Ref)
+  }, [])
 
   // Карту монтируем только когда она впервые становится видимой:
   // Leaflet должен измерить настоящий размер контейнера, а не 0×0.
@@ -133,6 +156,7 @@ export function NovaPoshtaPickerModal({
 
   return (
     <div
+      data-lenis-prevent
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-0 backdrop-blur-sm sm:p-5"
       role="dialog"
       aria-modal="true"
@@ -141,7 +165,7 @@ export function NovaPoshtaPickerModal({
         if (event.target === event.currentTarget) onClose()
       }}
     >
-      <div className="flex h-full w-full min-w-0 max-w-full flex-col overflow-hidden border border-border bg-card text-card-foreground shadow-2xl sm:h-[min(88vh,850px)] sm:max-w-6xl sm:rounded-2xl">
+      <div data-lenis-prevent className="flex h-full w-full min-w-0 max-w-full flex-col overflow-hidden border border-border bg-card text-card-foreground shadow-2xl sm:h-[min(88vh,850px)] sm:max-w-6xl sm:rounded-2xl">
         <header className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
           <div className="min-w-0">
             <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
@@ -240,6 +264,7 @@ export function NovaPoshtaPickerModal({
             )}
 
             <div
+              data-lenis-prevent
               onScroll={handleListScroll}
               className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain"
             >
@@ -321,7 +346,7 @@ export function NovaPoshtaPickerModal({
                   warehouses={filtered}
                   type={type}
                   selectedRef={focusedRef}
-                  onFocus={wh => setFocusedRef(wh.Ref)}
+                  onFocus={handleFocus}
                   onSelect={onSelect}
                 />
               </div>

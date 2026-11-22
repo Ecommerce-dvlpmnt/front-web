@@ -430,13 +430,12 @@ export function CheckoutForm() {
                     </div>
                     <Button
                       type="button"
-                      variant="outline"
                       size="sm"
-                      className="shrink-0 rounded-full border-border/80 text-xs font-medium hover:border-[#D4AF37]"
+                      className="shrink-0 rounded-full font-semibold text-xs px-3.5 py-1.5 shadow-xs cursor-pointer transition-colors bg-[#181512] text-[#FAF8F5] hover:bg-[#2A231D] dark:bg-[#D4AF37] dark:text-[#181512] dark:hover:bg-[#C29D26] border-transparent"
                       disabled={!cityRef}
                       onClick={() => setIsMapOpen(true)}
                     >
-                      <MapPin className="mr-1.5 size-3.5 text-[#8C5E14] dark:text-[#F3D078]" />
+                      <MapPin className="mr-1.5 size-3.5 text-[#D4AF37] dark:text-[#181512]" />
                       Змінити
                     </Button>
                   </div>

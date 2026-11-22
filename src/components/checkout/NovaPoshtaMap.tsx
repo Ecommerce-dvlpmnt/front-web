@@ -132,20 +132,6 @@ function parseWarehouses(warehouses: NovaPoshtaWarehouse[]): ParsedWarehouse[] {
     })
   }
 
-  // Отсекаем редкие изолированные выбросы от центра города
-  if (result.length >= 10) {
-    const sample = result.length > 100 ? result.slice(0, 100) : result
-    const sortedLats = sample.map(p => p.lat).sort((a, b) => a - b)
-    const sortedLngs = sample.map(p => p.lng).sort((a, b) => a - b)
-    const mid = Math.floor(sample.length / 2)
-    const medianLat = sortedLats[mid]
-    const medianLng = sortedLngs[mid]
-
-    return result.filter(
-      p => Math.abs(p.lat - medianLat) <= 0.45 && Math.abs(p.lng - medianLng) <= 0.45,
-    )
-  }
-
   return result
 }
 
@@ -166,6 +152,13 @@ function MarkerClusterLayer({
   const clusterGroupRef = useRef<L.MarkerClusterGroup | null>(null)
   const markersMapRef = useRef<Map<string, L.Marker>>(new Map())
   const prevSelectedRef = useRef<string>("")
+  const onFocusRef = useRef(onFocus)
+  const onSelectRef = useRef(onSelect)
+
+  useEffect(() => {
+    onFocusRef.current = onFocus
+    onSelectRef.current = onSelect
+  })
 
   // Инициализация и наполнение группы кластеров
   useEffect(() => {
@@ -183,7 +176,7 @@ function MarkerClusterLayer({
       spiderfyOnMaxZoom: true,
       animate: true,
       animateAddingMarkers: false,
-      disableClusteringAtZoom: 16,
+      disableClusteringAtZoom: 19,
       chunkedLoading: true,
       chunkInterval: 80,
       chunkDelay: 8,
@@ -323,14 +316,14 @@ function MarkerClusterLayer({
       const btn = popupDiv.querySelector(`#btn-np-select-${item.warehouse.Ref}`)
       if (btn) {
         btn.addEventListener("click", () => {
-          onSelect(item.warehouse)
+          onSelectRef.current?.(item.warehouse)
         })
       }
 
       marker.bindPopup(popupDiv, { closeButton: false })
 
       marker.on("click", () => {
-        if (onFocus) onFocus(item.warehouse)
+        onFocusRef.current?.(item.warehouse)
       })
 
       markersMapRef.current.set(item.warehouse.Ref, marker)
@@ -343,16 +336,27 @@ function MarkerClusterLayer({
     return () => {
       map.removeLayer(clusterGroup)
     }
-  }, [map, parsedList, type, onFocus, onSelect])
+  }, [map, parsedList, type])
 
   // Плавный перелет к маркеру при клике в левой колонке (zoomToShowLayer)
   useEffect(() => {
     if (!selectedRef || !map || !clusterGroupRef.current) return
     if (prevSelectedRef.current === selectedRef) return
+
+    if (prevSelectedRef.current) {
+      const prevMarker = markersMapRef.current.get(prevSelectedRef.current)
+      if (prevMarker) {
+        // @ts-expect-error custom tag
+        prevMarker.setIcon(getPinIcon(Boolean(prevMarker._isPostomat), false))
+      }
+    }
+
     prevSelectedRef.current = selectedRef
 
     const marker = markersMapRef.current.get(selectedRef)
     if (marker) {
+      // @ts-expect-error custom tag
+      marker.setIcon(getPinIcon(Boolean(marker._isPostomat), true))
       clusterGroupRef.current.zoomToShowLayer(marker, () => {
         marker.openPopup()
       })
