@@ -6,7 +6,7 @@ import { pushViewItemList } from "@/lib/analytics/data-layer"
 import { Button } from "@/components/ui/button"
 import { ProductCard, ProductCardSkeleton } from "./ProductCard"
 
-const PAGE_BATCH_SIZE = 24
+const PAGE_BATCH_SIZE = 16
 
 interface ProductGridProps {
   products: Product[]
@@ -17,7 +17,6 @@ interface ProductGridProps {
 export function ProductGrid({ products, searchQuery, itemListName }: ProductGridProps) {
   const lastReportedList = useRef("")
   const [visibleCount, setVisibleCount] = useState(PAGE_BATCH_SIZE)
-  const sentinelRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     setVisibleCount(PAGE_BATCH_SIZE)
@@ -30,23 +29,6 @@ export function ProductGrid({ products, searchQuery, itemListName }: ProductGrid
     lastReportedList.current = reportKey
     pushViewItemList(products.slice(0, PAGE_BATCH_SIZE), itemListName)
   }, [itemListName, products])
-
-  useEffect(() => {
-    const sentinel = sentinelRef.current
-    if (!sentinel || visibleCount >= products.length) return
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          setVisibleCount((prev) => Math.min(prev + PAGE_BATCH_SIZE, products.length))
-        }
-      },
-      { rootMargin: "600px 0px" }
-    )
-
-    observer.observe(sentinel)
-    return () => observer.disconnect()
-  }, [visibleCount, products.length])
 
   if (products.length === 0) {
     return (
@@ -64,7 +46,9 @@ export function ProductGrid({ products, searchQuery, itemListName }: ProductGrid
   }
 
   const visibleProducts = products.slice(0, visibleCount)
-  const hasMore = visibleCount < products.length
+  const remainingCount = products.length - visibleProducts.length
+  const hasMore = remainingCount > 0
+  const progressPercent = Math.min(100, Math.round((visibleProducts.length / products.length) * 100))
 
   return (
     <div>
@@ -79,22 +63,29 @@ export function ProductGrid({ products, searchQuery, itemListName }: ProductGrid
       </div>
 
       {hasMore && (
-        <div
-          ref={sentinelRef}
-          className="mt-10 flex flex-col items-center justify-center gap-3"
-        >
-          <p className="text-xs text-muted-foreground">
-            Показано {visibleProducts.length} із {products.length} товарів
-          </p>
+        <div className="mt-10 flex flex-col items-center justify-center gap-3.5">
+          <div className="flex flex-col items-center gap-2 w-full max-w-xs">
+            <p className="text-xs font-medium text-muted-foreground">
+              Показано <span className="font-semibold text-foreground">{visibleProducts.length}</span> із{" "}
+              <span className="font-semibold text-foreground">{products.length}</span> товарів
+            </p>
+            <div className="h-1 w-44 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-[#D4AF37] transition-all duration-300"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+          </div>
+
           <Button
             type="button"
             variant="outline"
             onClick={() =>
               setVisibleCount((prev) => Math.min(prev + PAGE_BATCH_SIZE, products.length))
             }
-            className="rounded-full border-[#D4AF37]/45 px-7 py-2.5 text-xs font-semibold tracking-wider uppercase hover:bg-[#D4AF37]/10 cursor-pointer"
+            className="rounded-full border-[#D4AF37]/50 bg-card px-8 py-5 text-xs font-semibold tracking-wider uppercase text-foreground shadow-xs transition-all duration-300 hover:border-[#D4AF37] hover:bg-[#D4AF37]/12 active:scale-[0.98] cursor-pointer"
           >
-            Показати ще ({Math.min(PAGE_BATCH_SIZE, products.length - visibleProducts.length)})
+            Показати ще {Math.min(PAGE_BATCH_SIZE, remainingCount)} товарів
           </Button>
         </div>
       )}
