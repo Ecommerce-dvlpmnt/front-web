@@ -3,25 +3,26 @@ export const shopConfig = {
   brand: process.env.NEXT_PUBLIC_SHOP_BRAND?.trim() || "Jingle Decor",
   description: "Штучні литі ялинки, різдвяні вінки та хвойні гірлянди",
   contact: {
-    phone: process.env.NEXT_PUBLIC_SHOP_PHONE ?? "",
-    email: process.env.NEXT_PUBLIC_SHOP_EMAIL ?? "",
+    phone: process.env.NEXT_PUBLIC_SHOP_PHONE?.trim() || "",
+    email: process.env.NEXT_PUBLIC_SHOP_EMAIL?.trim() || "",
     telegram: process.env.NEXT_PUBLIC_SHOP_TELEGRAM ?? "",
     hours:
       process.env.NEXT_PUBLIC_SHOP_HOURS ?? "Пн–Пт: 09:00–19:00; Сб–Нд: 10:00–18:00",
     fallback: "Контактні дані уточнюйте на сторінці контактів",
   },
   payment: {
-    ibanRecipient: process.env.NEXT_PUBLIC_IBAN_RECIPIENT ?? "",
-    iban: process.env.NEXT_PUBLIC_IBAN ?? "",
+    ibanEdrpou: process.env.NEXT_PUBLIC_IBAN_EDRPOU?.trim() || "",
+    ibanRecipient: process.env.NEXT_PUBLIC_IBAN_RECIPIENT?.trim() || "",
+    iban: process.env.NEXT_PUBLIC_IBAN?.replace(/\s/g, "").toUpperCase() || "",
   },
   returns: {
     address:
       process.env.NEXT_PUBLIC_RETURNS_ADDRESS?.trim() ||
       "64102, Харківська обл., м. Златопіль, мікрорайон 4, буд. 13, кв. 61",
-    email: process.env.NEXT_PUBLIC_SHOP_EMAIL ?? "",
+    email: process.env.NEXT_PUBLIC_SHOP_EMAIL?.trim() || "",
   },
   seasonal: {
-    announcement: "Створіть зимовий затишок у своїй оселі · Оплата при отриманні · Доставка 1–2 дні",
+    announcement: "Створіть зимовий затишок у своїй оселі · Оплата при отриманні · Доставка за тарифами Нової Пошти",
     badge: "Колекція 2026",
     title: "Литі ялинки та святковий декор",
     description:

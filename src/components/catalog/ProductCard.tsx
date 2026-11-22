@@ -4,15 +4,12 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 
-import { Star } from "lucide-react"
-
 import type { Product } from "@/types/product"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/components/cart/CartContext"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatPrice } from "@/lib/formatters/price"
-import { formatReviewsDeclension, getProductRating } from "@/lib/reviews/reviews-store"
 
 interface ProductCardProps {
   product: Product
@@ -38,8 +35,6 @@ export function ProductCard({
   const { addItem, items } = useCart()
   const [isAdded, setIsAdded] = useState(false)
   const [isImageLoaded, setIsImageLoaded] = useState(false)
-
-  const rating = getProductRating(product.id)
 
   const cartItem = items.find(
     (item) => item.product.id === product.id
@@ -91,7 +86,7 @@ export function ProductCard({
           alt={product.name}
           fill
           loading={priority ? "eager" : "lazy"}
-          sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
+          sizes="(min-width: 1280px) 286px, (min-width: 1024px) calc((100vw - 136px) / 4), (min-width: 768px) calc((100vw - 80px) / 3), (min-width: 640px) calc((100vw - 60px) / 2), calc((100vw - 44px) / 2)"
           onLoad={() => setIsImageLoaded(true)}
           className={`object-cover transition-all duration-700 ease-out group-hover:scale-105 ${
             isImageLoaded ? "opacity-100 scale-100 blur-0" : "opacity-0 scale-98 blur-[2px]"
@@ -123,31 +118,6 @@ export function ProductCard({
             {product.name}
           </Link>
         </h3>
-
-        {/* Звездный рейтинг: звёзды и балл — одна группа, отзывы — другая.
-            В узкой карточке «(24 відгуки)» целиком переносится на новую строку. */}
-        <div className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs">
-          <div className="flex shrink-0 items-center gap-1.5">
-            <div className="flex items-center gap-0.5 text-[#F59E0B] dark:text-[#FBBF24]" aria-hidden="true">
-              {Array.from({ length: 5 }, (_, i) => (
-                <Star
-                  key={i}
-                  className={`size-3.5 ${
-                    i < Math.round(rating.score)
-                      ? "fill-current text-[#F59E0B] dark:text-[#FBBF24]"
-                      : "text-muted-foreground/30 fill-muted-foreground/15"
-                  }`}
-                />
-              ))}
-            </div>
-            <span className="font-bold text-foreground text-xs tracking-tight">
-              {rating.score.toFixed(1)}
-            </span>
-          </div>
-          <span className="whitespace-nowrap text-[11px] text-muted-foreground">
-            ({rating.count} {formatReviewsDeclension(rating.count)})
-          </span>
-        </div>
 
         <div className="mt-3 flex min-h-7 flex-wrap items-baseline gap-x-2 gap-y-0.5">
           <p className="whitespace-nowrap text-base font-semibold tracking-tight text-foreground">

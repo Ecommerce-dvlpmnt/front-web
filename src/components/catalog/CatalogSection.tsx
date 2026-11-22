@@ -280,9 +280,11 @@ export function CatalogSection({
         )}
       >
         <ProductGrid
+          key={`${selectedSlug ?? "all"}:${searchQuery ?? ""}`}
           products={displayedProducts}
           searchQuery={searchQuery}
           itemListName={currentTitle}
+          eagerImages={Boolean(activeCategorySlug)}
         />
       </div>
     </section>

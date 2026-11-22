@@ -245,7 +245,8 @@ export function HeroBanner() {
                   src={s.image}
                   alt={s.imageAlt}
                   fill
-                  priority={index === 0}
+                  loading={index === 0 ? "eager" : "lazy"}
+                  fetchPriority={index === 0 ? "high" : "auto"}
                   sizes="(min-width: 1024px) 45vw, (min-width: 640px) 70vw, 90vw"
                   className="object-cover transition-transform duration-1000 ease-out group-hover:scale-105"
                 />

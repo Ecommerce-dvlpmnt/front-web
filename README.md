@@ -43,6 +43,7 @@ pnpm dev                 # development server
 pnpm lint                # ESLint
 pnpm exec tsc --noEmit   # проверка TypeScript
 pnpm build               # production-сборка
+node tests/storefront.test.mjs # регрессии каталога, XML-фида, IBAN и контактов
 pnpm start               # запуск production-сборки
 ```
 

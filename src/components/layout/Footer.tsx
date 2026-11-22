@@ -49,12 +49,7 @@ export function Footer() {
               <Phone className="size-4" aria-hidden="true" />
               {shopConfig.contact.phone}
             </a>
-          ) : (
-            <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
-              <Phone className="size-4" aria-hidden="true" />
-              {shopConfig.contact.fallback}
-            </p>
-          )}
+          ) : null}
           {shopConfig.contact.email ? (
             <a
               href={`mailto:${shopConfig.contact.email}`}
@@ -63,12 +58,7 @@ export function Footer() {
               <Mail className="size-4" aria-hidden="true" />
               {shopConfig.contact.email}
             </a>
-          ) : (
-            <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
-              <Mail className="size-4" aria-hidden="true" />
-              {shopConfig.contact.fallback}
-            </p>
-          )}
+          ) : null}
           <div className="mt-5 flex items-center gap-2">
             {shopConfig.contact.telegram ? (
               <a

@@ -178,6 +178,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 <span>{formatPrice(totalPrice)}</span>
               </div>
 
+              <p className="text-sm text-muted-foreground">Доставка — за тарифами Нової Пошти.</p>
               <Button className="w-full" size="lg" asChild>
                 <Link href="/checkout" onClick={onClose}>
                   Оформити замовлення

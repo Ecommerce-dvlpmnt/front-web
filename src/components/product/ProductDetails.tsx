@@ -13,12 +13,10 @@ import {
   RotateCcw,
   ShieldCheck,
   ShoppingBag,
-  Star,
   Truck,
 } from "lucide-react"
 
 import { useCart } from "@/components/cart/CartContext"
-import { ProductReviews } from "@/components/product/ProductReviews"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -28,11 +26,13 @@ import {
   getProductGalleryImages,
   parseProductAttributes,
 } from "@/features/product/product-utils"
+import { shopConfig } from "@/lib/config/shop"
 import { formatPrice } from "@/lib/formatters/price"
-import { formatReviewsDeclension, getProductRating } from "@/lib/reviews/reviews-store"
 import { cn } from "@/lib/utils"
 import type { Category } from "@/types/category"
 import type { Product } from "@/types/product"
+
+const GALLERY_IMAGE_SIZES = "(min-width: 1280px) 522px, (min-width: 1024px) calc(54vw - 170px), (min-width: 768px) calc(100vw - 148px), calc(100vw - 32px)"
 
 interface ProductDetailsProps {
   product: Product
@@ -194,11 +194,9 @@ export function ProductDetails({
   const [quantity, setQuantity] = useState(1)
   const [isAdded, setIsAdded] = useState(false)
   const [activeTab, setActiveTab] = useState<
-    "description" | "attributes" | "delivery" | "reviews"
+    "description" | "attributes" | "delivery"
   >("description")
   const { addItem, items } = useCart()
-
-  const rating = getProductRating(product.id)
 
   const cartQuantity =
     items.find((item) => item.product.id === product.id)?.quantity ?? 0
@@ -232,14 +230,6 @@ export function ProductDetails({
     setIsAdded(true)
   }
 
-  const handleOpenReviews = () => {
-    setActiveTab("reviews")
-    const el = document.getElementById("product-tabs")
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth" })
-    }
-  }
-
   return (
     <>
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1.08fr)_minmax(24rem,0.92fr)] lg:gap-16">
@@ -256,8 +246,9 @@ export function ProductDetails({
                     src={image.src}
                     alt={image.alt}
                     fill
-                    priority={index === 0}
-                    sizes="100vw"
+                    loading={index === 0 ? "eager" : "lazy"}
+                    fetchPriority={index === 0 ? "high" : "auto"}
+                    sizes={GALLERY_IMAGE_SIZES}
                     className="object-cover"
                   />
                 </div>
@@ -302,8 +293,9 @@ export function ProductDetails({
                   src={selectedImage.src}
                   alt={selectedImage.alt}
                   fill
-                  priority
-                  sizes="(min-width: 1280px) 54vw, 50vw"
+                  loading="eager"
+                  fetchPriority="high"
+                  sizes={GALLERY_IMAGE_SIZES}
                   className="object-cover transition-opacity duration-300"
                 />
               )}
@@ -345,38 +337,6 @@ export function ProductDetails({
           >
             {product.name}
           </h1>
-
-          {/* Звездный рейтинг товара с прямым переходом к отзывам */}
-          <div className="mt-3 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleOpenReviews}
-              className="group flex items-center gap-2 text-sm transition-colors hover:text-foreground cursor-pointer"
-              aria-label={`Оцінка ${rating.score.toFixed(1)} на основі ${rating.count} ${formatReviewsDeclension(rating.count)}`}
-            >
-              <div
-                className="flex items-center gap-0.5 text-[#F59E0B] dark:text-[#FBBF24]"
-                aria-hidden="true"
-              >
-                {Array.from({ length: 5 }, (_, i) => (
-                  <Star
-                    key={i}
-                    className={`size-4 ${
-                      i < Math.round(rating.score)
-                        ? "fill-current"
-                        : "text-muted-foreground/30 fill-muted-foreground/15"
-                    }`}
-                  />
-                ))}
-              </div>
-              <span className="font-bold text-foreground text-sm">
-                {rating.score.toFixed(1)}
-              </span>
-              <span className="text-xs text-muted-foreground group-hover:underline">
-                · {rating.count} {formatReviewsDeclension(rating.count)} покупців
-              </span>
-            </button>
-          </div>
 
           {product.sku && (
             <p className="mt-2 text-xs text-muted-foreground">
@@ -483,13 +443,15 @@ export function ProductDetails({
             </div>
 
             <p className="mt-3 text-xs text-muted-foreground">
-              Оплата при отриманні на пошті або онлайн на IBAN ФОП.
+              {shopConfig.payment.iban
+                ? "Оплата при отриманні Новою Поштою або за реквізитами IBAN ФОП."
+                : "Оплата при отриманні Новою Поштою."}
             </p>
           </div>
         </section>
       </div>
 
-      {/* Продуманная система описания, характеристик, доставки и отзывов */}
+      {/* Опис, характеристики, доставка та оплата */}
       <div id="product-tabs" className="mt-16 border-t border-border pt-10 sm:mt-24 sm:pt-14 scroll-mt-28">
         <div className="flex flex-wrap items-center gap-2 border-b border-border pb-4">
           <button
@@ -531,19 +493,6 @@ export function ProductDetails({
             )}
           >
             Доставка та оплата
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("reviews")}
-            className={cn(
-              "rounded-full px-5 py-2 text-xs font-semibold uppercase tracking-wider transition-all duration-200 cursor-pointer",
-              activeTab === "reviews"
-                ? "bg-foreground text-background shadow-xs"
-                : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
-            )}
-          >
-            Відгуки покупців ({rating.count})
           </button>
         </div>
 
@@ -616,7 +565,7 @@ export function ProductDetails({
                   Швидка відправка по всій Україні протягом 1–2 робочих днів. Доставка у будь-яке відділення, поштомат або адресна доставка кур&apos;єром.
                 </p>
                 <p className="mt-3 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                  Безкоштовна доставка для замовлень від 1500 ₴
+                  Доставка оплачується за тарифами Нової Пошти
                 </p>
               </div>
 
@@ -624,8 +573,8 @@ export function ProductDetails({
                 <CreditCard className="size-6 text-[#C8923A] dark:text-[#D4AF37]" />
                 <h4 className="mt-3 text-base font-semibold text-foreground">Зручні способи оплати</h4>
                 <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                  • Оплата при отриманні (післяплата) після огляду виробу у відділенні.<br />
-                  • Офіційна онлайн-оплата за реквізитами IBAN ФОП.
+                  • Оплата при отриманні (післяплата) після огляду виробу у відділенні.
+                  {shopConfig.payment.iban && <><br />• Оплата за реквізитами IBAN ФОП.</>}
                 </p>
               </div>
 
@@ -636,17 +585,6 @@ export function ProductDetails({
                   14 днів на повернення або обмін відповідно до Закону України «Про захист прав споживачів». Ви можете спокійно перевірити виріб при отриманні.
                 </p>
               </div>
-            </div>
-          )}
-
-          {/* Вкладка 4: Отзывы */}
-          {activeTab === "reviews" && (
-            <div className="animate-in fade-in duration-300">
-              <ProductReviews
-                productId={product.id}
-                productName={product.name}
-                categorySlug={category?.slug}
-              />
             </div>
           )}
         </div>

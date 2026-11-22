@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { Button } from "@/components/ui/button"
 import type { Product } from "@/types/product"
 import { pushViewItemList } from "@/lib/analytics/data-layer"
 import { ProductCard, ProductCardSkeleton } from "./ProductCard"
@@ -9,18 +10,20 @@ interface ProductGridProps {
   products: Product[]
   searchQuery?: string
   itemListName: string
+  eagerImages?: boolean
 }
 
-export function ProductGrid({ products, searchQuery, itemListName }: ProductGridProps) {
-  const lastReportedList = useRef("")
+export function ProductGrid({ products, searchQuery, itemListName, eagerImages = false }: ProductGridProps) {
+  const [visibleCount, setVisibleCount] = useState(24)
+  const visibleProducts = useMemo(() => products.slice(0, visibleCount), [products, visibleCount])
+  const reportedProductIds = useRef(new Set<string>())
 
   useEffect(() => {
-    if (products.length === 0) return
-    const reportKey = `${itemListName}:${products.map((product) => product.id).join(",")}`
-    if (lastReportedList.current === reportKey) return
-    lastReportedList.current = reportKey
-    pushViewItemList(products, itemListName)
-  }, [itemListName, products])
+    const newlyVisible = visibleProducts.filter((product) => !reportedProductIds.current.has(product.id))
+    if (newlyVisible.length === 0) return
+    for (const product of newlyVisible) reportedProductIds.current.add(product.id)
+    pushViewItemList(newlyVisible, itemListName)
+  }, [itemListName, visibleProducts])
 
   if (products.length === 0) {
     return (
@@ -38,15 +41,24 @@ export function ProductGrid({ products, searchQuery, itemListName }: ProductGrid
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4 lg:gap-6">
-      {products.map((product, index) => (
-        <ProductCard
-          key={product.id}
-          product={product}
-          priority={index === 0}
-        />
-      ))}
-    </div>
+    <>
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4 lg:gap-6">
+        {visibleProducts.map((product, index) => (
+          <ProductCard
+            key={product.id}
+            product={product}
+            priority={eagerImages && index < 4}
+          />
+        ))}
+      </div>
+      {visibleCount < products.length && (
+        <div className="mt-8 text-center">
+          <Button variant="outline" onClick={() => setVisibleCount((count) => count + 24)}>
+            Показати ще товари ({products.length - visibleCount})
+          </Button>
+        </div>
+      )}
+    </>
   )
 }
 

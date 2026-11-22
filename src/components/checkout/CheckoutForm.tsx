@@ -7,6 +7,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { ArrowLeft, CreditCard, Landmark, PackageCheck, MapPin } from "lucide-react"
 import { useRouter } from "next/navigation"
 
+import { shopConfig } from "@/lib/config/shop"
+import { IbanPaymentDetails } from "@/features/checkout/IbanPaymentDetails"
 import { useCart } from "@/components/cart/CartContext"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -463,22 +465,25 @@ export function CheckoutForm() {
                 </span>
               </span>
             </label>
-            <label className="flex cursor-pointer gap-3 rounded-xl border border-border p-4 has-[:checked]:border-foreground">
-              <input
-                type="radio"
-                value="Online"
-                className="mt-1 accent-primary"
-                {...form.register("paymentMethod")}
-              />
-              <Landmark className="mt-0.5 size-5 text-muted-foreground" aria-hidden="true" />
-              <span>
-                <span className="block text-sm font-medium">Оплата за реквізитами IBAN</span>
-                <span className="mt-1 block text-xs text-muted-foreground">
-                  Реквізити з’являться після створення замовлення.
+            {shopConfig.payment.iban && (
+              <label className="flex cursor-pointer gap-3 rounded-xl border border-border p-4 has-[:checked]:border-foreground">
+                <input
+                  type="radio"
+                  value="Online"
+                  className="mt-1 accent-primary"
+                  {...form.register("paymentMethod")}
+                />
+                <Landmark className="mt-0.5 size-5 text-muted-foreground" aria-hidden="true" />
+                <span>
+                  <span className="block text-sm font-medium">Оплата за реквізитами IBAN</span>
+                  <span className="mt-1 block text-xs text-muted-foreground">
+                    Банківський переказ на рахунок ФОП.
+                  </span>
                 </span>
-              </span>
-            </label>
+              </label>
+            )}
           </div>
+          {shopConfig.payment.iban && paymentMethod === "Online" && <IbanPaymentDetails amount={totalPrice} />}
         </section>
 
         <section className="rounded-2xl border border-border bg-card p-5 sm:p-6" aria-labelledby="comment-title">
@@ -513,6 +518,7 @@ export function CheckoutForm() {
           <span>Разом</span>
           <span>{formatPrice(totalPrice)}</span>
         </div>
+        <p className="mt-3 text-sm text-muted-foreground">Доставка — за тарифами Нової Пошти, сплачується окремо.</p>
         <Button className="mt-6 w-full" size="lg" type="submit" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? "Створення замовлення…" : "Підтвердити замовлення"}
         </Button>
