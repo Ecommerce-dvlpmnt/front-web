@@ -27,7 +27,7 @@ const DECOR_PATH = "M205.81 90.8C207.856 90.8 209.624 91.1727 211.114 91.918C212
 export function BrandTreeIcon({
   animated = true,
   label = "Jingle Decor",
-  className = "h-[25px] sm:h-[26px] md:h-[27px] w-auto shrink-0",
+  className = "h-[30px] sm:h-[35px] md:h-[38px] lg:h-[40px] w-auto shrink-0",
   ...props
 }: BrandSvgProps) {
   const rawId = useId()
@@ -43,7 +43,7 @@ export function BrandTreeIcon({
       role="img"
       aria-label={label}
       className={cn(
-        "dark:drop-shadow-[0_0_8px_rgba(255,223,133,0.3)] transition-all duration-300",
+        "drop-shadow-[0_1px_2px_rgba(0,0,0,0.08)] dark:drop-shadow-[0_0_10px_rgba(255,223,133,0.35)] transition-all duration-300",
         className
       )}
       {...props}
@@ -72,14 +72,15 @@ export function BrandTreeIcon({
 
       <path
         d={STAR_PATH}
-        strokeWidth="2.4"
+        strokeWidth="2.6"
         strokeLinejoin="round"
         fill="none"
-        className="stroke-[#7A4F08] dark:stroke-[#FFDF85] transition-colors duration-300"
+        className="stroke-[#8C5E14] dark:stroke-[#FFDF85] transition-colors duration-300"
       />
       <path
         d={TREE_PATH}
-        className="fill-[#7A4F08] dark:fill-[#FFDF85] transition-colors duration-300"
+        strokeWidth="0.8"
+        className="fill-[#8C5E14] stroke-[#8C5E14] dark:fill-[#FFDF85] dark:stroke-[#FFDF85] transition-colors duration-300"
       />
 
       {animated && (
@@ -104,7 +105,7 @@ export function BrandTreeIcon({
 export function BrandNameLogo({
   animated = true,
   label = "Jingle Decor",
-  className = "h-[30px] sm:h-[32px] md:h-[33px] w-auto shrink-0",
+  className = "h-[35px] sm:h-[40px] md:h-[44px] lg:h-[46px] w-auto shrink-0",
   ...props
 }: BrandSvgProps) {
   const rawId = useId()
@@ -121,7 +122,7 @@ export function BrandNameLogo({
       role="img"
       aria-label={label}
       className={cn(
-        "dark:drop-shadow-[0_0_8px_rgba(255,223,133,0.3)] transition-all duration-300",
+        "drop-shadow-[0_1px_2px_rgba(0,0,0,0.06)] dark:drop-shadow-[0_0_10px_rgba(255,223,133,0.35)] transition-all duration-300",
         className
       )}
       {...props}
@@ -144,14 +145,14 @@ export function BrandNameLogo({
                 d={JINGLE_PATH}
                 fill="white"
                 stroke="white"
-                strokeWidth="0.85"
+                strokeWidth="1.2"
                 strokeLinejoin="round"
               />
               <path
                 d={DECOR_PATH}
                 fill="white"
                 stroke="white"
-                strokeWidth="0.5"
+                strokeWidth="0.8"
                 strokeLinejoin="round"
               />
             </mask>
@@ -159,20 +160,20 @@ export function BrandNameLogo({
         )}
       </defs>
 
-      {/* Jingle: чіткі золоті лінії каліграфії */}
+      {/* Jingle: чіткі золоті лінії каліграфії з підсиленою товщиною штриха */}
       <path
         d={JINGLE_PATH}
-        strokeWidth="0.85"
+        strokeWidth="1.2"
         strokeLinejoin="round"
-        className="fill-[#7A4F08] stroke-[#7A4F08] dark:fill-[#FFDF85] dark:stroke-[#FFDF85] transition-colors duration-300"
+        className="fill-[#8C5E14] stroke-[#8C5E14] dark:fill-[#FFDF85] dark:stroke-[#FFDF85] transition-colors duration-300"
       />
 
       {/* DECOR: підкреслена чіткість тонких ліній зарубок */}
       <path
         d={DECOR_PATH}
-        strokeWidth="0.5"
+        strokeWidth="0.8"
         strokeLinejoin="round"
-        className="fill-[#181512] stroke-[#181512] dark:fill-[#FFFFFF] dark:stroke-[#FFFFFF] transition-colors duration-300"
+        className="fill-[#14110E] stroke-[#14110E] dark:fill-[#FFFFFF] dark:stroke-[#FFFFFF] transition-colors duration-300"
       />
 
       {animated && (
@@ -229,8 +230,8 @@ export function BrandLogo({
   label = "Jingle Decor",
   withDivider = true,
   className = "",
-  treeClassName = "h-[25px] sm:h-[26px] md:h-[27px] w-auto shrink-0",
-  textClassName = "h-[30px] sm:h-[32px] md:h-[33px] w-auto shrink-0",
+  treeClassName = "h-[30px] sm:h-[35px] md:h-[38px] lg:h-[40px] w-auto shrink-0",
+  textClassName = "h-[35px] sm:h-[40px] md:h-[44px] lg:h-[46px] w-auto shrink-0",
   ...props
 }: BrandLogoProps) {
   if (variant === "icon") {
@@ -245,7 +246,7 @@ export function BrandLogo({
     <div
       className={cn(
         "inline-flex items-center select-none",
-        withDivider ? "gap-2 sm:gap-2.5 md:gap-3" : "gap-3.5 sm:gap-[18px] md:gap-5",
+        withDivider ? "gap-2.5 sm:gap-3 md:gap-3.5" : "gap-4 sm:gap-5 md:gap-6",
         className
       )}
       role="img"
@@ -260,7 +261,7 @@ export function BrandLogo({
       />
       {withDivider && (
         <span
-          className="h-[18px] sm:h-[20px] w-px shrink-0 bg-gradient-to-b from-transparent via-[#7A4F08]/40 to-transparent dark:via-[#FFDF85]/45 transition-colors duration-300"
+          className="h-[22px] sm:h-[26px] md:h-[28px] w-px shrink-0 bg-gradient-to-b from-transparent via-[#8C5E14]/50 to-transparent dark:via-[#FFDF85]/55 transition-colors duration-300"
           aria-hidden="true"
         />
       )}
