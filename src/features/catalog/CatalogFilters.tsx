@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, type FormEvent } from "react"
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
+import { ChevronDown, Search, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,63 +14,126 @@ interface Props {
   filters: Filters
 }
 
-export function CatalogFilters({ categorySlug, searchQuery, filters }: Props) {
-  const router = useRouter()
-  const [open, setOpen] = useState(false)
+const quickPrices = [
+  { label: "До 1 500 ₴", min: "", max: "1500" },
+  { label: "1 500–4 000 ₴", min: "1500", max: "4000" },
+  { label: "Від 4 000 ₴", min: "4000", max: "" },
+]
 
-  function apply(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const data = new FormData(event.currentTarget)
-    const readPrice = (key: string) => {
-      const raw = String(data.get(key) ?? "").trim()
-      if (!/^\d+(?:\.\d{1,2})?$/.test(raw)) return undefined
-      const value = Number(raw)
-      return value <= 10000000 ? value : undefined
+function parsePrice(raw: string): number | undefined {
+  if (!/^\d+(?:\.\d{1,2})?$/.test(raw.trim())) return undefined
+  const value = Number(raw)
+  return Number.isFinite(value) && value <= 10000000 ? value : undefined
+}
+
+export function CatalogFilters({ categorySlug, searchQuery = "", filters }: Props) {
+  const router = useRouter()
+  // Keep typing independent of server props. This component lives outside the keyed results boundary.
+  const [searchTerm, setSearchTerm] = useState(searchQuery)
+  const [active, setActive] = useState<Filters>(filters)
+  const [minDraft, setMinDraft] = useState(filters.minPrice?.toString() ?? "")
+  const [maxDraft, setMaxDraft] = useState(filters.maxPrice?.toString() ?? "")
+  const [priceError, setPriceError] = useState("")
+  const sortMenu = useRef<HTMLDetailsElement>(null)
+  const priceMenu = useRef<HTMLDetailsElement>(null)
+
+  const navigate = useCallback((query: string, next: Filters) => {
+    const target = getCatalogHref({ categorySlug, searchQuery: query.trim(), filters: next, pageNumber: 1 }).replace(/#catalog$/, "")
+    router.replace(target, { scroll: false })
+  }, [categorySlug, router])
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      if ((new URLSearchParams(window.location.search).get("query") ?? "") !== searchTerm.trim()) {
+        navigate(searchTerm, active)
+      }
+    }, 400)
+    return () => window.clearTimeout(timeout)
+  }, [searchTerm, active, navigate])
+
+  useEffect(() => {
+    const reset = () => {
+      setSearchTerm("")
+      setActive({})
+      setMinDraft("")
+      setMaxDraft("")
+      setPriceError("")
+      sortMenu.current?.removeAttribute("open")
+      priceMenu.current?.removeAttribute("open")
+      navigate("", {})
     }
-    const minPrice = readPrice("minPrice")
-    const maxPrice = readPrice("maxPrice")
-    if (minPrice !== undefined && maxPrice !== undefined && minPrice > maxPrice) {
-      event.currentTarget.querySelector<HTMLInputElement>("[name=maxPrice]")?.setCustomValidity("Максимальна ціна має бути не меншою за мінімальну")
-      event.currentTarget.reportValidity()
-      return
-    }
-    const sort = String(data.get("sort") ?? "")
-    const sortBy = sort === "price_asc" || sort === "price_desc" ? sort : undefined
-    router.push(getCatalogHref({
-      categorySlug, searchQuery, pageNumber: 1,
-      filters: { sortBy, minPrice, maxPrice, inStock: data.has("inStock") },
-    }).replace(/#catalog$/, ""), { scroll: false })
-    setOpen(false)
+    window.addEventListener("catalog-reset", reset)
+    return () => window.removeEventListener("catalog-reset", reset)
+  }, [navigate])
+
+  function updateFilters(next: Filters) {
+    setActive(next)
+    navigate(searchTerm, next)
   }
 
+  function applyPrice(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const minPrice = parsePrice(minDraft)
+    const maxPrice = parsePrice(maxDraft)
+    if ((minDraft && minPrice === undefined) || (maxDraft && maxPrice === undefined)) {
+      setPriceError("Введіть коректну ціну")
+      return
+    }
+    if (minPrice !== undefined && maxPrice !== undefined && minPrice > maxPrice) {
+      setPriceError("Ціна «До» має бути більшою за «Від»")
+      return
+    }
+    setPriceError("")
+    updateFilters({ ...active, minPrice, maxPrice })
+    priceMenu.current?.removeAttribute("open")
+  }
+
+  const sortLabel = active.sortBy === "price_asc" ? "Спочатку дешевші" : active.sortBy === "price_desc" ? "Спочатку дорожчі" : "За замовчуванням"
+  const priceLabel = active.minPrice !== undefined || active.maxPrice !== undefined
+    ? `Ціна: ${active.minPrice ?? 0} – ${active.maxPrice ?? "∞"} ₴` : "Ціна, ₴"
+
   return (
-    <div className="mt-6 rounded-2xl border border-border bg-card p-3 sm:p-4">
-      <Button type="button" variant="outline" className="w-full md:hidden" aria-expanded={open} aria-controls="catalog-filters" onClick={() => setOpen(!open)}>
-        Фільтри та сортування
-      </Button>
-      <form id="catalog-filters" onSubmit={apply} className={`${open ? "grid" : "hidden"} mt-3 gap-3 md:mt-0 md:grid md:grid-cols-[minmax(10rem,1fr)_repeat(2,minmax(6rem,0.6fr))_auto_auto] md:items-end`}>
-        <label className="grid gap-1 text-xs font-medium text-foreground">
-          Сортування
-          <select name="sort" defaultValue={filters.sortBy ?? "date_desc"} className="h-10 rounded-md border border-border bg-background px-3 text-sm focus-visible:ring-2 focus-visible:ring-ring">
-            <option value="date_desc">За замовчуванням</option>
-            <option value="price_asc">Від дешевших</option>
-            <option value="price_desc">Від дорожчих</option>
-          </select>
-        </label>
-        <label className="grid gap-1 text-xs font-medium text-foreground">
-          Ціна від, ₴
-          <Input name="minPrice" type="number" min="0" max="10000000" step="0.01" defaultValue={filters.minPrice ?? ""} onChange={(event) => event.currentTarget.form?.querySelector<HTMLInputElement>("[name=maxPrice]")?.setCustomValidity("")} />
-        </label>
-        <label className="grid gap-1 text-xs font-medium text-foreground">
-          Ціна до, ₴
-          <Input name="maxPrice" type="number" min="0" max="10000000" step="0.01" defaultValue={filters.maxPrice ?? ""} onChange={(event) => event.currentTarget.setCustomValidity("")} />
-        </label>
-        <label className="flex min-h-10 items-center gap-2 text-sm text-foreground">
-          <input name="inStock" type="checkbox" defaultChecked={filters.inStock} className="size-4 accent-foreground" />
-          Тільки в наявності
-        </label>
-        <Button type="submit" className="min-h-10">Застосувати</Button>
+    <div className="relative z-10 grid grid-cols-2 gap-2.5 rounded-2xl border border-border/60 bg-card p-3 shadow-sm dark:bg-[#14241D] sm:gap-3 sm:p-4 lg:flex lg:items-center">
+      <form role="search" className="relative col-span-2 min-w-0 lg:flex-1" onSubmit={(event) => { event.preventDefault(); navigate(searchTerm, active) }}>
+        <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+        <Input type="search" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Пошук товарів…" aria-label="Пошук товарів" className="h-11 rounded-full border-border/70 bg-background pl-10 pr-10 text-sm focus-visible:ring-2 focus-visible:ring-[#D4AF37]/60" />
+        {searchTerm && <button type="button" aria-label="Очистити пошук" className="absolute right-3 top-1/2 flex size-6 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={() => { setSearchTerm(""); navigate("", active) }}><X className="size-4" aria-hidden="true" /></button>}
       </form>
+
+      <details ref={sortMenu} className="group relative min-w-0 lg:w-48 lg:shrink-0">
+        <summary className="flex h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-full border border-border/70 bg-background px-4 text-xs font-medium text-foreground hover:border-[#D4AF37]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
+          <span className="truncate">{sortLabel}</span><ChevronDown className="size-4 shrink-0 text-[#8C5E14] transition-transform group-open:rotate-180 dark:text-[#D4AF37]" aria-hidden="true" />
+        </summary>
+        <div className="absolute left-0 top-full z-30 mt-2 w-56 rounded-xl border border-border bg-popover p-1.5 shadow-xl">
+          {([ ["date_desc", "За замовчуванням"], ["price_asc", "Спочатку дешевші"], ["price_desc", "Спочатку дорожчі"] ] as const).map(([value, label]) => (
+            <button key={value} type="button" className="block w-full rounded-lg px-3 py-2 text-left text-sm text-popover-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-current={(active.sortBy ?? "date_desc") === value ? "true" : undefined} onClick={() => { updateFilters({ ...active, sortBy: value === "date_desc" ? undefined : value }); sortMenu.current?.removeAttribute("open") }}>{label}</button>
+          ))}
+        </div>
+      </details>
+
+      <details ref={priceMenu} className="group relative min-w-0 lg:shrink-0">
+        <summary className="flex h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-full border border-border/70 bg-background px-4 text-xs font-medium text-foreground hover:border-[#D4AF37]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
+          <span className="truncate">{priceLabel}</span><ChevronDown className="size-4 shrink-0 text-[#8C5E14] transition-transform group-open:rotate-180 dark:text-[#D4AF37]" aria-hidden="true" />
+        </summary>
+        <form onSubmit={applyPrice} className="absolute right-0 top-full z-30 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-2xl border border-border bg-popover p-4 text-popover-foreground shadow-xl">
+          <p className="mb-3 text-sm font-semibold">Діапазон цін</p>
+          <div className="grid grid-cols-2 gap-2">
+            <label className="grid gap-1 text-xs text-muted-foreground">Від<Input type="number" min="0" max="10000000" step="0.01" value={minDraft} onChange={(event) => { setMinDraft(event.target.value); setPriceError("") }} placeholder="0" className="h-10 bg-background" /></label>
+            <label className="grid gap-1 text-xs text-muted-foreground">До<Input type="number" min="0" max="10000000" step="0.01" value={maxDraft} onChange={(event) => { setMaxDraft(event.target.value); setPriceError("") }} placeholder="∞" className="h-10 bg-background" /></label>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-1.5">{quickPrices.map((option) => <button key={option.label} type="button" className="rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground hover:border-[#D4AF37]/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={() => { setMinDraft(option.min); setMaxDraft(option.max); setPriceError("") }}>{option.label}</button>)}</div>
+          {priceError && <p className="mt-2 text-xs text-destructive" role="alert">{priceError}</p>}
+          <div className="mt-4 flex items-center justify-between gap-2">
+            <button type="button" className="text-xs text-muted-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={() => { setMinDraft(""); setMaxDraft(""); setPriceError(""); updateFilters({ ...active, minPrice: undefined, maxPrice: undefined }); priceMenu.current?.removeAttribute("open") }}>Скинути</button>
+            <Button type="submit" size="sm" className="rounded-full px-5">Ок</Button>
+          </div>
+        </form>
+      </details>
+
+      <button type="button" role="switch" aria-checked={Boolean(active.inStock)} className="col-span-2 flex min-h-11 items-center justify-between gap-3 rounded-full border border-border/70 bg-background px-3.5 text-xs font-medium text-foreground hover:border-[#D4AF37]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:col-span-1 lg:shrink-0" onClick={() => updateFilters({ ...active, inStock: !active.inStock })}>
+        Тільки в наявності
+        <span className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${active.inStock ? "bg-[#D4AF37]" : "bg-muted-foreground/35"}`} aria-hidden="true"><span className={`absolute top-0.5 size-4 rounded-full bg-background shadow-sm transition-transform ${active.inStock ? "translate-x-[18px]" : "translate-x-0.5"}`} /></span>
+      </button>
     </div>
   )
 }

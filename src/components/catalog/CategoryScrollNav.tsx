@@ -12,9 +12,17 @@ export function CategoryScrollNav({ children, className, ...props }: CategoryScr
   useEffect(() => {
     const el = navRef.current
     if (!el) return
+    const mobile = window.matchMedia("(max-width: 767px)")
+    const syncScrollMode = () => {
+      if (mobile.matches) el.setAttribute("data-lenis-prevent", "")
+      else el.removeAttribute("data-lenis-prevent")
+    }
+    syncScrollMode()
+    mobile.addEventListener("change", syncScrollMode)
 
     // 1. Прокрутка колесиком мыши по горизонтали
     const onWheel = (e: WheelEvent) => {
+      if (window.matchMedia("(min-width: 768px)").matches) return
       if (e.deltaY !== 0 && el.scrollWidth > el.clientWidth) {
         // Проверяем, есть ли куда скроллить по горизонтали
         const canScrollLeft = e.deltaY < 0 && el.scrollLeft > 0
@@ -34,6 +42,7 @@ export function CategoryScrollNav({ children, className, ...props }: CategoryScr
     let hasMoved = false
 
     const onMouseDown = (e: MouseEvent) => {
+      if (window.matchMedia("(min-width: 768px)").matches) return
       if (e.button !== 0) return
       isDown = true
       hasMoved = false
@@ -83,6 +92,7 @@ export function CategoryScrollNav({ children, className, ...props }: CategoryScr
     el.addEventListener("click", onClickCapture, { capture: true })
 
     return () => {
+      mobile.removeEventListener("change", syncScrollMode)
       el.removeEventListener("wheel", onWheel)
       el.removeEventListener("mousedown", onMouseDown)
       el.removeEventListener("dragstart", onDragStart)
@@ -95,7 +105,6 @@ export function CategoryScrollNav({ children, className, ...props }: CategoryScr
   return (
     <nav
       ref={navRef}
-      data-lenis-prevent
       className={className}
       {...props}
     >

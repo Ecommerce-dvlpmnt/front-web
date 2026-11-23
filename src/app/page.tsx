@@ -3,6 +3,7 @@ import { Box, Factory, ShieldCheck, Truck } from "lucide-react"
 import { HeroBanner } from "@/components/home/HeroBanner"
 import { CatalogSkeleton } from "@/features/catalog/CatalogSkeleton"
 import { StorefrontCatalog } from "@/features/catalog/StorefrontCatalog"
+import { CatalogFilters } from "@/features/catalog/CatalogFilters"
 import { getCatalogFilters, getCatalogPageNumber, getCatalogQuery, type CatalogSearchParams } from "@/features/catalog/navigation"
 
 interface HomeProps {
@@ -91,9 +92,14 @@ export default async function Home({ searchParams }: HomeProps) {
           </div>
         </div>
 
-        <Suspense key={`${query}:${pageNumber}:${JSON.stringify(filters)}`} fallback={<CatalogSkeleton />}>
-          <StorefrontCatalog searchQuery={query} pageNumber={pageNumber} filters={filters} />
-        </Suspense>
+        <div id="catalog" className="scroll-mt-24 pt-12 sm:pt-16">
+          <CatalogFilters searchQuery={query} filters={filters} />
+          <div className="min-h-[520px] transition-opacity duration-300">
+            <Suspense key={`${query}:${pageNumber}:${JSON.stringify(filters)}`} fallback={<CatalogSkeleton />}>
+              <StorefrontCatalog searchQuery={query} pageNumber={pageNumber} filters={filters} />
+            </Suspense>
+          </div>
+        </div>
       </div>
     </div>
   )

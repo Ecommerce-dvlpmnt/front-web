@@ -2,19 +2,16 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState } from "react"
 import {
   ChevronDown,
   Menu,
-  Search,
   ShoppingBag,
   X,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { ThemeToggle } from "@/components/layout/ThemeToggle"
 import { BrandLogo } from "@/components/layout/BrandLogo"
 import { CartDrawer } from "@/components/cart/CartDrawer"
@@ -29,41 +26,8 @@ interface HeaderProps {
 }
 
 export function Header({ categories = [] }: HeaderProps) {
-  const router = useRouter()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false)
   const [isCartOpen, setIsCartOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
-
-  useEffect(() => {
-    const sync = () => setSearchQuery(new URLSearchParams(window.location.search).get("query") ?? "")
-    sync()
-    window.addEventListener("popstate", sync)
-    return () => window.removeEventListener("popstate", sync)
-  }, [])
-
-  useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      const current = new URLSearchParams(window.location.search)
-      if ((current.get("query") ?? "") === searchQuery.trim()) return
-      const path = window.location.pathname.startsWith("/catalog/") ? window.location.pathname : "/"
-      current.delete("page")
-      if (searchQuery.trim()) current.set("query", searchQuery.trim())
-      else current.delete("query")
-      router.replace(`${path}?${current.toString()}`, { scroll: false })
-    }, 350)
-    return () => window.clearTimeout(timeout)
-  }, [router, searchQuery])
-
-  function submitSearch(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const current = new URLSearchParams(window.location.search)
-    const path = window.location.pathname.startsWith("/catalog/") ? window.location.pathname : "/"
-    current.delete("page")
-    if (searchQuery.trim()) current.set("query", searchQuery.trim())
-    else current.delete("query")
-    router.replace(`${path}?${current.toString()}`, { scroll: false })
-  }
 
   const { itemCount } = useCart()
 
@@ -210,40 +174,7 @@ export function Header({ categories = [] }: HeaderProps) {
             ))}
           </nav>
 
-          {/* Пошук товарів (розміщений праворуч після категорій) */}
-          <form
-            onSubmit={submitSearch}
-            className="relative hidden md:block w-44 lg:w-56 xl:w-64 ml-auto shrink-0 transition-all duration-300 focus-within:w-56 xl:focus-within:w-72"
-            role="search"
-          >
-            <Search className="absolute left-3.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-
-            <Input
-              name="query"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              type="search"
-              placeholder="Пошук..."
-              aria-label="Пошук товарів"
-              className="h-9.5 rounded-full border border-border/80 bg-muted/50 pl-9 pr-3.5 text-xs shadow-none transition-colors hover:bg-muted/80 focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-ring"
-            />
-          </form>
-
-          {/* Дії справа: Пошук для планшетів + Тема + Кошик.
-              ml-auto прижимает иконки вправо, пока поле поиска скрыто (до md);
-              на md поле поиска само делает ml-auto, поэтому здесь md:ml-0. */}
-          <div className="ml-auto flex shrink-0 items-center gap-0.5 sm:gap-2 md:ml-0">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              aria-label="Показати пошук"
-              aria-expanded={isMobileSearchOpen}
-              onClick={() => setIsMobileSearchOpen((open) => !open)}
-            >
-              <Search className="size-4" />
-            </Button>
-
+          <div className="ml-auto flex shrink-0 items-center gap-0.5 sm:gap-2">
             <ThemeToggle />
 
             <Button
@@ -263,27 +194,6 @@ export function Header({ categories = [] }: HeaderProps) {
               )}
             </Button>
           </div>
-        </div>
-
-        <div
-          className={cn(
-            "border-t border-border/60 px-4 py-3 xl:hidden",
-            isMobileSearchOpen ? "block" : "hidden"
-          )}
-        >
-          <form onSubmit={submitSearch} className="relative" role="search">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-
-            <Input
-              name="query"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              type="search"
-              placeholder="Пошук..."
-              aria-label="Пошук товарів"
-              className="rounded-full bg-muted/60 pl-10"
-            />
-          </form>
         </div>
 
         <div

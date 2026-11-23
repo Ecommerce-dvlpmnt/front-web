@@ -3,7 +3,7 @@ import Link from "next/link"
 import { CategoryScrollNav } from "@/components/catalog/CategoryScrollNav"
 import { ProductGrid } from "@/components/catalog/ProductGrid"
 import { CatalogPagination } from "@/features/catalog/CatalogPagination"
-import { CatalogFilters } from "@/features/catalog/CatalogFilters"
+import { CatalogReset } from "@/features/catalog/CatalogReset"
 import { findCatalogCategory, getCatalogCategoryIds, getCatalogHref, type CatalogFilters as Filters } from "@/features/catalog/navigation"
 import { formatCategoryName } from "@/lib/formatters/category"
 import { cn } from "@/lib/utils"
@@ -31,7 +31,7 @@ export function CatalogSection({ title, eyebrow, description, productPage, categ
   const href = (slug?: string) => getCatalogHref({ categorySlug: slug, searchQuery, filters })
 
   return (
-    <section id="catalog" className="scroll-mt-24 py-16 sm:py-24">
+    <section className="py-8 sm:py-10">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase">{eyebrow}</p>
@@ -40,7 +40,7 @@ export function CatalogSection({ title, eyebrow, description, productPage, categ
         <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">{description}</p>
       </div>
 
-      <CategoryScrollNav className="mt-8 flex gap-2 overflow-x-auto pb-2 scrollbar-none" aria-label="Основні розділи каталогу">
+      <CategoryScrollNav className="mt-8 flex gap-2 overflow-x-auto pb-2 scrollbar-none md:flex-wrap md:gap-2.5 md:overflow-visible" aria-label="Основні розділи каталогу">
         <Link
           href={href()}
           prefetch={false}
@@ -66,7 +66,7 @@ export function CatalogSection({ title, eyebrow, description, productPage, categ
       </CategoryScrollNav>
 
       {subcategories.length > 0 && (
-        <CategoryScrollNav className="mt-3 flex gap-2 overflow-x-auto pb-1 scrollbar-none" aria-label="Підкатегорії">
+        <CategoryScrollNav className="mt-3 flex gap-2 overflow-x-auto pb-1 scrollbar-none md:flex-wrap md:gap-2.5 md:overflow-visible" aria-label="Підкатегорії">
           {subcategories.map((category) => (
             <Link
               key={category.id}
@@ -81,17 +81,18 @@ export function CatalogSection({ title, eyebrow, description, productPage, categ
         </CategoryScrollNav>
       )}
 
-      <CatalogFilters key={`${activeCategorySlug ?? "all"}:${searchQuery ?? ""}:${JSON.stringify(filters)}`} categorySlug={activeCategorySlug} searchQuery={searchQuery} filters={filters} />
-
       <div
         className="mt-6 flex flex-wrap items-center justify-between gap-3 border-b border-border/40 pb-4 text-xs"
         role="status"
       >
-        <div className="flex items-center gap-2 text-muted-foreground">
+        <div className="flex items-center gap-3 text-muted-foreground">
           <span className="inline-block size-2 rounded-full bg-[#D4AF37] shadow-[0_0_8px_rgba(212,175,55,0.6)]" aria-hidden="true" />
           <span className="font-medium tracking-wide text-foreground">
             Товарів: {productPage.totalCount}
           </span>
+          {(searchQuery || filters.sortBy || filters.minPrice !== undefined || filters.maxPrice !== undefined || filters.inStock) && (
+            <CatalogReset categorySlug={activeCategorySlug} />
+          )}
         </div>
 
         <div className="flex items-center gap-1.5 rounded-full border border-border/70 bg-card/60 px-3.5 py-1 text-muted-foreground backdrop-blur-xs shadow-2xs">
@@ -101,7 +102,7 @@ export function CatalogSection({ title, eyebrow, description, productPage, categ
           </span>
         </div>
       </div>
-      <div className="mt-8">
+      <div className="mt-8 min-h-[520px] transition-opacity duration-300">
         <ProductGrid
           key={`${activeCategorySlug ?? "all"}:${searchQuery ?? ""}:${productPage.pageNumber}`}
           products={productPage.items}
