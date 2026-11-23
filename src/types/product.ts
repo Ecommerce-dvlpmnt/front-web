@@ -1,6 +1,17 @@
 
 export type ProductBadge = "sale" | "hit" | "new"
 
+export interface ProductVariant {
+  id: string
+  name: string
+  slug: string
+  price: number
+  oldPrice?: number | null
+  height: string
+  inStock: boolean
+  isCurrent?: boolean
+}
+
 export interface ProductImage {
   id: string
   url: string
@@ -30,6 +41,7 @@ export interface Product {
   createdAt?: string
   updatedAt?: string
   images?: ProductImage[]
+  variants?: ProductVariant[]
   categorySlug?: string
   badge?: ProductBadge
 }

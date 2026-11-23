@@ -3,7 +3,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { X, Trash2, Plus, Minus, ShoppingBag } from "lucide-react"
+import { ArrowRight, X, Trash2, Plus, Minus, ShoppingBag } from "lucide-react"
 
 import { useCart } from "@/components/cart/CartContext"
 import { Button } from "@/components/ui/button"
@@ -84,15 +84,19 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               Додайте товари з каталогу, щоб вони з’явилися тут.
             </p>
 
-            <Button className="mt-6" asChild>
-              <Link href="/#catalog" onClick={onClose}>
-                До каталогу
+            <Button
+              className="mt-6 group h-11 rounded-full px-7 text-sm font-semibold tracking-wide transition-all duration-200 shadow-sm cursor-pointer border-0 bg-foreground text-background hover:bg-foreground/90 dark:bg-gradient-to-r dark:from-[#E5C158] dark:via-[#F3D078] dark:to-[#D4AF37] dark:text-[#14110C] dark:shadow-[0_4px_20px_-4px_rgba(212,175,55,0.4)] hover:scale-[1.02] active:scale-[0.98]"
+              asChild
+            >
+              <Link href="/#catalog" onClick={onClose} className="inline-flex items-center gap-2">
+                <span>До каталогу</span>
+                <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" />
               </Link>
             </Button>
           </div>
         ) : (
           <>
-            <div className="flex-1 space-y-5 overflow-y-auto p-5">
+            <div data-lenis-prevent className="flex-1 space-y-5 overflow-y-auto overscroll-contain p-5">
               {items.map(({ product, quantity }) => (
                 <article
                   key={product.id}

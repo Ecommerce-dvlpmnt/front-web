@@ -9,6 +9,17 @@ interface ProductImageDto extends ProductImage {
   sortOrder: number
 }
 
+interface ProductVariantDto {
+  id: string
+  name?: string | null
+  slug?: string | null
+  price?: number | string | null
+  oldPrice?: number | string | null
+  height?: string | null
+  inStock?: boolean | null
+  isCurrent?: boolean | null
+}
+
 interface ProductDto {
   id: string
   categoryId?: string | null
@@ -31,6 +42,7 @@ interface ProductDto {
   createdAt?: string
   updatedAt?: string
   images?: ProductImageDto[] | null
+  variants?: ProductVariantDto[] | null
 }
 
 interface ProductPageDto {
@@ -215,6 +227,16 @@ function toProduct(product: ProductDto): Product {
     images: (product.images ?? [])
       .map(toProductImage)
       .filter((image): image is ProductImage => image !== null),
+    variants: (product.variants ?? []).map((v) => ({
+      id: String(v.id),
+      name: v.name?.trim() || "",
+      slug: v.slug?.trim() || "",
+      price: Number(v.price) || 0,
+      oldPrice: v.oldPrice != null ? Number(v.oldPrice) : null,
+      height: v.height?.trim() || "",
+      inStock: Boolean(v.inStock),
+      isCurrent: Boolean(v.isCurrent),
+    })),
     badge: oldPrice != null && oldPrice > price ? "sale" : undefined,
   }
 }

@@ -215,12 +215,20 @@ export function ProductCard({
         <div className="mt-auto flex items-center gap-1.5 pt-3 text-xs text-muted-foreground">
           <span
             className={`size-1.5 shrink-0 rounded-full ${
-              isOutOfStock ? "bg-red-400" : "bg-emerald-500/80"
+              isOutOfStock
+                ? "bg-red-400"
+                : product.stock <= 5
+                  ? "bg-amber-500"
+                  : "bg-emerald-500/80"
             }`}
             aria-hidden="true"
           />
           <p>
-            {isOutOfStock ? "Немає в наявності" : `Є в наявності · ${product.stock} шт.`}
+            {isOutOfStock
+              ? "Немає в наявності"
+              : product.stock <= 5
+                ? "Закінчується"
+                : "В наявності"}
           </p>
         </div>
 

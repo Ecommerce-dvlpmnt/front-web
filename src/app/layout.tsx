@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { Manrope, Onest } from "next/font/google";
 
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
@@ -12,6 +13,22 @@ import { buildCategoryTree, getCategories } from "@/lib/api/categories";
 
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
+
+const fontSans = Manrope({
+  subsets: ["latin", "cyrillic", "cyrillic-ext"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-sans-loaded",
+  display: "swap",
+});
+
+const fontHeading = Onest({
+  subsets: ["latin", "cyrillic", "cyrillic-ext"],
+  weight: ["500", "600", "700"],
+  variable: "--font-heading-loaded",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Jingle Decor — литі ялинки та святковий декор",
@@ -29,7 +46,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html
       lang="uk"
-      className="h-full antialiased"
+      className={`h-full antialiased ${fontSans.variable} ${fontHeading.variable}`}
       suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col" suppressHydrationWarning>

@@ -85,8 +85,6 @@ export async function createOrder(
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({
       ...parsed.data,
-      // OrderService prefixes DeliveryWarehouseName with DeliveryType when it is absent.
-      // Match the localized NP description to avoid adding an extra type prefix.
       deliveryType: parsed.data.deliveryType === "Postomat" ? "Поштомат" : parsed.data.deliveryType === "Courier" ? "Кур'єр" : "Відділення",
       customerEmail: parsed.data.customerEmail || null,
       customerComment: parsed.data.customerComment || null,

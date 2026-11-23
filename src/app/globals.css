@@ -7,9 +7,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-sans-loaded), Inter, ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  --font-heading: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-heading-loaded), var(--font-sans-loaded), ui-sans-serif, system-ui, sans-serif;
   --color-gold: #D4AF37;
   --color-gold-light: #F3D078;
   --color-ruby: #7A1C24;
@@ -131,6 +131,10 @@
     @apply font-sans;
     scroll-behavior: smooth;
     scroll-padding-top: 5.5rem;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
   }
 
   /* Адаптив для больших мониторов (QHD, ultrawide, 4K).
@@ -361,6 +365,41 @@ html.lenis, html.lenis body {
   transform-box: fill-box;
   transform-origin: center;
   animation: logoStarSparkle 7s cubic-bezier(0.22, 1, 0.36, 1) -4.1s infinite;
+}
+
+/* Нова Пошта: плавна анімація кластерів та модалки карти */
+.custom-np-cluster {
+  background: transparent !important;
+  border: none !important;
+}
+.custom-np-cluster div {
+  cursor: pointer;
+  will-change: transform, box-shadow;
+}
+.custom-np-pin {
+  background: transparent !important;
+  border: none !important;
+}
+.leaflet-popup-content-wrapper {
+  border-radius: 1rem !important;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.08) !important;
+  padding: 4px !important;
+}
+.leaflet-popup-content {
+  margin: 12px 14px !important;
+  line-height: 1.4 !important;
+}
+.leaflet-cluster-anim .leaflet-marker-icon,
+.leaflet-cluster-anim .leaflet-marker-shadow {
+  transition: transform 0.3s cubic-bezier(0.2, 1, 0.3, 1), opacity 0.25s ease-in !important;
+}
+
+/* М'яка, спокійна стилізація плиток карти OpenStreetMap під бутік-стиль */
+.leaflet-tile-pane {
+  filter: saturate(0.8) contrast(1.02) brightness(1.01);
+}
+.dark .leaflet-tile-pane {
+  filter: brightness(0.68) invert(1) contrast(2.4) hue-rotate(200deg) saturate(0.3) brightness(0.8);
 }
 
 @media (prefers-reduced-motion: reduce) {

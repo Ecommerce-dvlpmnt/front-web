@@ -20,6 +20,14 @@ export function SmoothScroll() {
       wheelMultiplier: 0.9,
       touchMultiplier: 1.0,
       autoResize: true,
+      prevent: (node) => {
+        return (
+          node.hasAttribute("data-lenis-prevent") ||
+          Boolean(node.closest?.("[data-lenis-prevent]")) ||
+          Boolean(node.closest?.("[role='listbox']")) ||
+          Boolean(node.closest?.("[role='dialog']"))
+        )
+      },
     })
 
     // @ts-expect-error глобальный доступ для программного плавного скролла

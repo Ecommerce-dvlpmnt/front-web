@@ -1,5 +1,6 @@
 import Link from "next/link"
 
+import { CategoryScrollNav } from "@/components/catalog/CategoryScrollNav"
 import { ProductGrid } from "@/components/catalog/ProductGrid"
 import { CatalogPagination } from "@/features/catalog/CatalogPagination"
 import { findCatalogCategory, getCatalogCategoryIds, getCatalogHref } from "@/features/catalog/navigation"
@@ -37,7 +38,7 @@ export function CatalogSection({ title, eyebrow, description, productPage, categ
         <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">{description}</p>
       </div>
 
-      <nav className="mt-8 flex gap-2 overflow-x-auto pb-2 scrollbar-none" aria-label="Основні розділи каталогу">
+      <CategoryScrollNav className="mt-8 flex gap-2 overflow-x-auto pb-2 scrollbar-none" aria-label="Основні розділи каталогу">
         <Link
           href={href()}
           prefetch={false}
@@ -60,10 +61,10 @@ export function CatalogSection({ title, eyebrow, description, productPage, categ
             </Link>
           )
         })}
-      </nav>
+      </CategoryScrollNav>
 
       {subcategories.length > 0 && (
-        <nav className="mt-3 flex gap-2 overflow-x-auto pb-1" aria-label="Підкатегорії">
+        <CategoryScrollNav className="mt-3 flex gap-2 overflow-x-auto pb-1 scrollbar-none" aria-label="Підкатегорії">
           {subcategories.map((category) => (
             <Link
               key={category.id}
@@ -75,12 +76,27 @@ export function CatalogSection({ title, eyebrow, description, productPage, categ
               {formatCategoryName(category.name)}
             </Link>
           ))}
-        </nav>
+        </CategoryScrollNav>
       )}
 
-      <p className="mt-5 text-sm text-muted-foreground" role="status">
-        Товарів: {productPage.totalCount}. Сторінка {productPage.pageNumber} із {Math.max(1, productPage.totalPages)}.
-      </p>
+      <div
+        className="mt-6 flex flex-wrap items-center justify-between gap-3 border-b border-border/40 pb-4 text-xs"
+        role="status"
+      >
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <span className="inline-block size-2 rounded-full bg-[#D4AF37] shadow-[0_0_8px_rgba(212,175,55,0.6)]" aria-hidden="true" />
+          <span className="font-medium tracking-wide text-foreground">
+            Товарів: {productPage.totalCount}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1.5 rounded-full border border-border/70 bg-card/60 px-3.5 py-1 text-muted-foreground backdrop-blur-xs shadow-2xs">
+          <span className="size-1.5 rounded-full bg-muted-foreground/50" aria-hidden="true" />
+          <span className="font-medium tracking-wide">
+            Сторінка {productPage.pageNumber} із {Math.max(1, productPage.totalPages)}
+          </span>
+        </div>
+      </div>
       <div className="mt-8">
         <ProductGrid
           key={`${activeCategorySlug ?? "all"}:${searchQuery ?? ""}:${productPage.pageNumber}`}
