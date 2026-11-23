@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ArrowLeft, CreditCard, Landmark, PackageCheck, MapPin } from "lucide-react"
+import { ArrowLeft, ArrowRight, CreditCard, Landmark, PackageCheck, MapPin } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 import { shopConfig } from "@/lib/config/shop"
@@ -235,8 +235,14 @@ export function CheckoutForm() {
         <p className="mt-2 text-sm text-muted-foreground">
           У кошику немає позицій для оформлення.
         </p>
-        <Button className="mt-6" asChild>
-          <Link href="/#catalog">До каталогу</Link>
+        <Button
+          className="mt-6 group h-11 rounded-full px-7 text-sm font-semibold tracking-wide transition-all duration-200 shadow-sm cursor-pointer border-0 bg-foreground text-background hover:bg-foreground/90 dark:bg-gradient-to-r dark:from-[#E5C158] dark:via-[#F3D078] dark:to-[#D4AF37] dark:text-[#14110C] dark:shadow-[0_4px_20px_-4px_rgba(212,175,55,0.4)] hover:scale-[1.02] active:scale-[0.98]"
+          asChild
+        >
+          <Link href="/#catalog" className="inline-flex items-center gap-2">
+            <span>До каталогу</span>
+            <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" />
+          </Link>
         </Button>
       </div>
     )
@@ -522,7 +528,7 @@ export function CheckoutForm() {
                         : "bg-muted text-muted-foreground border border-border"
                     )}
                   >
-                    <MapPin className="mr-2 size-4 text-[#D4AF37] dark:text-[#181512] shrink-0" />
+                    <MapPin className={cn("mr-2 size-4 shrink-0", cityRef ? "text-[#D4AF37] dark:text-[#181512]" : "text-muted-foreground")} />
                     <span>{isLoadingWarehouses ? "Завантаження точок…" : "Обрати на мапі"}</span>
                   </Button>
                 </>

@@ -1,5 +1,6 @@
 import Link from "next/link"
 
+import { CategoryScrollNav } from "@/components/catalog/CategoryScrollNav"
 import { ProductGrid } from "@/components/catalog/ProductGrid"
 import { CatalogPagination } from "@/features/catalog/CatalogPagination"
 import { findCatalogCategory, getCatalogCategoryIds, getCatalogHref } from "@/features/catalog/navigation"
@@ -37,7 +38,7 @@ export function CatalogSection({ title, eyebrow, description, productPage, categ
         <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">{description}</p>
       </div>
 
-      <nav className="mt-8 flex gap-2 overflow-x-auto pb-2 scrollbar-none" aria-label="Основні розділи каталогу">
+      <CategoryScrollNav className="mt-8 flex gap-2 overflow-x-auto pb-2 scrollbar-none" aria-label="Основні розділи каталогу">
         <Link
           href={href()}
           prefetch={false}
@@ -60,10 +61,10 @@ export function CatalogSection({ title, eyebrow, description, productPage, categ
             </Link>
           )
         })}
-      </nav>
+      </CategoryScrollNav>
 
       {subcategories.length > 0 && (
-        <nav className="mt-3 flex gap-2 overflow-x-auto pb-1" aria-label="Підкатегорії">
+        <CategoryScrollNav className="mt-3 flex gap-2 overflow-x-auto pb-1 scrollbar-none" aria-label="Підкатегорії">
           {subcategories.map((category) => (
             <Link
               key={category.id}
@@ -75,7 +76,7 @@ export function CatalogSection({ title, eyebrow, description, productPage, categ
               {formatCategoryName(category.name)}
             </Link>
           ))}
-        </nav>
+        </CategoryScrollNav>
       )}
 
       <div

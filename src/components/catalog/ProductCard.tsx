@@ -94,22 +94,21 @@ export function ProductCard({
   // Автоматичне попереднє завантаження доступних висот для ялинок одразу при монтуванні картки,
   // щоб вибір розмірів відображався одразу, а не лише при наведенні миші
   useEffect(() => {
-    let cancelled = false
-    if (!heightModel || heightVariants !== null || variantsRequest.current) return
+    let active = true
+    if (!heightModel || heightVariants !== null) return
 
-    variantsRequest.current = true
     loadProductHeightVariants(initialProduct)
       .then((variants) => {
-        if (!cancelled) {
+        if (active) {
           setHeightVariants(variants)
         }
       })
       .catch(() => {
-        variantsRequest.current = false
+        // Фонове завантаження не блокує інтерфейс
       })
 
     return () => {
-      cancelled = true
+      active = false
     }
   }, [heightModel, initialProduct, heightVariants])
 
@@ -237,12 +236,20 @@ export function ProductCard({
         <div className="mt-auto flex items-center gap-1.5 pt-3 text-xs text-muted-foreground">
           <span
             className={`size-1.5 shrink-0 rounded-full ${
-              isOutOfStock ? "bg-red-400" : "bg-emerald-500/80"
+              isOutOfStock
+                ? "bg-red-400"
+                : product.stock <= 5
+                  ? "bg-amber-500"
+                  : "bg-emerald-500/80"
             }`}
             aria-hidden="true"
           />
           <p>
-            {isOutOfStock ? "Немає в наявності" : `Є в наявності · ${product.stock} шт.`}
+            {isOutOfStock
+              ? "Немає в наявності"
+              : product.stock <= 5
+                ? "Закінчується"
+                : "В наявності"}
           </p>
         </div>
 

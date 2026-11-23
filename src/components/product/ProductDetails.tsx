@@ -361,12 +361,21 @@ export function ProductDetails({
           </div>
 
           <div className="mt-4 flex items-center gap-3">
-            <Badge variant={isOutOfStock ? "destructive" : "secondary"}>
-              {isOutOfStock ? "Закінчився" : "В наявності"}
+            <Badge
+              variant={isOutOfStock ? "destructive" : "secondary"}
+              className={cn(
+                !isOutOfStock && product.stock <= 5 && "border-amber-500/40 bg-amber-500/15 text-amber-700 dark:text-amber-400"
+              )}
+            >
+              {isOutOfStock
+                ? "Немає в наявності"
+                : product.stock <= 5
+                  ? "Закінчується"
+                  : "В наявності"}
             </Badge>
             {!isOutOfStock && (
               <span className="text-xs text-muted-foreground">
-                {product.stock} шт. готово до відправки
+                Готово до відправки
               </span>
             )}
           </div>

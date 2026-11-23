@@ -3,7 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { useEffect, useRef } from "react"
-import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react"
+import { ArrowRight, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react"
 
 import { useCart } from "@/components/cart/CartContext"
 import { Badge } from "@/components/ui/badge"
@@ -56,8 +56,14 @@ export function CartPage() {
           <p className="mt-4 text-muted-foreground">
             Додайте товари з каталогу — ми збережемо їх навіть після оновлення сторінки.
           </p>
-          <Button className="mt-7" asChild>
-            <Link href="/#catalog">До каталогу</Link>
+          <Button
+            className="mt-7 group h-11 rounded-full px-7 text-sm font-semibold tracking-wide transition-all duration-200 shadow-sm cursor-pointer border-0 bg-foreground text-background hover:bg-foreground/90 dark:bg-gradient-to-r dark:from-[#E5C158] dark:via-[#F3D078] dark:to-[#D4AF37] dark:text-[#14110C] dark:shadow-[0_4px_20px_-4px_rgba(212,175,55,0.4)] hover:scale-[1.02] active:scale-[0.98]"
+            asChild
+          >
+            <Link href="/#catalog" className="inline-flex items-center gap-2">
+              <span>До каталогу</span>
+              <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" />
+            </Link>
           </Button>
         </div>
       </div>

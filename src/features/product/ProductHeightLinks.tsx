@@ -4,6 +4,14 @@ import type { ProductHeightVariant } from "@/features/product/height-variants"
 import { formatPrice } from "@/lib/formatters/price"
 import { cn } from "@/lib/utils"
 
+function formatSizesCount(count: number): string {
+  const mod10 = count % 10
+  const mod100 = count % 100
+  if (mod10 === 1 && mod100 !== 11) return `${count} розмір`
+  if ([2, 3, 4].includes(mod10) && ![12, 13, 14].includes(mod100)) return `${count} розміри`
+  return `${count} розмірів`
+}
+
 export function ProductHeightLinks({
   variants,
   productId,
@@ -26,7 +34,7 @@ export function ProductHeightLinks({
           )}
         </span>
         <span className="text-[11px] text-muted-foreground">
-          {variants.length} розміри
+          {formatSizesCount(variants.length)}
         </span>
       </div>
 
@@ -40,7 +48,7 @@ export function ProductHeightLinks({
               prefetch={false}
               aria-current={selected ? "page" : undefined}
               className={cn(
-                "group relative inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer",
+                "group relative inline-flex items-baseline gap-2 rounded-full border px-3.5 py-1.5 text-xs transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer",
                 selected
                   ? "border-[#D4AF37] bg-[#D4AF37]/12 text-foreground font-semibold shadow-xs ring-1 ring-[#D4AF37]/60"
                   : "border-border/80 bg-background/80 text-muted-foreground hover:border-[#D4AF37]/60 hover:text-foreground hover:bg-muted/40"
@@ -48,7 +56,7 @@ export function ProductHeightLinks({
             >
               <span
                 className={cn(
-                  "font-semibold text-xs",
+                  "font-semibold text-xs leading-tight",
                   selected ? "text-foreground" : "text-foreground/90"
                 )}
               >
@@ -56,7 +64,7 @@ export function ProductHeightLinks({
               </span>
               <span
                 className={cn(
-                  "text-[11px]",
+                  "text-xs leading-tight tabular-nums",
                   selected
                     ? "text-[#8C5E14] dark:text-[#F3D078] font-medium"
                     : "text-muted-foreground"

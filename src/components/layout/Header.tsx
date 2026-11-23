@@ -150,7 +150,7 @@ export function Header({ categories = [] }: HeaderProps) {
             <Link
               href={getCatalogHref({ categorySlug: wreathsCategory?.slug ?? "rizdvyani-vinky" })}
               prefetch={false}
-              className="text-sm font-medium text-foreground/80 transition-colors hover:text-foreground py-2"
+              className="text-sm font-medium text-foreground/80 transition-colors hover:text-foreground py-2 whitespace-nowrap"
             >
               {wreathsCategory?.name ?? "Різдвяні вінки"}
             </Link>
@@ -159,7 +159,7 @@ export function Header({ categories = [] }: HeaderProps) {
             <Link
               href={getCatalogHref({ categorySlug: garlandsCategory?.slug ?? "khvoyni-hirlyandy" })}
               prefetch={false}
-              className="text-sm font-medium text-foreground/80 transition-colors hover:text-foreground py-2"
+              className="text-sm font-medium text-foreground/80 transition-colors hover:text-foreground py-2 whitespace-nowrap"
             >
               {garlandsCategory?.name ?? "Хвойні гірлянди"}
             </Link>
@@ -170,7 +170,7 @@ export function Header({ categories = [] }: HeaderProps) {
                 key={category.id}
                 href={getCatalogHref({ categorySlug: category.slug })}
                 prefetch={false}
-                className="text-sm font-medium text-foreground/80 transition-colors hover:text-foreground py-2"
+                className="text-sm font-medium text-foreground/80 transition-colors hover:text-foreground py-2 whitespace-nowrap"
               >
                 {category.name}
               </Link>
