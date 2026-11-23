@@ -1,18 +1,19 @@
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
-import { getCatalogHref } from "@/features/catalog/navigation"
+import { getCatalogHref, type CatalogFilters } from "@/features/catalog/navigation"
 
 interface CatalogPaginationProps {
   pageNumber: number
   totalPages: number
   categorySlug?: string
   searchQuery?: string
+  filters?: CatalogFilters
 }
 
-export function CatalogPagination({ pageNumber, totalPages, categorySlug, searchQuery }: CatalogPaginationProps) {
+export function CatalogPagination({ pageNumber, totalPages, categorySlug, searchQuery, filters }: CatalogPaginationProps) {
   if (totalPages <= 1) return null
-  const href = (page: number) => getCatalogHref({ categorySlug, searchQuery, pageNumber: page })
+  const href = (page: number) => getCatalogHref({ categorySlug, searchQuery, filters, pageNumber: page })
   const pages = [...new Set([1, pageNumber - 1, pageNumber, pageNumber + 1, totalPages])]
     .filter((page) => page > 0 && page <= totalPages)
     .sort((a, b) => a - b)

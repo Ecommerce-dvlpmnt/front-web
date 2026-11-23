@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import {
   CheckCircle2,
   ChevronDown,
@@ -201,6 +202,7 @@ export function ProductDetails({
     "description" | "attributes" | "delivery"
   >("description")
   const { addItem, items } = useCart()
+  const router = useRouter()
 
   const cartQuantity =
     items.find((item) => item.product.id === product.id)?.quantity ?? 0
@@ -232,6 +234,12 @@ export function ProductDetails({
 
     addItem(product, quantity)
     setIsAdded(true)
+  }
+
+  function handleCheckout() {
+    if (!canAddToCart) return
+    addItem(product, quantity)
+    router.push("/checkout")
   }
 
   return (
@@ -403,7 +411,7 @@ export function ProductDetails({
               Кількість
             </label>
 
-            <div className="mt-3 flex gap-3">
+            <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <div className="flex h-11 items-center rounded-full border border-border bg-background px-1">
                 <Button
                   type="button"
@@ -460,6 +468,15 @@ export function ProductDetails({
                     : isAdded
                       ? "Додано до кошика ✓"
                       : "Додати в кошик"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 w-full rounded-full border-border text-xs font-semibold uppercase tracking-wide sm:flex-1"
+                disabled={!canAddToCart}
+                onClick={handleCheckout}
+              >
+                Оформити замовлення
               </Button>
             </div>
 

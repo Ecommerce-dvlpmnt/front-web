@@ -2,7 +2,8 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import {
   ChevronDown,
   Menu,
@@ -28,9 +29,41 @@ interface HeaderProps {
 }
 
 export function Header({ categories = [] }: HeaderProps) {
+  const router = useRouter()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false)
   const [isCartOpen, setIsCartOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+
+  useEffect(() => {
+    const sync = () => setSearchQuery(new URLSearchParams(window.location.search).get("query") ?? "")
+    sync()
+    window.addEventListener("popstate", sync)
+    return () => window.removeEventListener("popstate", sync)
+  }, [])
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      const current = new URLSearchParams(window.location.search)
+      if ((current.get("query") ?? "") === searchQuery.trim()) return
+      const path = window.location.pathname.startsWith("/catalog/") ? window.location.pathname : "/"
+      current.delete("page")
+      if (searchQuery.trim()) current.set("query", searchQuery.trim())
+      else current.delete("query")
+      router.replace(`${path}?${current.toString()}`, { scroll: false })
+    }, 350)
+    return () => window.clearTimeout(timeout)
+  }, [router, searchQuery])
+
+  function submitSearch(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const current = new URLSearchParams(window.location.search)
+    const path = window.location.pathname.startsWith("/catalog/") ? window.location.pathname : "/"
+    current.delete("page")
+    if (searchQuery.trim()) current.set("query", searchQuery.trim())
+    else current.delete("query")
+    router.replace(`${path}?${current.toString()}`, { scroll: false })
+  }
 
   const { itemCount } = useCart()
 
@@ -179,7 +212,7 @@ export function Header({ categories = [] }: HeaderProps) {
 
           {/* Пошук товарів (розміщений праворуч після категорій) */}
           <form
-            action="/#catalog"
+            onSubmit={submitSearch}
             className="relative hidden md:block w-44 lg:w-56 xl:w-64 ml-auto shrink-0 transition-all duration-300 focus-within:w-56 xl:focus-within:w-72"
             role="search"
           >
@@ -187,6 +220,8 @@ export function Header({ categories = [] }: HeaderProps) {
 
             <Input
               name="query"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
               type="search"
               placeholder="Пошук..."
               aria-label="Пошук товарів"
@@ -236,11 +271,13 @@ export function Header({ categories = [] }: HeaderProps) {
             isMobileSearchOpen ? "block" : "hidden"
           )}
         >
-          <form action="/#catalog" className="relative" role="search">
+          <form onSubmit={submitSearch} className="relative" role="search">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 
             <Input
               name="query"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
               type="search"
               placeholder="Пошук..."
               aria-label="Пошук товарів"

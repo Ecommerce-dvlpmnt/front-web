@@ -4,15 +4,16 @@ import { CatalogSection } from "@/components/catalog/CatalogSection"
 import { buildCategoryTree, getCategories } from "@/lib/api/categories"
 import { getCatalogProductsPage } from "@/lib/api/products"
 import { shopConfig } from "@/lib/config/shop"
-import { findCatalogCategory, getCatalogCategoryIds, getCatalogHref } from "@/features/catalog/navigation"
+import { findCatalogCategory, getCatalogCategoryIds, getCatalogHref, type CatalogFilters } from "@/features/catalog/navigation"
 
 interface StorefrontCatalogProps {
   pageNumber: number
   searchQuery: string
   categorySlug?: string
+  filters?: CatalogFilters
 }
 
-export async function StorefrontCatalog({ pageNumber, searchQuery, categorySlug }: StorefrontCatalogProps) {
+export async function StorefrontCatalog({ pageNumber, searchQuery, categorySlug, filters = {} }: StorefrontCatalogProps) {
   const categoriesPromise = categorySlug
     ? getCategories({ onlyActive: true }).then(buildCategoryTree)
     : getCategories({ onlyActive: true }).then(buildCategoryTree).catch(() => [])
@@ -24,15 +25,16 @@ export async function StorefrontCatalog({ pageNumber, searchQuery, categorySlug 
         return getCatalogProductsPage({
           ...(categoryIds.length === 1 ? { categoryId: category.id } : { categoryIds }),
           search: searchQuery,
+          ...filters,
           pageNumber,
         })
       })
-    : getCatalogProductsPage({ search: searchQuery, pageNumber })
+    : getCatalogProductsPage({ search: searchQuery, pageNumber, ...filters })
   const [categories, productPage] = await Promise.all([categoriesPromise, productPagePromise])
   const category = categorySlug ? findCatalogCategory(categories, categorySlug) : undefined
 
   if (pageNumber > Math.max(1, productPage.totalPages)) {
-    redirect(getCatalogHref({ categorySlug, searchQuery, pageNumber: Math.max(1, productPage.totalPages) }))
+    redirect(getCatalogHref({ categorySlug, searchQuery, filters, pageNumber: Math.max(1, productPage.totalPages) }))
   }
 
   return (
@@ -47,6 +49,7 @@ export async function StorefrontCatalog({ pageNumber, searchQuery, categorySlug 
       categories={categories}
       activeCategorySlug={categorySlug}
       searchQuery={searchQuery}
+      filters={filters}
     />
   )
 }

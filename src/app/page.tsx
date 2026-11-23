@@ -3,7 +3,7 @@ import { Box, Factory, ShieldCheck, Truck } from "lucide-react"
 import { HeroBanner } from "@/components/home/HeroBanner"
 import { CatalogSkeleton } from "@/features/catalog/CatalogSkeleton"
 import { StorefrontCatalog } from "@/features/catalog/StorefrontCatalog"
-import { getCatalogPageNumber, getCatalogQuery, type CatalogSearchParams } from "@/features/catalog/navigation"
+import { getCatalogFilters, getCatalogPageNumber, getCatalogQuery, type CatalogSearchParams } from "@/features/catalog/navigation"
 
 interface HomeProps {
   searchParams: Promise<CatalogSearchParams>
@@ -13,6 +13,7 @@ export default async function Home({ searchParams }: HomeProps) {
   const params = await searchParams
   const query = getCatalogQuery(params.query)
   const pageNumber = getCatalogPageNumber(params.page)
+  const filters = getCatalogFilters(params)
 
   return (
     <div className="bg-background">
@@ -90,8 +91,8 @@ export default async function Home({ searchParams }: HomeProps) {
           </div>
         </div>
 
-        <Suspense key={`${query}:${pageNumber}`} fallback={<CatalogSkeleton />}>
-          <StorefrontCatalog searchQuery={query} pageNumber={pageNumber} />
+        <Suspense key={`${query}:${pageNumber}:${JSON.stringify(filters)}`} fallback={<CatalogSkeleton />}>
+          <StorefrontCatalog searchQuery={query} pageNumber={pageNumber} filters={filters} />
         </Suspense>
       </div>
     </div>

@@ -18,7 +18,7 @@ export const shopConfig = {
   returns: {
     address:
       process.env.NEXT_PUBLIC_RETURNS_ADDRESS?.trim() ||
-      "64102, Харківська обл., м. Златопіль, мікрорайон 4, буд. 13, кв. 61",
+      "64102, Харківська обл., м. Златопіль, мікрорайон 4, буд. 13",
     email: process.env.NEXT_PUBLIC_SHOP_EMAIL?.trim() || "",
   },
   seasonal: {

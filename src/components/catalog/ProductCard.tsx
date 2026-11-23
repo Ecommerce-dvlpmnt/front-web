@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 
 import type { Product } from "@/types/product"
 import { Badge } from "@/components/ui/badge"
@@ -35,14 +36,16 @@ export function ProductCard({
   priority = false,
 }: ProductCardProps) {
   const { addItem, items } = useCart()
+  const router = useRouter()
   const [heightVariants, setHeightVariants] = useState<ProductHeightVariant[] | null>(null)
-  const [selectedVariantId, setSelectedVariantId] = useState(initialProduct.id)
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null)
   const [isLoadingVariants, setIsLoadingVariants] = useState(false)
   const [variantsError, setVariantsError] = useState(false)
   const variantsRequest = useRef(false)
   const focusHeightOptions = useRef(false)
   const heightModel = getTreeHeightModel(initialProduct.name)
-  const product = heightVariants?.find((variant) => variant.id === selectedVariantId) ?? initialProduct
+  const defaultVariant = heightVariants?.find((variant) => variant.stock > 0) ?? heightVariants?.[0]
+  const product = (selectedVariantId ? heightVariants?.find((variant) => variant.id === selectedVariantId) : null) ?? defaultVariant ?? initialProduct
   const [isAdded, setIsAdded] = useState(false)
   const [loadedImageUrl, setLoadedImageUrl] = useState("")
   const [failedImageUrl, setFailedImageUrl] = useState("")
@@ -96,6 +99,12 @@ export function ProductCard({
 
     addItem(product)
     setIsAdded(true)
+  }
+
+  function handleBuyNow() {
+    if (isOutOfStock || isMaxQuantityReached) return
+    addItem(product)
+    router.push("/checkout")
   }
 
   return (
@@ -250,6 +259,15 @@ export function ProductCard({
               : isAdded
                 ? "Додано до кошика ✓"
                 : "До кошика"}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          className="mt-2 min-h-9 w-full rounded-full border-border text-xs font-semibold uppercase tracking-wide"
+          disabled={isOutOfStock || isMaxQuantityReached}
+          onClick={handleBuyNow}
+        >
+          Купити зараз
         </Button>
       </div>
     </article>

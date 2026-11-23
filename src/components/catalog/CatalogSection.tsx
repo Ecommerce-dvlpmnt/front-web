@@ -3,7 +3,8 @@ import Link from "next/link"
 import { CategoryScrollNav } from "@/components/catalog/CategoryScrollNav"
 import { ProductGrid } from "@/components/catalog/ProductGrid"
 import { CatalogPagination } from "@/features/catalog/CatalogPagination"
-import { findCatalogCategory, getCatalogCategoryIds, getCatalogHref } from "@/features/catalog/navigation"
+import { CatalogFilters } from "@/features/catalog/CatalogFilters"
+import { findCatalogCategory, getCatalogCategoryIds, getCatalogHref, type CatalogFilters as Filters } from "@/features/catalog/navigation"
 import { formatCategoryName } from "@/lib/formatters/category"
 import { cn } from "@/lib/utils"
 import type { CategoryTreeNode } from "@/types/category"
@@ -17,16 +18,17 @@ interface CatalogSectionProps {
   categories?: CategoryTreeNode[]
   activeCategorySlug?: string
   searchQuery?: string
+  filters?: Filters
 }
 
-export function CatalogSection({ title, eyebrow, description, productPage, categories = [], activeCategorySlug, searchQuery }: CatalogSectionProps) {
+export function CatalogSection({ title, eyebrow, description, productPage, categories = [], activeCategorySlug, searchQuery, filters = {} }: CatalogSectionProps) {
   const currentCategory = activeCategorySlug ? findCatalogCategory(categories, activeCategorySlug) : undefined
   const parent = currentCategory?.parentId ? categories.flatMap(function flatten(category): CategoryTreeNode[] {
     return [category, ...category.children.flatMap(flatten)]
   }).find((category) => category.id === currentCategory.parentId) : undefined
   const subcategories = currentCategory?.children.length ? currentCategory.children : parent?.children ?? []
   const currentTitle = currentCategory ? formatCategoryName(currentCategory.name) : title
-  const href = (slug?: string) => getCatalogHref({ categorySlug: slug, searchQuery })
+  const href = (slug?: string) => getCatalogHref({ categorySlug: slug, searchQuery, filters })
 
   return (
     <section id="catalog" className="scroll-mt-24 py-16 sm:py-24">
@@ -79,6 +81,8 @@ export function CatalogSection({ title, eyebrow, description, productPage, categ
         </CategoryScrollNav>
       )}
 
+      <CatalogFilters key={`${activeCategorySlug ?? "all"}:${searchQuery ?? ""}:${JSON.stringify(filters)}`} categorySlug={activeCategorySlug} searchQuery={searchQuery} filters={filters} />
+
       <div
         className="mt-6 flex flex-wrap items-center justify-between gap-3 border-b border-border/40 pb-4 text-xs"
         role="status"
@@ -106,7 +110,7 @@ export function CatalogSection({ title, eyebrow, description, productPage, categ
           eagerImages={Boolean(activeCategorySlug)}
         />
       </div>
-      <CatalogPagination pageNumber={productPage.pageNumber} totalPages={productPage.totalPages} categorySlug={activeCategorySlug} searchQuery={searchQuery} />
+      <CatalogPagination pageNumber={productPage.pageNumber} totalPages={productPage.totalPages} categorySlug={activeCategorySlug} searchQuery={searchQuery} filters={filters} />
     </section>
   )
 }

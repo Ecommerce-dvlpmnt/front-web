@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Clock3, Globe, Mail, MessageCircle, Phone } from "lucide-react"
+import { Clock3, Globe, Mail, Phone } from "lucide-react"
 
 import { BrandLogo } from "@/components/layout/BrandLogo"
 import { shopConfig } from "@/lib/config/shop"
@@ -73,7 +73,9 @@ export function Footer() {
                 className="rounded-full border border-border p-2 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
                 aria-label="Telegram"
               >
-                <MessageCircle className="size-4" />
+                <svg className="size-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M21.94 4.67a1.2 1.2 0 0 0-1.42-.31L2.76 11.3a1.15 1.15 0 0 0 .08 2.16l4.42 1.44 1.7 5.35a1.14 1.14 0 0 0 1.9.48l2.46-2.4 4.55 3.34a1.2 1.2 0 0 0 1.86-.72l2.57-15.1a1.2 1.2 0 0 0-.36-1.18ZM9.08 14.3l8.84-6.44-7.1 8.04-.46 2.02-1.28-3.62Z" />
+                </svg>
               </a>
             ) : (
               <span

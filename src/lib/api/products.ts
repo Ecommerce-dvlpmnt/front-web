@@ -55,6 +55,10 @@ interface ProductPageDto {
 
 interface GetProductsOptions {
   search?: string
+  sortBy?: "date_desc" | "price_asc" | "price_desc"
+  minPrice?: number
+  maxPrice?: number
+  inStock?: boolean
   categoryId?: string
   categoryIds?: string[]
   pageSize?: number
@@ -133,6 +137,10 @@ async function fetchProductsPage(
   if (search) {
     query.set("Search", search)
   }
+  if (options.sortBy) query.set("SortBy", options.sortBy)
+  if (options.minPrice !== undefined) query.set("MinPrice", String(options.minPrice))
+  if (options.maxPrice !== undefined) query.set("MaxPrice", String(options.maxPrice))
+  if (options.inStock) query.set("InStock", "true")
 
   if (options.categoryId) {
     query.set("CategoryId", options.categoryId)

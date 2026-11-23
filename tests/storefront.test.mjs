@@ -15,7 +15,11 @@ const origin = "https://www.jingledecor.com.ua"
 
 // Run the real API adapters and feed against deterministic HTTP responses,
 // without Next's runtime or a new test dependency.
-function sourceLoader({ fetch, overrides = {}, env: extraEnv = {} } = {}) {
+function sourceLoader({ fetch, overrides: suppliedOverrides = {}, env: extraEnv = {} } = {}) {
+  const overrides = {
+    "next/navigation": { useRouter: () => ({ push() {}, replace() {} }) },
+    ...suppliedOverrides,
+  }
   const cache = new Map()
   const env = { API_URL: "https://api.test/api", NEXT_PUBLIC_SITE_URL: origin, ...extraEnv }
   function load(name) {
@@ -88,6 +92,21 @@ for (const options of [{}, { countOnly: true }, { totals: false }]) {
     }
   })
 }
+
+test("catalog filters reach the backend before pagination", async () => {
+  const api = pagedApi([product(1)], { size: 24 })
+  const load = sourceLoader(api)
+  await load("@/lib/api/products").getCatalogProductsPage({
+    search: "смерека", sortBy: "price_asc", minPrice: 100, maxPrice: 500, inStock: true,
+  })
+  const query = api.calls[0].query
+  assert.equal(query.get("Search"), "смерека")
+  assert.equal(query.get("SortBy"), "price_asc")
+  assert.equal(query.get("MinPrice"), "100")
+  assert.equal(query.get("MaxPrice"), "500")
+  assert.equal(query.get("InStock"), "true")
+  assert.equal(query.get("PageSize"), "24")
+})
 
 test("rejects malformed responses instead of returning an empty feed", async () => {
   const load = sourceLoader({ fetch: async () => Response.json({ totalCount: 441 }) })
@@ -453,6 +472,34 @@ function hookState() {
     render(Component, props) { cursor = 0; return Component(props) },
   }
 }
+
+test("catalog defaults to the shortest stocked height and buys that SKU", async () => {
+  const base = product(10, { name: "Ялинка Мрія 2.1 м", categoryId: "trees", sku: "TALL", price: 500 })
+  const sold = product(11, { name: "Ялинка Мрія 1.5 м", categoryId: "trees", sku: "SOLD", stock: 0, price: 200 })
+  const shortestAvailable = product(12, { name: "Ялинка Мрія 1.8 м", categoryId: "trees", sku: "SHORT", stock: 3, price: 300 })
+  const hooks = hookState()
+  const added = []
+  const routes = []
+  const load = sourceLoader({
+    fetch: async () => Response.json([base, sold, shortestAvailable]),
+    overrides: {
+      react: hooks.react,
+      "next/navigation": { useRouter: () => ({ push: route => routes.push(route) }) },
+      "@/components/cart/CartContext": { useCart: () => ({ items: [], addItem: item => added.push(item) }) },
+    },
+  })
+  const Card = load("@/components/catalog/ProductCard").ProductCard
+  const render = () => elementNodes(hooks.render(Card, { product: base }))
+  await render().find(node => node.type === "button" && String(node.props.children).startsWith("Обрати висоту")).props.onClick()
+  const nodes = render()
+  assert.ok(nodes.some(node => node.props?.href === "/product/product-12"))
+  assert.equal(nodes.find(node => node.props?.["aria-label"] === "Висота 1.8 м").props["aria-pressed"], true)
+  nodes.find(node => node.props?.children === "Купити зараз").props.onClick()
+  assert.equal(added[0].id, shortestAvailable.id)
+  assert.equal(added[0].sku, "SHORT")
+  assert.equal(added[0].price, 300)
+  assert.deepEqual(routes, ["/checkout"])
+})
 
 test("catalog height selection adds the chosen SKU's own price, stock, SKU and image", async () => {
   const base = product(1, { name: "Штучна ялинка Мрія зелена 1.8 м", categoryId: "trees", sku: "BASE", stock: 50, price: 200, oldPrice: 300 })
