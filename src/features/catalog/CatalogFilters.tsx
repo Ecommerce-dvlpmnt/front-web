@@ -130,9 +130,11 @@ export function CatalogFilters({ categorySlug, searchQuery = "", filters }: Prop
         </form>
       </details>
 
-      <button type="button" role="switch" aria-checked={Boolean(active.inStock)} className="col-span-2 flex min-h-11 items-center justify-between gap-3 rounded-full border border-border/70 bg-background px-3.5 text-xs font-medium text-foreground hover:border-[#D4AF37]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:col-span-1 lg:shrink-0" onClick={() => updateFilters({ ...active, inStock: !active.inStock })}>
+      <button type="button" role="switch" aria-checked={Boolean(active.inStock)} className="col-span-2 inline-flex min-h-11 items-center justify-between gap-3 rounded-full border border-border/70 bg-background px-4 py-2.5 pr-3 text-xs font-medium text-foreground hover:border-[#D4AF37]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:col-span-1 lg:shrink-0" onClick={() => updateFilters({ ...active, inStock: !active.inStock })}>
         Тільки в наявності
-        <span className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${active.inStock ? "bg-[#D4AF37]" : "bg-muted-foreground/35"}`} aria-hidden="true"><span className={`absolute top-0.5 size-4 rounded-full bg-background shadow-sm transition-transform ${active.inStock ? "translate-x-[18px]" : "translate-x-0.5"}`} /></span>
+        <span className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${active.inStock ? "bg-[#D9A73E]" : "bg-foreground/15"}`} aria-hidden="true">
+          <span className={`pointer-events-none block h-5 w-5 rounded-full ${active.inStock ? "bg-[#0E1512] translate-x-5" : "bg-white translate-x-0"} shadow-sm transition-transform duration-200`} />
+        </span>
       </button>
     </div>
   )
