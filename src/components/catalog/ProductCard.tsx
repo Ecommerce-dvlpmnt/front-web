@@ -95,8 +95,9 @@ export function ProductCard({
   // щоб вибір розмірів відображався одразу, а не лише при наведенні миші
   useEffect(() => {
     let cancelled = false
-    if (!heightModel) return
+    if (!heightModel || heightVariants !== null || variantsRequest.current) return
 
+    variantsRequest.current = true
     loadProductHeightVariants(initialProduct)
       .then((variants) => {
         if (!cancelled) {
@@ -104,13 +105,13 @@ export function ProductCard({
         }
       })
       .catch(() => {
-        // Фонове завантаження не блокує інтерфейс, користувач зможе натиснути повторити за потреби
+        variantsRequest.current = false
       })
 
     return () => {
       cancelled = true
     }
-  }, [heightModel, initialProduct])
+  }, [heightModel, initialProduct, heightVariants])
 
   function handleAddToCart() {
     if (isOutOfStock || isMaxQuantityReached) return
