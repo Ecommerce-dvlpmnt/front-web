@@ -9,6 +9,8 @@ import { useRouter } from "next/navigation"
 
 import { shopConfig } from "@/lib/config/shop"
 import { IbanPaymentDetails } from "@/features/checkout/IbanPaymentDetails"
+import { MonobankMark } from "@/features/checkout/MonobankMark"
+import { createMonobankInvoice } from "@/lib/api/monobank"
 import { useCart } from "@/components/cart/CartContext"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -45,6 +47,8 @@ export function CheckoutForm() {
   const router = useRouter()
   const { items, isHydrated, totalPrice, clearCart } = useCart()
   const [serverError, setServerError] = useState<string | null>(null)
+  const [createdMonobankOrder, setCreatedMonobankOrder] = useState<string | null>(null)
+  const [isRetryingPayment, setIsRetryingPayment] = useState(false)
   const [citySearch, setCitySearch] = useState("")
   const [cities, setCities] = useState<Array<{ Ref: string; Description: string; AreaDescription?: string | null }>>([])
   const [warehouses, setWarehouses] = useState<NovaPoshtaWarehouse[]>([])
@@ -99,6 +103,7 @@ export function CheckoutForm() {
     const paymentTypes: Record<CheckoutDetails["paymentMethod"], string> = {
       CashOnDelivery: "Cash on delivery",
       Online: "IBAN bank transfer",
+      Monobank: "Online card payment",
     }
     pushAddPaymentInfo(items, totalPrice, paymentTypes[paymentMethod])
   }, [paymentMethod, isHydrated, items, totalPrice])
@@ -185,6 +190,11 @@ export function CheckoutForm() {
   async function handleSubmit(values: CheckoutDetails) {
     if (items.length === 0) return
 
+    if (createdMonobankOrder) {
+      await retryMonobankPayment(createdMonobankOrder)
+      return
+    }
+
     setServerError(null)
 
     try {
@@ -207,6 +217,12 @@ export function CheckoutForm() {
         }
       )
 
+      if (values.paymentMethod === "Monobank") {
+        setCreatedMonobankOrder(order.publicId)
+        await retryMonobankPayment(order.publicId)
+        return
+      }
+
       clearCart()
       clearCartStorage()
       router.push(`/order/success?publicId=${encodeURIComponent(order.publicId)}`)
@@ -216,6 +232,21 @@ export function CheckoutForm() {
           ? error.message
           : "Не вдалося створити замовлення. Спробуйте ще раз."
       )
+    }
+  }
+
+  async function retryMonobankPayment(publicId: string) {
+    setServerError(null)
+    setIsRetryingPayment(true)
+    try {
+      const pageUrl = await createMonobankInvoice(publicId)
+      clearCart()
+      clearCartStorage()
+      window.location.href = pageUrl
+    } catch (error) {
+      setServerError(`${error instanceof Error ? error.message : "Не вдалося перейти до оплати."} Замовлення вже створене — повторіть оплату без нового оформлення.`)
+    } finally {
+      setIsRetryingPayment(false)
     }
   }
 
@@ -264,6 +295,19 @@ export function CheckoutForm() {
           >
             {serverError}
           </p>
+        )}
+        {createdMonobankOrder && (
+          <div className="rounded-xl border border-border bg-card px-4 py-3 text-sm">
+            <p>Замовлення збережено. Можна повторити оплату або перевірити його статус.</p>
+            <div className="mt-3 flex flex-wrap gap-3">
+              <Button type="button" size="sm" disabled={isRetryingPayment} onClick={() => void retryMonobankPayment(createdMonobankOrder)}>
+                {isRetryingPayment ? "Переходимо до оплати…" : "Повторити оплату"}
+              </Button>
+              <Link className="inline-flex items-center text-sm underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2" href={`/payment-result?publicId=${encodeURIComponent(createdMonobankOrder)}`}>
+                Перевірити статус
+              </Link>
+            </div>
+          </div>
         )}
 
         <section className="rounded-2xl border border-border bg-card p-5 sm:p-6" aria-labelledby="contact-title">
@@ -630,6 +674,24 @@ export function CheckoutForm() {
                 </span>
               </label>
             )}
+            {shopConfig.payment.monobankEnabled && (
+              <label className="flex cursor-pointer flex-wrap items-start gap-3 rounded-xl border border-border p-4 has-[:checked]:border-primary has-[:checked]:bg-primary/5 focus-within:ring-2 focus-within:ring-ring">
+                <input
+                  type="radio"
+                  value="Monobank"
+                  className="mt-1 accent-primary"
+                  {...form.register("paymentMethod")}
+                />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-medium">Оплата карткою онлайн</span>
+                  <span className="mt-1 block text-xs text-muted-foreground">Оплата карткою (Apple Pay / Google Pay / monobank)</span>
+                  <span className="mt-3 inline-flex flex-wrap items-center gap-2">
+                    <MonobankMark />
+                    <span className="text-[11px] text-muted-foreground">Visa · Mastercard · Apple Pay · Google Pay</span>
+                  </span>
+                </span>
+              </label>
+            )}
           </div>
           {shopConfig.payment.iban && paymentMethod === "Online" && <IbanPaymentDetails amount={totalPrice} />}
         </section>
@@ -667,8 +729,8 @@ export function CheckoutForm() {
           <span>{formatPrice(totalPrice)}</span>
         </div>
         <p className="mt-3 text-sm text-muted-foreground">Доставка — за тарифами Нової Пошти, сплачується окремо.</p>
-        <Button className="mt-6 w-full" size="lg" type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? "Створення замовлення…" : "Підтвердити замовлення"}
+        <Button className="mt-6 w-full" size="lg" type="submit" disabled={form.formState.isSubmitting || isRetryingPayment}>
+          {form.formState.isSubmitting || isRetryingPayment ? "Обробка замовлення…" : paymentMethod === "Monobank" ? "Оплатити карткою" : "Підтвердити замовлення"}
         </Button>
         <Link
           href="/cart"

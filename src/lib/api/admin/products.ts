@@ -37,6 +37,15 @@ export interface GetAdminProductsOptions {
   search?: string
   onlyActive?: boolean
   pageSize?: number
+  pageNumber?: number
+}
+
+export interface AdminProductPage {
+  items: AdminProduct[]
+  totalCount: number
+  pageNumber: number
+  pageSize: number
+  totalPages: number
 }
 
 interface ProductDto {
@@ -78,7 +87,7 @@ interface ProductPageDto {
   totalPages?: number
 }
 
-const DEFAULT_PAGE_SIZE = 100
+const DEFAULT_PAGE_SIZE = 25
 const PRODUCT_IMAGE_PLACEHOLDER = "/product-placeholder.svg"
 
 const productFetchOptions = {
@@ -208,23 +217,10 @@ async function getProductsPage(
   const search = options.search?.trim()
   if (search) query.set("Search", search)
 
-  let payload: unknown
-  try {
-    payload = await adminApiFetch<unknown>(
-      `admin/products?${query.toString()}`,
-      productFetchOptions
-    )
-  } catch (error) {
-    // Якщо admin/products недоступний (404, без токена тощо), безпечно пробуємо витягнути товари зі стандартного ендпоінту
-    try {
-      payload = await apiFetch<unknown>(
-        `products?${query.toString()}`,
-        productFetchOptions
-      )
-    } catch {
-      throw error
-    }
-  }
+  const payload = await adminApiFetch<unknown>(
+    `admin/products?${query.toString()}`,
+    productFetchOptions
+  )
 
   // Якщо бекенд повернув прямий масив товарів замість обгортки PagedResult
   if (Array.isArray(payload)) {
@@ -243,8 +239,8 @@ async function getProductsPage(
 
   const raw = payload as unknown as Record<string, unknown>
   const items = ((raw.items ?? raw.Items) as ProductDto[] | null) ?? []
-  const totalPages = Number(raw.totalPages ?? raw.TotalPages) || 1
-  const totalCount = Number(raw.totalCount ?? raw.TotalCount) || items.length
+  const totalPages = Number(raw.totalPages ?? raw.TotalPages ?? 0)
+  const totalCount = Number(raw.totalCount ?? raw.TotalCount ?? items.length)
 
   return {
     items,
@@ -255,32 +251,23 @@ async function getProductsPage(
   }
 }
 
-export async function getAdminProducts(
+export async function getAdminProductsPage(
   options: GetAdminProductsOptions = {}
-): Promise<AdminProduct[]> {
-  const pageSize = options.pageSize ?? DEFAULT_PAGE_SIZE
-  const firstPage = await getProductsPage({
+): Promise<AdminProductPage> {
+  const pageSize = Math.min(100, Math.max(1, options.pageSize ?? DEFAULT_PAGE_SIZE))
+  const pageNumber = Math.max(1, options.pageNumber ?? 1)
+  const page = await getProductsPage({
     ...options,
-    pageNumber: 1,
+    pageNumber,
     pageSize,
   })
-  const products = [...(firstPage.items ?? [])]
-  const totalPages = firstPage.totalPages ?? 1
-
-  for (let pageNumber = 2; pageNumber <= totalPages; pageNumber += 1) {
-    try {
-      const page = await getProductsPage({
-        ...options,
-        pageNumber,
-        pageSize,
-      })
-      products.push(...(page.items ?? []))
-    } catch {
-      break
-    }
+  return {
+    items: (page.items ?? []).map(toAdminProduct),
+    totalCount: page.totalCount ?? 0,
+    pageNumber,
+    pageSize,
+    totalPages: page.totalPages ?? 0,
   }
-
-  return products.map(toAdminProduct)
 }
 
 async function getProductByPath(path: string): Promise<AdminProduct> {

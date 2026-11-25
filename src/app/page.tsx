@@ -1,6 +1,7 @@
 import { Suspense } from "react"
 import { Box, Factory, ShieldCheck, Truck } from "lucide-react"
 import { HeroBanner } from "@/components/home/HeroBanner"
+import { HeroSection } from "@/components/home/HeroSection"
 import { CatalogSkeleton } from "@/features/catalog/CatalogSkeleton"
 import { StorefrontCatalog } from "@/features/catalog/StorefrontCatalog"
 import { CatalogFilters } from "@/features/catalog/CatalogFilters"
@@ -19,7 +20,9 @@ export default async function Home({ searchParams }: HomeProps) {
   return (
     <div className="bg-background">
       <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
-        <HeroBanner />
+        <Suspense fallback={<HeroBanner />}>
+          <HeroSection />
+        </Suspense>
 
         {/* Чому обирають Jingle Decor — затишний преміальний блок переваг із золотими медальйонами */}
         <div className="mt-8 sm:mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

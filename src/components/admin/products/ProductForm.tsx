@@ -1,13 +1,15 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { useFieldArray, useForm } from "react-hook-form"
+import { useFieldArray, useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ImagePlus, Plus, Trash2 } from "lucide-react"
+import Image from "next/image"
 
 import { Button } from "@/components/ui/button"
+import { ImageLightbox } from "@/components/ui/ImageLightbox"
 import { Input } from "@/components/ui/input"
-import { useSuppliersLookup } from "@/hooks/useSuppliersLookup"
+import type { ProductGalleryImage } from "@/features/product/product-utils"
 import {
   productSchema,
   slugifyProductName,
@@ -17,10 +19,12 @@ import {
 } from "@/features/admin/products/product-schema"
 import type { Category } from "@/types/category"
 import type { AdminProduct } from "@/types/product"
+import type { Supplier } from "@/types/supplier"
 
 interface ProductFormProps {
   product?: AdminProduct | null
   categories: Category[]
+  suppliers: Supplier[]
   onCancel: () => void
   onSaved: (product: AdminProduct) => void
 }
@@ -115,11 +119,12 @@ function FieldError({ message }: { message?: string }) {
 export function ProductForm({
   product,
   categories,
+  suppliers,
   onCancel,
   onSaved,
 }: ProductFormProps) {
   const [serverError, setServerError] = useState<string | null>(null)
-  const suppliers = useSuppliersLookup()
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const form = useForm<ProductFormInput, undefined, ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: getFormValues(product),
@@ -128,6 +133,17 @@ export function ProductForm({
     control: form.control,
     name: "additionalImages",
   })
+  const stockValue = useWatch({ control: form.control, name: "stock" })
+  const mainImageUrl = useWatch({ control: form.control, name: "mainImageUrl" })
+  const additionalImages = useWatch({ control: form.control, name: "additionalImages" })
+  const previewImages: ProductGalleryImage[] = []
+  const seenImages = new Set<string>()
+  for (const image of [{ url: mainImageUrl, alt: product?.name ?? "Фото товару" }, ...(additionalImages ?? [])]) {
+    const url = image.url?.trim()
+    if (!url || url === PRODUCT_PLACEHOLDER || seenImages.has(url) || !/^https?:\/\//i.test(url)) continue
+    seenImages.add(url)
+    previewImages.push({ src: url, alt: image.alt?.trim() || product?.name || "Фото товару" })
+  }
 
   useEffect(() => {
     form.reset(getFormValues(product))
@@ -178,11 +194,11 @@ export function ProductForm({
 
   return (
     <form
-      className="flex min-h-full flex-col"
+      className="flex min-h-0 flex-1 flex-col"
       onSubmit={form.handleSubmit(handleSubmit)}
       noValidate
     >
-      <div className="flex-1 space-y-7 overflow-y-auto p-6">
+      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto bg-muted/20 p-4 [scrollbar-color:var(--border)_transparent] sm:p-5">
         {serverError && (
           <p
             className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
@@ -192,7 +208,9 @@ export function ProductForm({
           </p>
         )}
 
-        <section className="space-y-4" aria-labelledby="product-main-section">
+        <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+          <div className="min-w-0 space-y-5">
+        <section className="space-y-4 rounded-xl border border-border bg-card p-4" aria-labelledby="product-main-section">
           <div>
             <h3 id="product-main-section" className="font-semibold">
               Основна інформація
@@ -304,7 +322,72 @@ export function ProductForm({
           </div>
         </section>
 
-        <section className="space-y-4" aria-labelledby="product-pricing-section">
+        <section className="space-y-4 rounded-xl border border-border bg-card p-4" aria-labelledby="product-description-section">
+          <div>
+            <h3 id="product-description-section" className="font-semibold">
+              Опис
+            </h3>
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="product-description" className="text-sm font-medium">
+              Опис товару
+            </label>
+            <textarea
+              id="product-description"
+              rows={4}
+              placeholder="Детальний опис товару"
+              className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 min-h-32 w-full resize-y rounded-lg border bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-3"
+              aria-invalid={Boolean(fieldError("description"))}
+              {...form.register("description")}
+            />
+            <FieldError message={fieldError("description")} />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="product-attributes" className="text-sm font-medium">Характеристики (JSON)</label>
+            <textarea id="product-attributes" rows={3} placeholder='{"color":"зелений"}' className="min-h-20 w-full resize-y rounded-lg border border-input bg-background px-3 py-2 font-mono text-xs text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-invalid={Boolean(fieldError("attributes"))} {...form.register("attributes")} />
+            <FieldError message={fieldError("attributes")} />
+          </div>
+        </section>
+
+        <section className="space-y-4 rounded-xl border border-border bg-card p-4" aria-labelledby="product-seo-section">
+          <div>
+            <h3 id="product-seo-section" className="font-semibold">
+              SEO
+            </h3>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="product-meta-title" className="text-sm font-medium">
+                Meta title
+              </label>
+              <Input
+                id="product-meta-title"
+                placeholder="Назва для пошукової видачі"
+                aria-invalid={Boolean(fieldError("metaTitle"))}
+                {...form.register("metaTitle")}
+              />
+              <FieldError message={fieldError("metaTitle")} />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="product-meta-description" className="text-sm font-medium">
+                Meta description
+              </label>
+              <textarea
+                id="product-meta-description"
+                rows={3}
+                placeholder="Короткий опис для пошукової видачі"
+                className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 min-h-24 w-full resize-y rounded-lg border bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-3"
+                aria-invalid={Boolean(fieldError("metaDescription"))}
+                {...form.register("metaDescription")}
+              />
+              <FieldError message={fieldError("metaDescription")} />
+            </div>
+          </div>
+        </section>
+
+          </div>
+          <div className="min-w-0 space-y-5">
+        <section className="space-y-4 rounded-xl border border-border bg-card p-4" aria-labelledby="product-pricing-section">
           <div>
             <h3 id="product-pricing-section" className="font-semibold">
               Ціни та залишок
@@ -314,7 +397,7 @@ export function ProductForm({
             </p>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <label htmlFor="product-price" className="text-sm font-medium">
                 Ціна, ₴ <span aria-hidden="true">*</span>
@@ -392,29 +475,7 @@ export function ProductForm({
           </div>
         </section>
 
-        <section className="space-y-4" aria-labelledby="product-description-section">
-          <div>
-            <h3 id="product-description-section" className="font-semibold">
-              Опис
-            </h3>
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="product-description" className="text-sm font-medium">
-              Опис товару
-            </label>
-            <textarea
-              id="product-description"
-              rows={6}
-              placeholder="Детальний опис товару"
-              className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 min-h-32 w-full resize-y rounded-lg border bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-3"
-              aria-invalid={Boolean(fieldError("description"))}
-              {...form.register("description")}
-            />
-            <FieldError message={fieldError("description")} />
-          </div>
-        </section>
-
-        <section className="space-y-4" aria-labelledby="product-images-section">
+        <section className="space-y-4 rounded-xl border border-border bg-card p-4" aria-labelledby="product-images-section">
           <div>
             <h3 id="product-images-section" className="font-semibold">
               Зображення
@@ -437,6 +498,8 @@ export function ProductForm({
             />
             <FieldError message={fieldError("mainImageUrl")} />
           </div>
+
+          {previewImages.length > 0 && <div className="flex flex-wrap gap-2" aria-label="Попередній перегляд фото">{previewImages.map((image, index) => <button key={`${image.src}:${index}`} type="button" onClick={() => setLightboxIndex(index)} aria-label={`Відкрити фото ${index + 1}`} className="relative size-16 overflow-hidden rounded-lg border border-border bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><Image src={image.src} alt="" fill sizes="64px" loading="lazy" unoptimized className="object-cover" /></button>)}</div>}
 
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-3">
@@ -527,43 +590,7 @@ export function ProductForm({
           </div>
         </section>
 
-        <section className="space-y-4" aria-labelledby="product-seo-section">
-          <div>
-            <h3 id="product-seo-section" className="font-semibold">
-              SEO
-            </h3>
-          </div>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="product-meta-title" className="text-sm font-medium">
-                Meta title
-              </label>
-              <Input
-                id="product-meta-title"
-                placeholder="Назва для пошукової видачі"
-                aria-invalid={Boolean(fieldError("metaTitle"))}
-                {...form.register("metaTitle")}
-              />
-              <FieldError message={fieldError("metaTitle")} />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="product-meta-description" className="text-sm font-medium">
-                Meta description
-              </label>
-              <textarea
-                id="product-meta-description"
-                rows={3}
-                placeholder="Короткий опис для пошукової видачі"
-                className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 min-h-24 w-full resize-y rounded-lg border bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-3"
-                aria-invalid={Boolean(fieldError("metaDescription"))}
-                {...form.register("metaDescription")}
-              />
-              <FieldError message={fieldError("metaDescription")} />
-            </div>
-          </div>
-        </section>
-
-        <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-border px-3 py-3">
+        <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-border bg-card px-4 py-3">
           <input
             type="checkbox"
             className="size-4 accent-primary"
@@ -576,9 +603,15 @@ export function ProductForm({
             </span>
           </span>
         </label>
+        <p className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
+          Наявність за залишком
+          <span className={Number(stockValue) > 0 ? "rounded-full bg-emerald-500/15 px-2 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-300" : "rounded-full bg-destructive/10 px-2 py-1 text-xs font-medium text-destructive"}>{Number(stockValue) > 0 ? "В наявності" : "Немає"}</span>
+        </p>
+          </div>
+        </div>
       </div>
 
-      <div className="flex shrink-0 justify-end gap-3 border-t border-border p-6">
+      <div className="sticky bottom-0 z-10 flex shrink-0 justify-end gap-3 border-t border-border bg-background p-4 sm:px-5">
         <Button type="button" variant="outline" onClick={onCancel}>
           Скасувати
         </Button>
@@ -590,6 +623,7 @@ export function ProductForm({
               : "Додати товар"}
         </Button>
       </div>
+      {lightboxIndex !== null && <ImageLightbox images={previewImages} initialIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} />}
     </form>
   )
 }

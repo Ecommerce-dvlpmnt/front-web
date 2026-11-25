@@ -108,6 +108,27 @@ test("catalog filters reach the backend before pagination", async () => {
   assert.equal(query.get("PageSize"), "24")
 })
 
+test("admin products load only the requested server page with search and filters", async () => {
+  const paths = []
+  const item = product(1, { supplierId: "supplier-1", categoryId: "category-1", sku: "TREE-1", dropPrice: 100 })
+  const load = sourceLoader({ overrides: {
+    "@/lib/api/admin/auth": { adminApiFetch: async path => {
+      paths.push(path)
+      return { items: [item], totalCount: 487, pageNumber: 3, pageSize: 25, totalPages: 20 }
+    } },
+  } })
+  const page = await load("@/lib/api/admin/products").getAdminProductsPage({ pageNumber: 3, pageSize: 25, search: "TREE", categoryId: "category-1", supplierId: "supplier-1", onlyActive: false })
+  assert.equal(paths.length, 1)
+  const params = new URL(`https://api.test/${paths[0]}`).searchParams
+  assert.equal(params.get("PageNumber"), "3")
+  assert.equal(params.get("PageSize"), "25")
+  assert.equal(params.get("Search"), "TREE")
+  assert.equal(params.get("CategoryId"), "category-1")
+  assert.equal(params.get("SupplierId"), "supplier-1")
+  assert.equal(page.totalCount, 487)
+  assert.equal(page.items.length, 1)
+})
+
 test("rejects malformed responses instead of returning an empty feed", async () => {
   const load = sourceLoader({ fetch: async () => Response.json({ totalCount: 441 }) })
   await assert.rejects(load("@/lib/api/products").getProducts(), /invalid products response/)
@@ -166,7 +187,7 @@ test("product and category GETs use 300-second server caching", async () => {
   assert.ok(calls.every(call => call.next.revalidate === 300 && call.cache !== "no-store"))
 })
 
-const payment = { iban: `UA${"1".repeat(27)}`, ibanRecipient: "Тестовий отримувач", ibanEdrpou: "00000000" }
+const payment = { iban: `UA${"1".repeat(27)}`, ibanRecipient: "Тестовий отримувач", ibanEdrpou: "00000000", ibanPurpose: "Оплата замовлення №{orderNumber}" }
 
 test("IBAN confirmation renders the authoritative amount and order reference", () => {
   const load = sourceLoader({ overrides: { "@/lib/config/shop": { shopConfig: { payment } } } })
@@ -177,6 +198,20 @@ test("IBAN confirmation renders the authoritative amount and order reference", (
   assert.match(html, /1\s*234[,.]50/)
   assert.match(html, /Скопіювати IBAN/)
   assert.match(html, /role="status"/)
+})
+
+test("IBAN payment purpose uses public env and retains the order number", () => {
+  const env = {
+    NEXT_PUBLIC_IBAN: payment.iban,
+    NEXT_PUBLIC_IBAN_RECIPIENT: payment.ibanRecipient,
+    NEXT_PUBLIC_IBAN_EDRPOU: payment.ibanEdrpou,
+    NEXT_PUBLIC_IBAN_PURPOSE: "Оплата товарів, замовлення {orderNumber}",
+  }
+  const load = sourceLoader({ env })
+  const Component = load("@/features/checkout/IbanPaymentDetails").IbanPaymentDetails
+  const html = renderToStaticMarkup(React.createElement(Component, { amount: 100, orderNumber: "12345" }))
+  assert.match(html, /Оплата товарів, замовлення 12345/)
+  assert.doesNotMatch(html, /\{orderNumber\}/)
 })
 
 test("IBAN copy writes only the account number and announces success or failure", async () => {
@@ -473,7 +508,7 @@ function hookState() {
   }
 }
 
-test("catalog defaults to the shortest stocked height and buys that SKU", async () => {
+test("catalog renders heights immediately and keeps the card's SKU selected", () => {
   const base = product(10, { name: "Ялинка Мрія 2.1 м", categoryId: "trees", sku: "TALL", price: 500 })
   const sold = product(11, { name: "Ялинка Мрія 1.5 м", categoryId: "trees", sku: "SOLD", stock: 0, price: 200 })
   const shortestAvailable = product(12, { name: "Ялинка Мрія 1.8 м", categoryId: "trees", sku: "SHORT", stock: 3, price: 300 })
@@ -481,7 +516,6 @@ test("catalog defaults to the shortest stocked height and buys that SKU", async 
   const added = []
   const routes = []
   const load = sourceLoader({
-    fetch: async () => Response.json([base, sold, shortestAvailable]),
     overrides: {
       react: hooks.react,
       "next/navigation": { useRouter: () => ({ push: route => routes.push(route) }) },
@@ -489,45 +523,42 @@ test("catalog defaults to the shortest stocked height and buys that SKU", async 
     },
   })
   const Card = load("@/components/catalog/ProductCard").ProductCard
-  const render = () => elementNodes(hooks.render(Card, { product: base }))
-  await render().find(node => node.type === "button" && String(node.props.children).startsWith("Обрати висоту")).props.onClick()
+  const variants = load("@/features/product/height-variants").selectHeightVariants(base, [sold, shortestAvailable])
+  const render = () => elementNodes(hooks.render(Card, { product: base, heightVariants: variants }))
   const nodes = render()
-  assert.ok(nodes.some(node => node.props?.href === "/product/product-12"))
-  assert.equal(nodes.find(node => node.props?.["aria-label"] === "Висота 1.8 м").props["aria-pressed"], true)
+  assert.equal(nodes.some(node => String(node.props?.children).startsWith("Обрати висоту")), false)
+  assert.equal(nodes.find(node => node.props?.["aria-label"] === "Висота 2.1 м").props["aria-pressed"], true)
+  assert.ok(nodes.some(node => node.props?.href === "/product/product-10"))
   nodes.find(node => node.props?.children === "Купити зараз").props.onClick()
-  assert.equal(added[0].id, shortestAvailable.id)
-  assert.equal(added[0].sku, "SHORT")
-  assert.equal(added[0].price, 300)
+  assert.equal(added[0].id, base.id)
+  assert.equal(added[0].sku, "TALL")
+  assert.equal(added[0].price, 500)
   assert.deepEqual(routes, ["/checkout"])
 })
 
-test("catalog height selection adds the chosen SKU's own price, stock, SKU and image", async () => {
+test("catalog height selection updates the chosen SKU's price, stock, link and image without a request", () => {
   const base = product(1, { name: "Штучна ялинка Мрія зелена 1.8 м", categoryId: "trees", sku: "BASE", stock: 50, price: 200, oldPrice: 300 })
   const tall = product(2, { name: "Штучна ялинка Мрія зелена 2.1 м", categoryId: "trees", sku: "TALL", stock: 1, price: 450, oldPrice: null, mainImageUrl: "https://demo.supabase.co/tall.webp" })
   const unavailable = product(3, { name: "Штучна ялинка Мрія зелена 2.5 м", categoryId: "trees", sku: "SOLD-OUT", stock: 0, price: 800 })
   const hooks = hookState()
-  const requests = []
   const added = []
   let cart = []
   const load = sourceLoader({
-    fetch: async url => { requests.push(url); return Response.json([base, tall, unavailable]) },
     overrides: {
       react: hooks.react,
       "@/components/cart/CartContext": { useCart: () => ({ items: cart, addItem(item) { added.push(item); cart = [{ product: item, quantity: 1 }] } }) },
     },
   })
   const Card = load("@/components/catalog/ProductCard").ProductCard
-  const render = () => elementNodes(hooks.render(Card, { product: base }))
+  const variants = load("@/features/product/height-variants").selectHeightVariants(base, [tall, unavailable])
+  const render = () => elementNodes(hooks.render(Card, { product: base, heightVariants: variants }))
   let nodes = render()
-  assert.equal(requests.length, 0, "catalog render must not eagerly request variants")
-  await nodes.find(node => node.type === "button" && String(node.props.children).startsWith("Обрати висоту")).props.onClick()
-  assert.deepEqual(requests, ["/api/products/product-1/height-variants"])
-  nodes = render()
-  let focused = false
-  nodes.find(node => node.props?.["aria-label"] === "Висота 1.8 м").props.ref({ focus() { focused = true } })
-  assert.equal(focused, true, "loading heights must preserve keyboard focus")
+  assert.equal(nodes.some(node => String(node.props?.children).startsWith("Обрати висоту")), false)
+  assert.equal(nodes.find(node => node.props?.["aria-label"] === "Висота 1.8 м").props["aria-pressed"], true)
+  assert.ok(nodes.some(node => node.props?.className?.includes("line-through")))
   nodes.find(node => node.props?.["aria-label"] === "Висота 2.1 м").props.onClick()
   nodes = render()
+  assert.equal(nodes.some(node => node.props?.className?.includes("line-through")), false)
   assert.equal(nodes.find(node => node.props?.fill).props.src, tall.mainImageUrl)
   assert.ok(nodes.some(node => node.props?.href === "/product/product-2"))
   assert.equal(nodes.find(node => node.props?.["aria-label"] === "Висота 2.1 м").props["aria-pressed"], true)
@@ -542,6 +573,24 @@ test("catalog height selection adds the chosen SKU's own price, stock, SKU and i
   nodes = render()
   assert.equal(nodes.find(node => node.props?.children === "Немає в наявності" && typeof node.props.onClick === "function").props.disabled, true)
   assert.equal(added.length, 1)
+})
+
+test("catalog preloads one Summary search per model and falls back to its visible heights", async () => {
+  const base = product(1, { name: "Ялинка Мрія 1.8 м", categoryId: "trees" })
+  const tall = product(2, { name: "Ялинка Мрія 2.1 м", categoryId: "trees" })
+  const other = product(3, { name: "Сосна Казка 1.5 м", categoryId: "trees" })
+  const calls = []
+  const load = sourceLoader({ fetch: async url => {
+    const query = new URL(url).searchParams
+    calls.push(query)
+    if (query.get("Search") === "Сосна Казка") throw new Error("API unavailable")
+    return Response.json({ items: [base, tall], totalCount: 2, totalPages: 1, pageSize: 24 })
+  } })
+  const variants = await load("@/lib/api/product-height-variants").getCatalogHeightVariants([base, tall, other])
+  assert.equal(calls.length, 2)
+  assert.ok(calls.every(query => query.get("Summary") === "true" && query.get("PageSize") === "24"))
+  assert.deepEqual(variants[base.id].map(item => item.height), ["1.8 м", "2.1 м"])
+  assert.deepEqual(variants[other.id].map(item => item.height), ["1.5 м"])
 })
 
 test("PDP loads one targeted Summary page and keeps the linked SKU authoritative", async () => {
@@ -598,6 +647,77 @@ test("height matching excludes ornaments, other series and duplicate heights", (
     product(4, { name: "Ялинка Мрія засніжена 2.1 м", categoryId: "trees" }),
   ])
   assert.deepEqual(variants.map(variant => variant.id), [base.id, "p-3"])
+})
+
+test("garland options keep the chosen length across colors and vice versa", () => {
+  const { getProductOptionModel, getOptionTarget, selectProductOptions, getOptionColorBackground } = sourceLoader()("@/features/product/variant-options")
+  const variants = [
+    product(1, { name: "Гірлянда Роса 3 м теплий білий", categoryId: "lights", sku: "W3" }),
+    product(2, { name: "Гірлянда Роса 5 м теплий білий", categoryId: "lights", sku: "W5" }),
+    product(3, { name: "Гірлянда Роса 3 м синій", categoryId: "lights", sku: "B3" }),
+    product(4, { name: "Гірлянда Роса 5 м синій", categoryId: "lights", sku: "B5" }),
+  ]
+  const options = selectProductOptions(variants[0], [...variants.slice(1), product(5, { name: "Гірлянда Інша 5 м синій", categoryId: "lights" })])
+  assert.deepEqual(options.map(item => item.id), [variants[2].id, variants[0].id, variants[3].id, variants[1].id])
+  assert.equal(getOptionTarget(options, variants[0], "dimension", "5 м").id, variants[1].id)
+  assert.equal(getOptionTarget(options, variants[1], "color", "Синій").id, variants[3].id)
+  assert.equal(getOptionTarget(options.filter(item => item.id !== variants[3].id), variants[1], "color", "Синій").id, variants[2].id)
+  assert.equal(getProductOptionModel(product(6, { name: "Гірлянда Завіса 3×2 м мультиколор" })).dimension, "3×2 м")
+  assert.match(getOptionColorBackground(product(7, { name: "Гірлянда Завіса 3 м мультиколор" })), /conic-gradient/)
+  assert.equal(getOptionColorBackground(product(8, { name: "Гірлянда Роса 3 м синій", attributes: '{"ColorHex":"#123ABC"}' })), "#123ABC")
+})
+
+test("catalog preloads garland variants from one bounded Summary lookup", async () => {
+  const base = product(1, { name: "Гірлянда Роса 3 м теплий білий", categoryId: "lights" })
+  const sibling = product(2, { name: "Гірлянда Роса 5 м синій", categoryId: "lights" })
+  const calls = []
+  const load = sourceLoader({ fetch: async url => {
+    calls.push(new URL(url).searchParams)
+    return Response.json({ items: [base, sibling], totalCount: 2, pageSize: 100, totalPages: 1 })
+  } })
+  const map = await load("@/lib/api/product-options").getCatalogProductOptions([base])
+  assert.deepEqual(map[base.id].map(item => item.id), [base.id, sibling.id])
+  assert.equal(calls.length, 1)
+  assert.equal(calls[0].get("Summary"), "true")
+  assert.equal(calls[0].get("PageSize"), "100")
+  assert.equal(calls[0].get("CategoryId"), "lights")
+})
+
+test("garland options fall back to visible products when the lookup fails", async () => {
+  const base = product(1, { name: "Гірлянда Роса 3 м теплий білий", categoryId: "lights" })
+  const sibling = product(2, { name: "Гірлянда Роса 5 м синій", categoryId: "lights" })
+  const load = sourceLoader({ fetch: async () => { throw new Error("unavailable") } })
+  const map = await load("@/lib/api/product-options").getCatalogProductOptions([base, sibling])
+  assert.deepEqual(map[base.id].map(item => item.id), [base.id, sibling.id])
+})
+
+test("garland card switches price, SKU, image and link from preloaded options", () => {
+  const base = product(1, { name: "Гірлянда Роса 3 м теплий білий", categoryId: "lights", sku: "W3", oldPrice: 300 })
+  const blue = product(2, { name: "Гірлянда Роса 3 м синій", categoryId: "lights", sku: "B3", price: 250, oldPrice: null,
+    mainImageUrl: "https://demo.supabase.co/storage/v1/object/public/products/blue.webp" })
+  const hooks = hookState()
+  const added = []
+  const load = sourceLoader({ overrides: {
+    react: hooks.react,
+    "@/components/cart/CartContext": { useCart: () => ({ items: [], addItem: item => added.push(item) }) },
+  } })
+  const Card = load("@/components/catalog/ProductCard").ProductCard
+  const Controls = load("@/features/product/ProductOptionControls").ProductOptionControls
+  const options = load("@/features/product/variant-options").selectProductOptions(base, [blue])
+  const render = () => elementNodes(hooks.render(Card, { product: base, productOptions: options }))
+  let nodes = render()
+  const control = nodes.find(node => node.type === Controls)
+  assert.ok(control)
+  const swatches = elementNodes(Controls(control.props))
+  swatches.find(node => node.props?.["aria-label"] === "Колір Синій").props.onClick()
+  nodes = render()
+  assert.ok(nodes.some(node => node.props?.href === "/product/product-2"))
+  assert.equal(nodes.find(node => node.props?.fill).props.src, blue.mainImageUrl)
+  assert.equal(nodes.some(node => node.props?.className?.includes("line-through")), false)
+  assert.ok(nodes.some(node => Array.isArray(node.props?.children) && node.props.children.join("") === "Артикул: B3"))
+  nodes.find(node => node.props?.children === "До кошика").props.onClick()
+  assert.equal(added[0].id, blue.id)
+  assert.equal(added[0].price, blue.price)
 })
 
 test("variant endpoint reports lookup failures without breaking the catalog", async () => {

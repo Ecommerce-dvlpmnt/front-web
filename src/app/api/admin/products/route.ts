@@ -2,7 +2,7 @@ import { revalidatePath } from "next/cache"
 
 import {
   createProduct,
-  getAdminProducts,
+  getAdminProductsPage,
 } from "@/lib/api/admin/products"
 import { apiErrorResponse } from "@/lib/api/admin/route-error"
 import {
@@ -15,9 +15,10 @@ export async function GET(request: Request) {
     const params = new URL(request.url).searchParams
     const onlyActive = params.get("onlyActive") === "true"
     const pageSizeValue = Number(params.get("pageSize"))
+    const pageNumberValue = Number(params.get("pageNumber"))
 
     return Response.json(
-      await getAdminProducts({
+      await getAdminProductsPage({
         onlyActive,
         categoryId: params.get("categoryId") || undefined,
         supplierId: params.get("supplierId") || undefined,
@@ -25,6 +26,10 @@ export async function GET(request: Request) {
         pageSize:
           Number.isInteger(pageSizeValue) && pageSizeValue > 0
             ? pageSizeValue
+            : undefined,
+        pageNumber:
+          Number.isInteger(pageNumberValue) && pageNumberValue > 0
+            ? pageNumberValue
             : undefined,
       })
     )

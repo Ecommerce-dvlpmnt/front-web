@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
@@ -11,11 +11,13 @@ import { Button } from "@/components/ui/button"
 import { useCart } from "@/components/cart/CartContext"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatPrice } from "@/lib/formatters/price"
-import { getTreeHeightModel, type ProductHeightVariant } from "@/features/product/height-variants"
-import { loadProductHeightVariants } from "@/lib/api/product-height-variants-client"
+import { selectHeightVariants, type ProductHeightVariant } from "@/features/product/height-variants"
+import { ProductOptionControls } from "@/features/product/ProductOptionControls"
 
 interface ProductCardProps {
   product: Product
+  heightVariants?: ProductHeightVariant[]
+  productOptions?: Product[]
   priority?: boolean
 }
 
@@ -33,39 +35,19 @@ const badgeVariants: Record<keyof typeof badgeLabels, string> = {
 
 export function ProductCard({
   product: initialProduct,
+  heightVariants = [],
+  productOptions = [],
   priority = false,
 }: ProductCardProps) {
   const { addItem, items } = useCart()
   const router = useRouter()
-  const [heightVariants, setHeightVariants] = useState<ProductHeightVariant[] | null>(null)
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null)
-  const [isLoadingVariants, setIsLoadingVariants] = useState(false)
-  const [variantsError, setVariantsError] = useState(false)
-  const variantsRequest = useRef(false)
-  const focusHeightOptions = useRef(false)
-  const heightModel = getTreeHeightModel(initialProduct.name)
-  const defaultVariant = heightVariants?.find((variant) => variant.stock > 0) ?? heightVariants?.[0]
-  const product = (selectedVariantId ? heightVariants?.find((variant) => variant.id === selectedVariantId) : null) ?? defaultVariant ?? initialProduct
+  const heightOptions = heightVariants.length > 0 ? heightVariants : selectHeightVariants(initialProduct, [])
+  const product = (selectedVariantId ? [...heightOptions, ...productOptions].find((variant) => variant.id === selectedVariantId) : null) ?? initialProduct
   const [isAdded, setIsAdded] = useState(false)
   const [loadedImageUrl, setLoadedImageUrl] = useState("")
   const [failedImageUrl, setFailedImageUrl] = useState("")
   const isImageLoaded = loadedImageUrl === product.mainImageUrl
-
-  async function requestHeightVariants() {
-    if (!heightModel || heightVariants !== null || variantsRequest.current) return
-    variantsRequest.current = true
-    setIsLoadingVariants(true)
-    setVariantsError(false)
-    try {
-      setHeightVariants(await loadProductHeightVariants(initialProduct))
-    } catch {
-      setVariantsError(true)
-      focusHeightOptions.current = false
-    } finally {
-      variantsRequest.current = false
-      setIsLoadingVariants(false)
-    }
-  }
 
   const cartItem = items.find(
     (item) => item.product.id === product.id
@@ -110,8 +92,6 @@ export function ProductCard({
   return (
     <article
       className="group/card relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/80 bg-card shadow-luxury transition-all duration-300 hover:-translate-y-1 hover:border-foreground/25 dark:hover:border-[#d4af37]/50 hover:shadow-luxury-hover"
-      onPointerEnter={(event) => { if (event.pointerType === "mouse") void requestHeightVariants() }}
-      onFocus={() => { void requestHeightVariants() }}
     >
       <Link
         href={`/product/${encodeURIComponent(product.slug)}`}
@@ -167,46 +147,32 @@ export function ProductCard({
 
         {product.sku && <p className="mt-1 text-xs text-muted-foreground">Артикул: {product.sku}</p>}
 
-        {heightModel && (
-          <div className="mt-2.5" aria-busy={isLoadingVariants}>
-            {heightVariants !== null ? (
-              <div className="flex flex-wrap gap-1" role="group" aria-label="Вибір висоти">
-                {heightVariants.map((variant) => (
-                  <button
-                    key={variant.id}
-                    type="button"
-                    ref={(node) => {
-                      if (node && variant.id === product.id && focusHeightOptions.current) {
-                        focusHeightOptions.current = false
-                        node.focus()
-                      }
-                    }}
-                    aria-pressed={variant.id === product.id}
-                    aria-label={`Висота ${variant.height}${variant.stock <= 0 ? ", немає в наявності" : ""}`}
-                    onClick={() => { setSelectedVariantId(variant.id); setIsAdded(false) }}
-                    className={`rounded-md border px-2 py-1 text-xs font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                      variant.id === product.id
-                        ? "border-gold bg-gold/15 font-semibold text-foreground"
-                        : "border-border bg-muted/40 text-muted-foreground hover:border-gold/50 hover:text-foreground"
-                    }`}
-                  >
-                    {variant.height}{variant.stock <= 0 && <span className="sr-only"> — немає в наявності</span>}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <button
-                type="button"
-                onFocus={() => { focusHeightOptions.current = true }}
-                onBlur={() => { focusHeightOptions.current = false }}
-                onClick={() => { focusHeightOptions.current = true; return requestHeightVariants() }}
-                className="rounded-md border border-border bg-muted/40 px-2 py-1 text-xs text-muted-foreground outline-none hover:border-gold/50 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                {isLoadingVariants ? "Завантажуємо висоти…" : variantsError ? "Повторити вибір висоти" : `Обрати висоту · ${heightModel.height}`}
-              </button>
-            )}
-            {variantsError && <p role="status" className="mt-1 text-xs text-muted-foreground">Не вдалося завантажити висоти. Спробуйте ще раз.</p>}
+        {heightOptions.length > 0 && (
+          <div className="mt-2.5">
+            <div className="flex flex-wrap gap-1" role="group" aria-label="Вибір висоти">
+              {heightOptions.map((variant) => (
+                <button
+                  key={variant.id}
+                  type="button"
+                  aria-pressed={variant.id === product.id}
+                  aria-label={`Висота ${variant.height}${variant.stock <= 0 ? ", немає в наявності" : ""}`}
+                  onClick={() => { setSelectedVariantId(variant.id); setIsAdded(false) }}
+                  className={`rounded-md border px-2 py-1 text-xs font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                    variant.id === product.id
+                      ? "border-gold bg-gold/15 font-semibold text-foreground"
+                      : "border-border bg-muted/40 text-muted-foreground hover:border-gold/50 hover:text-foreground"
+                  }`}
+                >
+                  {variant.height}{variant.stock <= 0 && <span className="sr-only"> — немає в наявності</span>}
+                </button>
+              ))}
+            </div>
           </div>
+        )}
+
+        {productOptions.length > 0 && (
+          <ProductOptionControls compact product={product} options={productOptions}
+            onSelect={(option) => { setSelectedVariantId(option.id); setIsAdded(false) }} />
         )}
 
         <div className="mt-3 flex min-h-7 flex-wrap items-baseline gap-x-2 gap-y-0.5">

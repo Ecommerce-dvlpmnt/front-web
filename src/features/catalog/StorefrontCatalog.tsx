@@ -2,6 +2,8 @@ import { notFound, redirect } from "next/navigation"
 
 import { CatalogSection } from "@/components/catalog/CatalogSection"
 import { buildCategoryTree, getCategories } from "@/lib/api/categories"
+import { getCatalogHeightVariants } from "@/lib/api/product-height-variants"
+import { getCatalogProductOptions } from "@/lib/api/product-options"
 import { getCatalogProductsPage } from "@/lib/api/products"
 import { shopConfig } from "@/lib/config/shop"
 import { findCatalogCategory, getCatalogCategoryIds, getCatalogHref, type CatalogFilters } from "@/features/catalog/navigation"
@@ -37,6 +39,10 @@ export async function StorefrontCatalog({ pageNumber, searchQuery, categorySlug,
     redirect(getCatalogHref({ categorySlug, searchQuery, filters, pageNumber: Math.max(1, productPage.totalPages) }))
   }
 
+  const [heightVariantsByProductId, productOptionsByProductId] = await Promise.all([
+    getCatalogHeightVariants(productPage.items), getCatalogProductOptions(productPage.items),
+  ])
+
   return (
     <CatalogSection
       eyebrow={category ? "Категорія" : shopConfig.seasonal.catalogEyebrow}
@@ -46,6 +52,8 @@ export async function StorefrontCatalog({ pageNumber, searchQuery, categorySlug,
         : category ? "Зібрали товари цієї категорії, щоб вам було простіше обрати особливу річ."
           : "Обирайте подарунки та декор для особливих моментів."}
       productPage={productPage}
+      heightVariantsByProductId={heightVariantsByProductId}
+      productOptionsByProductId={productOptionsByProductId}
       categories={categories}
       activeCategorySlug={categorySlug}
       searchQuery={searchQuery}

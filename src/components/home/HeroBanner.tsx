@@ -7,111 +7,69 @@ import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { getCatalogHref } from "@/features/catalog/navigation"
+import { heroSlides, type HeroSlide } from "@/lib/config/shop"
 
-interface HeroSlide {
-  id: string
-  badge: string
-  title: string
-  description: string
-  ctaText: string
-  categorySlug: string
-  image: string
-  imageAlt: string
-  card: {
-    tag: string
-    title: string
-    subtitle: string
-    price: string
-  }
-  features: string[]
-}
-
-const HERO_SLIDES: HeroSlide[] = [
-  {
-    id: "trees",
-    badge: "Зимова колекція 2026",
-    title: "Литі ялинки для казкового затишку",
-    description:
-      "100% лита хвоя від українського виробника. Не обсипається, не має хімічного запаху та дарує святковий настрій вашій оселі понад 10 років.",
-    ctaText: "Обрати ялинку",
-    categorySlug: "lyti-yalynky",
-    image:
-      "https://images.unsplash.com/photo-1543589077-47d81606c1bf?auto=format&fit=crop&w=1200&q=80",
-    imageAlt: "Затишна новорічна ялинка з вогниками у вітальні",
-    card: {
-      tag: "Хіт сезону",
-      title: "Віденська лита ялинка 1.8м",
-      subtitle: "100% литі гілочки · Без запаху",
-      price: "2 490 ₴",
-    },
-    features: [
-      "100% лита хвоя від виробника",
-      "Заводська коробка для зберігання",
-      "Оплата при отриманні",
-    ],
-  },
-  {
-    id: "wreaths",
-    badge: "Ручна робота",
-    title: "Різдвяні вінки з натуральними шишками",
-    description:
-      "Справжній символ домашнього затишку на вхідні двері або святковий стіл. Пишна лита хвоя, надійні кріплення та цупка фабрична коробка.",
-    ctaText: "Переглянути вінки",
-    categorySlug: "rizdvyani-vinky",
-    image:
-      "https://images.unsplash.com/photo-1637617066967-0bb74ff04f66?auto=format&fit=crop&w=1200&q=80",
-    imageAlt: "Різдвяний вінок з хвої та шишок на дверях",
-    card: {
-      tag: "Новинка",
-      title: "Вінок «Зимовий ліс» 50см",
-      subtitle: "Натуральні шишки · Калина",
-      price: "650 ₴",
-    },
-    features: [
-      "Ручне складання декору",
-      "Справжні карпатські шишки",
-      "Безпечні матеріали",
-    ],
-  },
-  {
-    id: "garlands",
-    badge: "Атмосфера свята",
-    title: "Пишні гірлянди на камін та сходи",
-    description:
-      "Густа лита хвоя на міцній гнучкій основі довжиною 2.8 м. Створює чарівні спадаючі хвилі та затишок у кожному куточку вашого дому.",
-    ctaText: "Обрати гірлянду",
-    categorySlug: "khvoyni-hirlyandy",
-    image:
-      "https://images.unsplash.com/photo-1495577333576-6b302d687566?auto=format&fit=crop&w=1200&q=80",
-    imageAlt: "Хвойна святкова гірлянда над каміном",
-    card: {
-      tag: "Популярне",
-      title: "Гірлянда «Преміум хвоя» 2.8м",
-      subtitle: "Гнучка основа · Густі гілки",
-      price: "850 ₴",
-    },
-    features: [
-      "Довжина 2.8 метра",
-      "Гнучкий дріт усередині",
-      "Швидка відправка 1–2 дні",
-    ],
-  },
-]
-
-export function HeroBanner() {
+export function HeroBanner({ slides = heroSlides }: { slides?: HeroSlide[] }) {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
+  const [selectedCandidateIndices, setSelectedCandidateIndices] = useState<number[] | null>(null)
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      let previousProductId: string | undefined
+
+      setSelectedCandidateIndices(slides.map((slide, index) => {
+        const candidates = slide.candidates
+        if (!candidates?.length) {
+          previousProductId = undefined
+          return 0
+        }
+
+        const previousSlide = slides[index - 1]
+        const choices = candidates
+          .map((_, candidateIndex) => candidateIndex)
+          .filter((candidateIndex) =>
+            previousSlide?.categorySlug !== slide.categorySlug ||
+            candidates[candidateIndex].id !== previousProductId
+          )
+        const availableChoices = choices.length > 0 ? choices : candidates.map((_, candidateIndex) => candidateIndex)
+        const selectedIndex = availableChoices[Math.floor(Math.random() * availableChoices.length)]
+        previousProductId = candidates[selectedIndex].id
+        return selectedIndex
+      }))
+    })
+
+    return () => cancelAnimationFrame(frame)
+  }, [slides])
+
+  const displaySlides = slides.map((slide, index) => {
+    const candidate = slide.candidates?.[selectedCandidateIndices?.[index] ?? 0]
+    if (!candidate) return slide
+
+    return {
+      ...slide,
+      image: candidate.image,
+      imageAlt: candidate.imageAlt,
+      card: {
+        tag: slide.card.tag,
+        title: candidate.title,
+        subtitle: candidate.subtitle,
+        price: candidate.price,
+        href: candidate.href,
+      },
+    }
+  })
 
   // Автоматичне перемикання слайдів кожні 6 секунд із паузою при наведенні
   useEffect(() => {
     if (isPaused) return
 
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length)
+      setCurrentSlide((prev) => (prev + 1) % slides.length)
     }, 6000)
 
     return () => clearInterval(timer)
-  }, [isPaused])
+  }, [isPaused, slides.length])
 
   const handleSlideSelect = (index: number) => {
     setCurrentSlide(index)
@@ -119,12 +77,12 @@ export function HeroBanner() {
 
   const handlePrev = () => {
     setCurrentSlide((prev) =>
-      prev === 0 ? HERO_SLIDES.length - 1 : prev - 1
+      prev === 0 ? slides.length - 1 : prev - 1
     )
   }
 
   const handleNext = () => {
-    setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length)
+    setCurrentSlide((prev) => (prev + 1) % slides.length)
   }
 
 
@@ -155,7 +113,7 @@ export function HeroBanner() {
       <div className="grid grid-cols-1 items-center gap-10 p-6 sm:p-10 lg:grid-cols-12 lg:gap-12 lg:p-16 min-h-[540px] sm:min-h-[580px]">
         {/* Ліва колонка — тексти слайдів без багу накладання при крос-фейді */}
         <div className="relative grid items-center lg:col-span-7 min-h-[360px] sm:min-h-[400px]">
-          {HERO_SLIDES.map((s, idx) => {
+          {displaySlides.map((s, idx) => {
             const isActive = idx === currentSlide
             return (
               <div
@@ -219,12 +177,13 @@ export function HeroBanner() {
           />
 
           <div className="group relative aspect-[4/5] w-full max-w-sm sm:max-w-md overflow-hidden rounded-3xl border border-white/80 dark:border-[#F3D078]/25 bg-[#121816] shadow-2xl shadow-[#4A3508]/20 dark:shadow-black/60">
-            {HERO_SLIDES.map((s, index) => (
+            {displaySlides.map((s, index) => (
               <div
                 key={s.id}
                 className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${
                   index === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
                 }`}
+                aria-hidden={index !== currentSlide}
               >
                 <Image
                   src={s.image}
@@ -248,7 +207,7 @@ export function HeroBanner() {
             ))}
 
             {/* Плаваюча glassmorphism-плашка товару — без накладання під час зміни слайдів */}
-            {HERO_SLIDES.map((s, idx) => {
+            {displaySlides.map((s, idx) => {
               const isActive = idx === currentSlide
               return (
                 <div
@@ -279,9 +238,9 @@ export function HeroBanner() {
                         {s.card.price}
                       </span>
                       <Link
-                        href={getCatalogHref({ categorySlug: s.categorySlug })}
+                        href={s.card.href ?? getCatalogHref({ categorySlug: s.categorySlug })}
                         prefetch={false}
-                        className="inline-block text-[11px] font-medium text-white/90 underline underline-offset-2 hover:text-[#F3D078] transition-colors cursor-pointer"
+                        className="inline-block text-[11px] font-medium text-white/90 underline underline-offset-2 hover:text-[#F3D078] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F3D078] transition-colors cursor-pointer"
                       >
                         Обрати →
                       </Link>
@@ -298,7 +257,7 @@ export function HeroBanner() {
       <div className="relative z-20 flex items-center justify-center gap-4 px-6 pb-6 sm:px-10 sm:pb-8 lg:absolute lg:bottom-5 lg:left-16 lg:justify-start lg:p-0">
         {/* Індикатори-крапки */}
         <div className="flex items-center gap-1.5" role="tablist" aria-label="Слайди банера">
-          {HERO_SLIDES.map((s, idx) => (
+          {slides.map((s, idx) => (
             <button
               key={s.id}
               type="button"
@@ -306,7 +265,7 @@ export function HeroBanner() {
               aria-selected={idx === currentSlide}
               aria-label={`Перейти до слайду ${idx + 1}`}
               onClick={() => handleSlideSelect(idx)}
-              className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+              className={`h-2 rounded-full transition-all duration-300 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-foreground ${
                 idx === currentSlide
                   ? "w-7 bg-[#181512] dark:bg-white shadow-xs"
                   : "w-2 bg-[#181512]/25 hover:bg-[#181512]/50 dark:bg-white/35 dark:hover:bg-white/60"
@@ -321,7 +280,7 @@ export function HeroBanner() {
             type="button"
             onClick={handlePrev}
             aria-label="Попередній слайд"
-            className="flex size-9 items-center justify-center rounded-full border border-[#181512]/15 bg-white/75 text-[#181512] hover:bg-white dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/25 backdrop-blur-sm transition-all active:scale-95 cursor-pointer lg:size-7"
+            className="flex size-9 items-center justify-center rounded-full border border-[#181512]/15 bg-white/75 text-[#181512] hover:bg-white dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground backdrop-blur-sm transition-all active:scale-95 cursor-pointer lg:size-7"
           >
             <ChevronLeft className="size-4" />
           </button>
@@ -329,7 +288,7 @@ export function HeroBanner() {
             type="button"
             onClick={handleNext}
             aria-label="Наступний слайд"
-            className="flex size-9 items-center justify-center rounded-full border border-[#181512]/15 bg-white/75 text-[#181512] hover:bg-white dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/25 backdrop-blur-sm transition-all active:scale-95 cursor-pointer lg:size-7"
+            className="flex size-9 items-center justify-center rounded-full border border-[#181512]/15 bg-white/75 text-[#181512] hover:bg-white dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground backdrop-blur-sm transition-all active:scale-95 cursor-pointer lg:size-7"
           >
             <ChevronRight className="size-4" />
           </button>

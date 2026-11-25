@@ -2,17 +2,20 @@
 
 import { useEffect, useRef } from "react"
 import type { Product } from "@/types/product"
+import type { ProductHeightVariant } from "@/features/product/height-variants"
 import { pushViewItemList } from "@/lib/analytics/data-layer"
 import { ProductCard, ProductCardSkeleton } from "./ProductCard"
 
 interface ProductGridProps {
   products: Product[]
+  heightVariantsByProductId?: Record<string, ProductHeightVariant[]>
+  productOptionsByProductId?: Record<string, Product[]>
   searchQuery?: string
   itemListName: string
   eagerImages?: boolean
 }
 
-export function ProductGrid({ products, searchQuery, itemListName, eagerImages = false }: ProductGridProps) {
+export function ProductGrid({ products, heightVariantsByProductId = {}, productOptionsByProductId = {}, searchQuery, itemListName, eagerImages = false }: ProductGridProps) {
   const reportedProductIds = useRef(new Set<string>())
 
   useEffect(() => {
@@ -43,6 +46,8 @@ export function ProductGrid({ products, searchQuery, itemListName, eagerImages =
         <ProductCard
           key={product.id}
           product={product}
+          heightVariants={heightVariantsByProductId[product.id] ?? []}
+          productOptions={productOptionsByProductId[product.id] ?? []}
           priority={eagerImages && index < 4}
         />
       ))}

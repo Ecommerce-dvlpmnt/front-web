@@ -14,7 +14,12 @@ interface IbanPaymentDetailsProps {
 
 export function IbanPaymentDetails({ amount, orderNumber }: IbanPaymentDetailsProps) {
   const [copyMessage, setCopyMessage] = useState("")
-  const { iban, ibanRecipient, ibanEdrpou } = shopConfig.payment
+  const { iban, ibanRecipient, ibanEdrpou, ibanPurpose } = shopConfig.payment
+  const paymentPurpose = orderNumber
+    ? ibanPurpose.includes("{orderNumber}")
+      ? ibanPurpose.replaceAll("{orderNumber}", orderNumber)
+      : `${ibanPurpose} №${orderNumber}`
+    : ""
   const hasValidIban = /^UA\d{27}$/.test(iban)
   const hasPaymentDetails = hasValidIban && Boolean(ibanRecipient && ibanEdrpou)
 
@@ -57,7 +62,7 @@ export function IbanPaymentDetails({ amount, orderNumber }: IbanPaymentDetailsPr
         {orderNumber && (
           <div>
             <dt className="text-xs text-muted-foreground">Призначення платежу</dt>
-            <dd className="mt-1 font-medium">Оплата замовлення №{orderNumber}</dd>
+            <dd className="mt-1 font-medium">{paymentPurpose}</dd>
           </div>
         )}
       </dl>

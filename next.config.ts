@@ -1,8 +1,16 @@
 import type { NextConfig } from "next";
 
+const backendUrl = new URL(process.env.API_URL ?? "http://localhost:5000/api");
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
+      {
+        protocol: backendUrl.protocol.slice(0, -1) as "http" | "https",
+        hostname: backendUrl.hostname,
+        port: backendUrl.port,
+        pathname: "/uploads/**",
+      },
       {
         protocol: "https",
         hostname: "yalynka-roku.com.ua",

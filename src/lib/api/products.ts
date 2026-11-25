@@ -272,6 +272,26 @@ export async function getCatalogProductsPage(
   }
 }
 
+// Variant lookups need more than the 24 items displayed by the catalog page.
+export async function getProductOptionsSearchPage(search: string, categoryId: string): Promise<Product[]> {
+  const page = await fetchProductsPage({ search, categoryId, pageNumber: 1, pageSize: 100 })
+  if ((page.pageSize ?? 100) > 100 || page.items.length > 100) throw new Error("Backend returned invalid variant pagination")
+  return page.items.map(toProduct)
+}
+
+export async function getHeroProductCandidates(categoryId: string): Promise<Product[]> {
+  const page = await fetchProductsPage({
+    categoryId,
+    inStock: true,
+    pageNumber: 1,
+    pageSize: 20,
+  })
+
+  return page.items
+    .map(toProduct)
+    .filter((item) => item.slug && item.price > 0 && item.mainImageUrl !== PRODUCT_IMAGE_PLACEHOLDER)
+}
+
 export async function getProducts(
   options: GetProductsOptions = {}
 ): Promise<Product[]> {

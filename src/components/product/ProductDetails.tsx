@@ -20,6 +20,7 @@ import {
 import { useCart } from "@/components/cart/CartContext"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { ImageLightbox } from "@/components/ui/ImageLightbox"
 import {
   formatProductAttributeLabel,
   formatProductAttributeValue,
@@ -33,6 +34,7 @@ import { cn } from "@/lib/utils"
 import type { Category } from "@/types/category"
 import type { Product } from "@/types/product"
 import { ProductHeightLinks } from "@/features/product/ProductHeightLinks"
+import { ProductOptionControls } from "@/features/product/ProductOptionControls"
 import type { ProductHeightVariant } from "@/features/product/height-variants"
 
 const GALLERY_IMAGE_SIZES = "(min-width: 1280px) 416px, (min-width: 1024px) min(416px, calc(54vw - 170px)), (min-width: 768px) min(416px, calc(100vw - 148px)), calc(100vw - 32px)"
@@ -41,6 +43,7 @@ interface ProductDetailsProps {
   product: Product
   category?: Category
   heightVariants?: ProductHeightVariant[]
+  productOptions?: Product[]
 }
 
 function StructuredDescription({ description }: { description?: string | null }) {
@@ -190,12 +193,14 @@ export function ProductDetails({
   product,
   category,
   heightVariants = [],
+  productOptions = [],
 }: ProductDetailsProps) {
   const galleryImages = getProductGalleryImages(product)
   const attributes = parseProductAttributes(product.attributes)
   const discountPercent = getProductDiscountPercent(product)
   const isOutOfStock = product.stock <= 0
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [quantity, setQuantity] = useState(1)
   const [isAdded, setIsAdded] = useState(false)
   const [activeTab, setActiveTab] = useState<
@@ -250,9 +255,12 @@ export function ProductDetails({
           <div className="md:hidden">
             <div className="flex snap-x snap-mandatory overflow-x-auto rounded-3xl border border-border bg-muted shadow-luxury">
               {galleryImages.map((image, index) => (
-                <div
+                <button
+                  type="button"
                   key={image.src}
-                  className="relative aspect-[2/3] min-w-full snap-center"
+                  className="relative aspect-[2/3] min-w-full snap-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  aria-label={`Відкрити фото ${index + 1} на весь екран`}
+                  onClick={() => setLightboxIndex(index)}
                 >
                   <Image
                     src={image.src}
@@ -263,7 +271,7 @@ export function ProductDetails({
                     sizes={GALLERY_IMAGE_SIZES}
                     className="object-cover"
                   />
-                </div>
+                </button>
               ))}
             </div>
 
@@ -285,7 +293,7 @@ export function ProductDetails({
                   }`}
                   aria-label={`Показати фото ${index + 1}`}
                   aria-pressed={selectedImageIndex === index}
-                  onClick={() => setSelectedImageIndex(index)}
+                  onClick={() => { setSelectedImageIndex(index); setLightboxIndex(index) }}
                 >
                   <Image
                     src={image.src}
@@ -298,7 +306,7 @@ export function ProductDetails({
               ))}
             </div>
 
-            <div className="relative aspect-[2/3] w-full max-w-[26rem] overflow-hidden rounded-3xl border border-border bg-muted shadow-luxury">
+            <button type="button" aria-label="Відкрити поточне фото на весь екран" onClick={() => setLightboxIndex(selectedImageIndex)} className="relative aspect-[2/3] w-full max-w-[26rem] overflow-hidden rounded-3xl border border-border bg-muted shadow-luxury focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
               {selectedImage && (
                 <Image
                   key={selectedImage.src}
@@ -311,7 +319,7 @@ export function ProductDetails({
                   className="object-cover transition-opacity duration-300"
                 />
               )}
-            </div>
+            </button>
           </div>
         </section>
 
@@ -389,6 +397,7 @@ export function ProductDetails({
           </div>
 
           <ProductHeightLinks variants={heightVariants} productId={product.id} />
+          {productOptions.length > 0 && <ProductOptionControls product={product} options={productOptions} />}
 
           {/* Быстрые гарантии магазина */}
           <div className="mt-6 grid grid-cols-2 gap-3 border-t border-border/80 pt-5 text-xs text-muted-foreground">
@@ -627,6 +636,7 @@ export function ProductDetails({
           )}
         </div>
       </div>
+      {lightboxIndex !== null && <ImageLightbox images={galleryImages} initialIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} />}
     </>
   )
 }

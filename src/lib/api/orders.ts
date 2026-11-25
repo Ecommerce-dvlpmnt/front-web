@@ -18,7 +18,7 @@ export const checkoutDetailsSchema = z.object({
   courierStreet: z.string().optional(),
   courierBuilding: z.string().optional(),
   courierApartment: z.string().optional(),
-  paymentMethod: z.enum(["CashOnDelivery", "Online"]),
+  paymentMethod: z.enum(["CashOnDelivery", "Online", "Monobank"]),
 }).superRefine((value, context) => {
   if (value.deliveryType === "Courier") {
     if (!value.courierStreet?.trim()) context.addIssue({ code: "custom", path: ["courierStreet"], message: "Вкажіть вулицю" })
@@ -85,6 +85,7 @@ export async function createOrder(
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({
       ...parsed.data,
+      paymentMethod: parsed.data.paymentMethod === "Monobank" ? "Online" : parsed.data.paymentMethod,
       deliveryType: parsed.data.deliveryType === "Postomat" ? "Поштомат" : parsed.data.deliveryType === "Courier" ? "Кур'єр" : "Відділення",
       customerEmail: parsed.data.customerEmail || null,
       customerComment: parsed.data.customerComment || null,

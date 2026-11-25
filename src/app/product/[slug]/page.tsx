@@ -8,6 +8,7 @@ import { ProductViewTracker } from "@/components/product/ProductViewTracker"
 import { getCategories } from "@/lib/api/categories"
 import { getProductBySlug } from "@/lib/api/products"
 import { getProductHeightVariants } from "@/lib/api/product-height-variants"
+import { getProductOptions } from "@/lib/api/product-options"
 import { getProductGalleryImages, getProductMetaDescription } from "@/features/product/product-utils"
 import { shopConfig } from "@/lib/config/shop"
 
@@ -110,9 +111,10 @@ export default async function ProductPage({
 
   if (!product) notFound()
 
-  const [categories, heightVariants] = await Promise.all([
+  const [categories, heightVariants, productOptions] = await Promise.all([
     getCategories({ onlyActive: true }).catch(() => []),
     getProductHeightVariants(product).catch(() => []),
+    getProductOptions(product),
   ])
   const category = categories.find((item) => item.id === product.categoryId)
   const productUrl = await getProductUrl(product.slug)
@@ -178,7 +180,7 @@ export default async function ProductPage({
               __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
             }}
           />
-          <ProductDetails key={product.id} product={product} category={category} heightVariants={heightVariants} />
+          <ProductDetails key={product.id} product={product} category={category} heightVariants={heightVariants} productOptions={productOptions} />
         </div>
       </div>
     </div>

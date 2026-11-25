@@ -1,27 +1,30 @@
 import Link from "next/link"
 
-import { CategoryScrollNav } from "@/components/catalog/CategoryScrollNav"
+import { MobileCategoryNav } from "@/components/catalog/MobileCategoryNav"
 import { ProductGrid } from "@/components/catalog/ProductGrid"
 import { CatalogPagination } from "@/features/catalog/CatalogPagination"
 import { CatalogReset } from "@/features/catalog/CatalogReset"
 import { findCatalogCategory, getCatalogCategoryIds, getCatalogHref, type CatalogFilters as Filters } from "@/features/catalog/navigation"
+import type { ProductHeightVariant } from "@/features/product/height-variants"
 import { formatCategoryName } from "@/lib/formatters/category"
 import { cn } from "@/lib/utils"
 import type { CategoryTreeNode } from "@/types/category"
-import type { ProductPage } from "@/types/product"
+import type { Product, ProductPage } from "@/types/product"
 
 interface CatalogSectionProps {
   title: string
   eyebrow: string
   description: string
   productPage: ProductPage
+  heightVariantsByProductId?: Record<string, ProductHeightVariant[]>
+  productOptionsByProductId?: Record<string, Product[]>
   categories?: CategoryTreeNode[]
   activeCategorySlug?: string
   searchQuery?: string
   filters?: Filters
 }
 
-export function CatalogSection({ title, eyebrow, description, productPage, categories = [], activeCategorySlug, searchQuery, filters = {} }: CatalogSectionProps) {
+export function CatalogSection({ title, eyebrow, description, productPage, heightVariantsByProductId = {}, productOptionsByProductId = {}, categories = [], activeCategorySlug, searchQuery, filters = {} }: CatalogSectionProps) {
   const currentCategory = activeCategorySlug ? findCatalogCategory(categories, activeCategorySlug) : undefined
   const parent = currentCategory?.parentId ? categories.flatMap(function flatten(category): CategoryTreeNode[] {
     return [category, ...category.children.flatMap(flatten)]
@@ -40,7 +43,9 @@ export function CatalogSection({ title, eyebrow, description, productPage, categ
         <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">{description}</p>
       </div>
 
-      <CategoryScrollNav className="mt-8 flex gap-2 overflow-x-auto pb-2 scrollbar-none md:flex-wrap md:gap-2.5 md:overflow-visible" aria-label="Основні розділи каталогу">
+      <MobileCategoryNav categories={categories} activeCategorySlug={activeCategorySlug} searchQuery={searchQuery} filters={filters} />
+
+      <nav className="mt-8 hidden gap-2 pb-2 md:flex md:flex-wrap md:gap-2.5" aria-label="Основні розділи каталогу">
         <Link
           href={href()}
           prefetch={false}
@@ -63,10 +68,10 @@ export function CatalogSection({ title, eyebrow, description, productPage, categ
             </Link>
           )
         })}
-      </CategoryScrollNav>
+      </nav>
 
       {subcategories.length > 0 && (
-        <CategoryScrollNav className="mt-3 flex gap-2 overflow-x-auto pb-1 scrollbar-none md:flex-wrap md:gap-2.5 md:overflow-visible" aria-label="Підкатегорії">
+        <nav className="mt-3 hidden gap-2 pb-1 md:flex md:flex-wrap md:gap-2.5" aria-label="Підкатегорії">
           {subcategories.map((category) => (
             <Link
               key={category.id}
@@ -78,7 +83,7 @@ export function CatalogSection({ title, eyebrow, description, productPage, categ
               {formatCategoryName(category.name)}
             </Link>
           ))}
-        </CategoryScrollNav>
+        </nav>
       )}
 
       <div
@@ -106,6 +111,8 @@ export function CatalogSection({ title, eyebrow, description, productPage, categ
         <ProductGrid
           key={`${activeCategorySlug ?? "all"}:${searchQuery ?? ""}:${productPage.pageNumber}`}
           products={productPage.items}
+          heightVariantsByProductId={heightVariantsByProductId}
+          productOptionsByProductId={productOptionsByProductId}
           searchQuery={searchQuery}
           itemListName={currentTitle}
           eagerImages={Boolean(activeCategorySlug)}

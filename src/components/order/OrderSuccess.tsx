@@ -9,9 +9,12 @@ import { getLastOrder, getOrderByPublicId, type BackendOrder, type LocalOrder } 
 import { pushPurchase } from "@/lib/analytics/data-layer"
 import { formatPrice } from "@/lib/formatters/price"
 import { IbanPaymentDetails } from "@/features/checkout/IbanPaymentDetails"
+import { shopConfig } from "@/lib/config/shop"
+import { getMonobankOrderStatus } from "@/lib/api/monobank"
 
 export function OrderSuccess() {
   const [order, setOrder] = useState<(BackendOrder | LocalOrder) | null | undefined>(undefined)
+  const [detectedMonobank, setDetectedMonobank] = useState(false)
   const hasReportedPurchase = useRef(false)
 
   useEffect(() => {
@@ -44,6 +47,16 @@ export function OrderSuccess() {
       analyticsItems,
       "totalPrice" in order ? order.totalPrice : order.total
     )
+  }, [order])
+
+  useEffect(() => {
+    if (!order || order.paymentMethod !== "Online" || !shopConfig.payment.monobankEnabled) return
+    if (getLastOrder(order.publicId)?.paymentMethod === "Monobank") return
+    const controller = new AbortController()
+    getMonobankOrderStatus(order.publicId, controller.signal)
+      .then(() => { if (!controller.signal.aborted) setDetectedMonobank(true) })
+      .catch(() => { /* IBAN orders have no Monobank invoice. */ })
+    return () => controller.abort()
   }, [order])
 
   if (order === undefined) {
@@ -81,7 +94,8 @@ export function OrderSuccess() {
     )
   }
 
-  const isIban = isOnlinePayment(order)
+  const isMonobank = getLastOrder(order.publicId)?.paymentMethod === "Monobank" || detectedMonobank
+  const isIban = isOnlinePayment(order) && !isMonobank
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:py-20">
@@ -114,10 +128,12 @@ export function OrderSuccess() {
           )}
           <div>
             <h2 className="font-semibold">
-              {isIban ? "Оплата за реквізитами IBAN" : "Оплата при отриманні"}
+              {isMonobank ? "Оплата карткою онлайн" : isIban ? "Оплата за реквізитами IBAN" : "Оплата при отриманні"}
             </h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              {isIban
+              {isMonobank
+                ? "Перевірте статус платежу або перейдіть до оплати замовлення."
+                : isIban
                 ? "Замовлення зарезервовано. Ми почнемо комплектацію та відправку після підтвердження оплати."
                 : "Замовлення буде відправлено Новою Поштою з оплатою при отриманні у вибраній точці."}
             </p>
@@ -129,6 +145,13 @@ export function OrderSuccess() {
             amount={"totalPrice" in order ? order.totalPrice : order.total}
             orderNumber={orderNumber(order)}
           />
+        )}
+        {isMonobank && (
+          <Button asChild className="mt-5">
+            <Link href={`/payment-result?publicId=${encodeURIComponent(order.publicId)}`}>
+              {"paymentStatus" in order && order.paymentStatus === "Paid" ? "Переглянути оплату" : "Перейти до оплати / перевірити статус"}
+            </Link>
+          </Button>
         )}
       </div>
 
