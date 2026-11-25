@@ -53,6 +53,16 @@ function renderStorefront(load, Component, props) {
   return renderToStaticMarkup(React.createElement(ImageConfigContext.Provider, { value: config }, React.createElement(Component, props)))
 }
 
+test("next/image uses direct CDN URLs when optimization is disabled", () => {
+  const load = sourceLoader()
+  const Image = nativeRequire("next/image").default
+  const cdnUrl = "https://pub-579e9008393e47219443a996a9a7c1d9.r2.dev/products/tree.webp"
+  const html = renderStorefront(load, Image, { src: cdnUrl, width: 120, height: 120, alt: "Ялинка" })
+  assert.equal(load("@next-config").default.images.unoptimized, true)
+  assert.match(html, /src="https:\/\/pub-579e9008393e47219443a996a9a7c1d9\.r2\.dev\/products\/tree\.webp"/)
+  assert.doesNotMatch(html, /\/_next\/image/)
+})
+
 function product(index, extra = {}) {
   return {
     id: `p-${index}`, slug: `product-${index}`, name: `Товар ${index}`, price: 200,
@@ -151,10 +161,11 @@ test("a failed later page does not publish a partial feed", async () => {
   await assert.rejects(load("@/app/feed.xml/route").GET(), /503/)
 })
 
-test("feed contains all eligible products, sale prices, escaped XML and canonical image URLs", async () => {
+test("feed contains all eligible products, sale prices, escaped XML and direct image URLs", async () => {
   const items = Array.from({ length: 441 }, (_, i) => product(i))
   items[0] = product(0, { oldPrice: 300, name: 'Ялинка & <декор> "Свято"', description: "<p>Опис & деталі</p>" })
   items[1] = product(1, { oldPrice: 100 })
+  items[3] = product(3, { mainImageUrl: "/uploads/products/tree.webp" })
   items.push(product(441, { isActive: false }), product(442, { stock: 0 }))
   const api = pagedApi(items)
   const response = await sourceLoader(api)("@/app/feed.xml/route").GET()
@@ -168,11 +179,14 @@ test("feed contains all eligible products, sale prices, escaped XML and canonica
   assert.match(entries[1], /<g:price>200.00 UAH<\/g:price>/)
   assert.doesNotMatch(entries[1], /sale_price/)
   assert.doesNotMatch(entries[2], /sale_price/)
-  for (const [, encodedUrl] of xml.matchAll(/<(?:g:link|link|g:image_link)>(.*?)<\/(?:g:link|link|g:image_link)>/g)) {
+  for (const [, encodedUrl] of xml.matchAll(/<(?:g:link|link)>(.*?)<\/(?:g:link|link)>/g)) {
     const url = new URL(encodedUrl.replaceAll("&amp;", "&"))
     assert.equal(url.origin, origin)
-    if (url.pathname === "/_next/image") assert.match(url.searchParams.get("url"), /demo.supabase.co/)
   }
+  const imageUrls = [...xml.matchAll(/<g:image_link>(.*?)<\/g:image_link>/g)].map(([, value]) => value.replaceAll("&amp;", "&"))
+  assert.equal(imageUrls[0], "https://demo.supabase.co/storage/v1/object/public/products/tree.webp")
+  assert.equal(imageUrls[3], "https://api.test/uploads/products/tree.webp")
+  assert.ok(imageUrls.every(url => !url.includes("/_next/image")))
   assert.ok(api.calls.every(call => call.query.get("Summary") === "false"))
 })
 
@@ -248,16 +262,16 @@ test("missing payment settings show a useful message and disable copying", () =>
   assert.doesNotMatch(html, /NEXT_PUBLIC|Не налаштовано/)
 })
 
-test("product cards render lazy responsive images without fabricated ratings", () => {
+test("product cards render lazy direct images without fabricated ratings", () => {
   const load = sourceLoader({ overrides: {
     "@/components/cart/CartContext": { useCart: () => ({ addItem() {}, items: [] }) },
   } })
   const Card = load("@/components/catalog/ProductCard").ProductCard
   const html = renderStorefront(load, Card, { product: product(1) })
   assert.match(html, /loading="lazy"/)
-  assert.match(html, /sizes=/)
+  assert.match(html, /src="https:\/\/demo\.supabase\.co\/storage\/v1\/object\/public\/products\/tree\.webp"/)
+  assert.doesNotMatch(html, /\/_next\/image/)
   assert.match(html, /aspect-\[2\/3\]/)
-  assert.match(html, /286px/)
   assert.doesNotMatch(html, /відгук|lucide-star|4\.8|4\.9/)
 })
 
@@ -268,7 +282,8 @@ test("product details omit artificial reviews and eagerly load the main gallery 
   const Details = load("@/components/product/ProductDetails").ProductDetails
   const html = renderStorefront(load, Details, { product: product(1) })
   assert.match(html, /loading="eager"/)
-  assert.match(html, /416px/)
+  assert.match(html, /src="https:\/\/demo\.supabase\.co\/storage\/v1\/object\/public\/products\/tree\.webp"/)
+  assert.doesNotMatch(html, /\/_next\/image/)
   assert.doesNotMatch(html, /Відгуки покупців|reviews-section|lucide-star|Безкоштовна доставка/)
 })
 

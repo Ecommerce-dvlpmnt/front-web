@@ -31,6 +31,16 @@ function absoluteUrl(value: string): string {
   }
 }
 
+function absoluteImageUrl(value: string): string {
+  try {
+    const backendOrigin = new URL(process.env.API_URL ?? "http://localhost:5000/api").origin
+    const url = new URL(value, `${backendOrigin}/`)
+    return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : ""
+  } catch {
+    return ""
+  }
+}
+
 function formatPrice(value: number): string {
   return `${value.toFixed(2)} UAH`
 }
@@ -78,20 +88,13 @@ export async function GET(): Promise<Response> {
         product.price > 0 &&
         Boolean(product.mainImageUrl?.trim()) &&
         product.mainImageUrl.trim() !== "/product-placeholder.svg" &&
-        Boolean(absoluteUrl(product.mainImageUrl.trim()))
+        Boolean(absoluteImageUrl(product.mainImageUrl.trim()))
     )
     .map((product) => {
       const title = product.name.trim() || product.sku || product.id
       const description =
         stripHtml(product.description ?? "") || title
-      // Serve the Storage image through Next's configured optimizer on our canonical
-      // domain. Replacing a Supabase hostname alone would produce a broken URL.
-      const imageUrl = new URL("/_next/image", `${SITE_URL}/`)
-      imageUrl.search = new URLSearchParams({
-        url: absoluteUrl(product.mainImageUrl.trim()),
-        w: "1200",
-        q: "75",
-      }).toString()
+      const imageUrl = absoluteImageUrl(product.mainImageUrl.trim())
       const hasSalePrice = product.oldPrice != null &&
         Number.isFinite(product.oldPrice) && product.oldPrice > product.price
       const productUrl = absoluteUrl(
@@ -116,7 +119,7 @@ export async function GET(): Promise<Response> {
       <g:title>${escapeXml(title)}</g:title>
       <g:description>${escapeXml(description)}</g:description>
       <g:link>${escapeXml(productUrl)}</g:link>
-      <g:image_link>${escapeXml(imageUrl.toString())}</g:image_link>
+      <g:image_link>${escapeXml(imageUrl)}</g:image_link>
       <g:availability>in_stock</g:availability>
       <g:price>${formatPrice(hasSalePrice ? product.oldPrice! : product.price)}</g:price>
       ${hasSalePrice ? `<g:sale_price>${formatPrice(product.price)}</g:sale_price>` : ""}
