@@ -1,12 +1,9 @@
-import type { Metadata } from "next"
+import { pageMetadata } from "@/lib/seo/metadata"
 
 import { shopConfig } from "@/lib/config/shop"
 import { InfoPage } from "@/components/content/InfoPage"
 
-export const metadata: Metadata = {
-  title: "Доставка й оплата — Jingle Decor",
-  description: "Умови комплектації, доставки Новою Поштою та оплати замовлень Jingle Decor.",
-}
+export const metadata = pageMetadata("/delivery-and-payment", "Доставка й оплата — Jingle Decor", "Умови комплектації, доставки Новою Поштою та оплати замовлень Jingle Decor.")
 
 export default function DeliveryAndPaymentPage() {
   return (

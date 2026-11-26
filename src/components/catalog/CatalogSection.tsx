@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { JsonLd } from "@/components/seo/JsonLd"
 
 import { MobileCategoryNav } from "@/components/catalog/MobileCategoryNav"
 import { ProductGrid } from "@/components/catalog/ProductGrid"
@@ -12,6 +13,7 @@ import type { CategoryTreeNode } from "@/types/category"
 import type { Product, ProductPage } from "@/types/product"
 
 interface CatalogSectionProps {
+  structuredData?: unknown
   title: string
   eyebrow: string
   description: string
@@ -24,7 +26,7 @@ interface CatalogSectionProps {
   filters?: Filters
 }
 
-export function CatalogSection({ title, eyebrow, description, productPage, heightVariantsByProductId = {}, productOptionsByProductId = {}, categories = [], activeCategorySlug, searchQuery, filters = {} }: CatalogSectionProps) {
+export function CatalogSection({ title, eyebrow, description, productPage, heightVariantsByProductId = {}, productOptionsByProductId = {}, categories = [], activeCategorySlug, searchQuery, filters = {}, structuredData }: CatalogSectionProps) {
   const currentCategory = activeCategorySlug ? findCatalogCategory(categories, activeCategorySlug) : undefined
   const parent = currentCategory?.parentId ? categories.flatMap(function flatten(category): CategoryTreeNode[] {
     return [category, ...category.children.flatMap(flatten)]
@@ -35,10 +37,13 @@ export function CatalogSection({ title, eyebrow, description, productPage, heigh
 
   return (
     <section className="py-8 sm:py-10">
+      {structuredData ? <JsonLd data={structuredData} /> : null}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase">{eyebrow}</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">{currentTitle}</h1>
+          {activeCategorySlug
+            ? <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">{currentTitle}</h1>
+            : <h2 className="mt-2 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">{currentTitle}</h2>}
         </div>
         <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">{description}</p>
       </div>
@@ -93,7 +98,9 @@ export function CatalogSection({ title, eyebrow, description, productPage, heigh
         <div className="flex items-center gap-3 text-muted-foreground">
           <span className="inline-block size-2 rounded-full bg-[#D4AF37] shadow-[0_0_8px_rgba(212,175,55,0.6)]" aria-hidden="true" />
           <span className="font-medium tracking-wide text-foreground">
-            Товарів: {productPage.totalCount}
+            {productPage.totalSkuCount !== undefined
+              ? `Моделей: ${productPage.totalCount} · Варіантів товарів: ${productPage.totalSkuCount}`
+              : `Товарів: ${productPage.totalCount}`}
           </span>
           {(searchQuery || filters.sortBy || filters.minPrice !== undefined || filters.maxPrice !== undefined || filters.inStock) && (
             <CatalogReset categorySlug={activeCategorySlug} />
@@ -116,6 +123,7 @@ export function CatalogSection({ title, eyebrow, description, productPage, heigh
           searchQuery={searchQuery}
           itemListName={currentTitle}
           eagerImages={Boolean(activeCategorySlug)}
+          prominent={!activeCategorySlug}
         />
       </div>
       <CatalogPagination pageNumber={productPage.pageNumber} totalPages={productPage.totalPages} categorySlug={activeCategorySlug} searchQuery={searchQuery} filters={filters} />

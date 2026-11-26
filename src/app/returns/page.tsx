@@ -1,12 +1,9 @@
-import type { Metadata } from "next"
+import { pageMetadata } from "@/lib/seo/metadata"
 
 import { InfoPage } from "@/components/content/InfoPage"
 import { shopConfig } from "@/lib/config/shop"
 
-export const metadata: Metadata = {
-  title: "Обмін і повернення — Jingle Decor",
-  description: "Умови обміну та повернення товарів Jingle Decor.",
-}
+export const metadata = pageMetadata("/returns", "Обмін і повернення — Jingle Decor", "Умови обміну та повернення товарів Jingle Decor.")
 
 export default function ReturnsPage() {
   return (

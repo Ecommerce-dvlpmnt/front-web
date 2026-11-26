@@ -10,6 +10,7 @@ import { GoogleTag } from "@/components/analytics/GoogleTag";
 import { CartProvider } from "@/components/cart/CartContext";
 import { ReferralCapture } from "@/components/referral/ReferralCapture";
 import { buildCategoryTree, getCategories } from "@/lib/api/categories";
+import { getSiteOrigin } from "@/lib/config/site";
 
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
@@ -31,6 +32,9 @@ const fontHeading = Onest({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getSiteOrigin()),
+  openGraph: { siteName: "Jingle Decor", locale: "uk_UA", type: "website", images: [`${getSiteOrigin()}/og`] },
+  twitter: { card: "summary_large_image", images: [`${getSiteOrigin()}/og`] },
   title: "Jingle Decor — литі ялинки та святковий декор",
   description: "Штучні литі ялинки, різдвяні вінки та хвойні гірлянди від українського бренду Jingle Decor.",
   verification: {

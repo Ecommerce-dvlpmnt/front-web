@@ -2,11 +2,12 @@ import { notFound, redirect } from "next/navigation"
 
 import { CatalogSection } from "@/components/catalog/CatalogSection"
 import { buildCategoryTree, getCategories } from "@/lib/api/categories"
-import { getCatalogHeightVariants } from "@/lib/api/product-height-variants"
-import { getCatalogProductOptions } from "@/lib/api/product-options"
-import { getCatalogProductsPage } from "@/lib/api/products"
+import { getProducts } from "@/lib/api/products"
 import { shopConfig } from "@/lib/config/shop"
+import { getSeoData } from "@/lib/api/seo"
+import { categoryGraph } from "@/lib/seo/structured-data"
 import { findCatalogCategory, getCatalogCategoryIds, getCatalogHref, type CatalogFilters } from "@/features/catalog/navigation"
+import { getGroupVariantMaps, groupProducts, homepageGroups, paginateGroups } from "@/features/catalog/group-products"
 
 interface StorefrontCatalogProps {
   pageNumber: number
@@ -19,32 +20,38 @@ export async function StorefrontCatalog({ pageNumber, searchQuery, categorySlug,
   const categoriesPromise = categorySlug
     ? getCategories({ onlyActive: true }).then(buildCategoryTree)
     : getCategories({ onlyActive: true }).then(buildCategoryTree).catch(() => [])
-  const productPagePromise = categorySlug
+  const productsPromise = categorySlug
     ? categoriesPromise.then((categories) => {
         const category = findCatalogCategory(categories, categorySlug)
         if (!category) notFound()
         const categoryIds = getCatalogCategoryIds(category)
-        return getCatalogProductsPage({
+        return getProducts({
+          includeDetails: true,
           ...(categoryIds.length === 1 ? { categoryId: category.id } : { categoryIds }),
           search: searchQuery,
           ...filters,
-          pageNumber,
         })
       })
-    : getCatalogProductsPage({ search: searchQuery, pageNumber, ...filters })
-  const [categories, productPage] = await Promise.all([categoriesPromise, productPagePromise])
+    : getProducts({ includeDetails: true, search: searchQuery, ...filters })
+  const [categories, products] = await Promise.all([categoriesPromise, productsPromise])
   const category = categorySlug ? findCatalogCategory(categories, categorySlug) : undefined
+  const home = !categorySlug
+  const groups = home ? homepageGroups(products) : groupProducts(products, (product) => product.isFeatured === true)
+  const productPage = paginateGroups(groups, pageNumber)
 
   if (pageNumber > Math.max(1, productPage.totalPages)) {
     redirect(getCatalogHref({ categorySlug, searchQuery, filters, pageNumber: Math.max(1, productPage.totalPages) }))
   }
 
-  const [heightVariantsByProductId, productOptionsByProductId] = await Promise.all([
-    getCatalogHeightVariants(productPage.items), getCatalogProductOptions(productPage.items),
-  ])
+  const pageGroups = groups.slice((pageNumber - 1) * productPage.pageSize, pageNumber * productPage.pageSize)
+  const hasFilters = Boolean(filters.sortBy || filters.minPrice !== undefined || filters.maxPrice !== undefined || filters.inStock)
+  const allProducts = searchQuery || hasFilters ? await getProducts({ includeDetails: true }) : products
+  const { heightVariantsByProductId, productOptionsByProductId } = getGroupVariantMaps(pageGroups, allProducts)
+  const seo = category ? await getSeoData("category", category.slug) : undefined
 
   return (
     <CatalogSection
+      structuredData={category ? categoryGraph(seo?.jsonLd, category, productPage.items, pageNumber) : undefined}
       eyebrow={category ? "Категорія" : shopConfig.seasonal.catalogEyebrow}
       title={category?.name ?? shopConfig.seasonal.catalogTitle}
       description={searchQuery

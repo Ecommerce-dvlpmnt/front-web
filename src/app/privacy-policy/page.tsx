@@ -1,11 +1,8 @@
-import type { Metadata } from "next"
+import { pageMetadata } from "@/lib/seo/metadata"
 
 import { InfoPage } from "@/components/content/InfoPage"
 
-export const metadata: Metadata = {
-  title: "Політика конфіденційності — Jingle Decor",
-  description: "Політика обробки персональних даних на сайті Jingle Decor.",
-}
+export const metadata = pageMetadata("/privacy-policy", "Політика конфіденційності — Jingle Decor", "Політика обробки персональних даних на сайті Jingle Decor.")
 
 export default function PrivacyPolicyPage() {
   return (

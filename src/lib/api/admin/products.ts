@@ -1,5 +1,6 @@
 import { ApiError, apiFetch } from "@/lib/api/client"
 import { adminApiFetch } from "@/lib/api/admin/auth"
+import { mapProductFlags, type ProductFlagsDto } from "@/lib/api/product-flags"
 import type {
   AdminProduct,
   ProductImage,
@@ -28,6 +29,9 @@ export interface ProductInput {
   metaDescription: string | null
   weightKg: number | null
   isActive: boolean
+  showOnHomepage?: boolean
+  isRecommended?: boolean
+  isFeatured?: boolean
   images: ProductImageInput[]
 }
 
@@ -48,7 +52,7 @@ export interface AdminProductPage {
   totalPages: number
 }
 
-interface ProductDto {
+interface ProductDto extends ProductFlagsDto {
   id: string
   categoryId?: string | null
   categoryName?: string | null
@@ -195,6 +199,7 @@ function toAdminProduct(product: ProductDto): AdminProduct {
     weightKg,
     supplierId: String(product.supplierId || ""),
     isActive: product.isActive !== false,
+    ...mapProductFlags(product),
     createdAt: product.createdAt || new Date().toISOString(),
     updatedAt: product.updatedAt || new Date().toISOString(),
     images,

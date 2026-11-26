@@ -6,7 +6,7 @@ import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
 
-export function AdminNavigation({ name }: { name: string }) {
+export function AdminNavigation({ name, pendingReviews = 0 }: { name: string; pendingReviews?: number }) {
   const router = useRouter()
   const [isSigningOut, setIsSigningOut] = useState(false)
 
@@ -20,10 +20,11 @@ export function AdminNavigation({ name }: { name: string }) {
   return (
     <header className="border-b border-border bg-card">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
-        <nav className="flex items-center gap-4 text-sm font-medium" aria-label="Адмін-навігація">
+        <nav className="flex flex-wrap items-center gap-4 text-sm font-medium" aria-label="Адмін-навігація">
           <Link href="/admin/products" className="hover:underline">Товари</Link>
           <Link href="/admin/orders" className="hover:underline">Замовлення</Link>
           <Link href="/admin/analytics" className="hover:underline">Аналітика</Link>
+          <Link href="/admin/reviews" className="inline-flex items-center gap-1.5 hover:underline">Відгуки{pendingReviews > 0 && <span aria-label={`${pendingReviews} на модерації`} className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">{pendingReviews}</span>}</Link>
           <Link href="/admin/suppliers" className="hover:underline">Постачальники</Link>
         </nav>
         <div className="flex items-center gap-3">

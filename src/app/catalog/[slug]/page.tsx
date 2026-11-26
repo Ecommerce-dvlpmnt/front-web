@@ -1,4 +1,8 @@
 import { Suspense } from "react"
+import { notFound } from "next/navigation"
+import { getCategoryBySlug } from "@/lib/api/categories"
+import { getSeoData } from "@/lib/api/seo"
+import { catalogMetadata } from "@/lib/seo/metadata"
 
 import { CatalogSkeleton } from "@/features/catalog/CatalogSkeleton"
 import { StorefrontCatalog } from "@/features/catalog/StorefrontCatalog"
@@ -10,10 +14,20 @@ interface CategoryPageProps {
   searchParams: Promise<CatalogSearchParams>
 }
 
+export async function generateMetadata({ params, searchParams }: CategoryPageProps) {
+  const [{ slug }, query] = await Promise.all([params, searchParams])
+  const [category, seo] = await Promise.all([getCategoryBySlug(slug), getSeoData("category", slug)])
+  if (!category || !category.isActive) notFound()
+  // Legacy API metaTitle can contain the former supplier's brand.
+  const title = seo.metaTitle && !/Ялинка Року|yalynka-roku/iu.test(seo.metaTitle) ? seo.metaTitle : `${category.name} — Jingle Decor`
+  return catalogMetadata(`/catalog/${encodeURIComponent(slug)}`, title,
+    seo.metaDescription || `${category.name}: доступні моделі, ціни та характеристики. Замовляйте у Jingle Decor з доставкою по Україні.`, query)
+}
+
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
   const [{ slug }, query] = await Promise.all([params, searchParams])
   const pageNumber = getCatalogPageNumber(query.page)
-  const searchQuery = getCatalogQuery(query.query)
+  const searchQuery = getCatalogQuery(query.query ?? query.search)
   const filters = getCatalogFilters(query)
 
   return (

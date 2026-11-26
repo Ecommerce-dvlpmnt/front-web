@@ -1,65 +1,27 @@
 import type { Metadata } from "next"
-import { headers } from "next/headers"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 
+import { ProductReviews } from "@/components/product/ProductReviews"
+import { getProductReviews } from "@/lib/api/reviews"
+import { fallbackReviewSummary } from "@/features/reviews/review-utils"
 import { ProductDetails } from "@/components/product/ProductDetails"
 import { ProductViewTracker } from "@/components/product/ProductViewTracker"
+import { RecommendedProducts } from "@/components/product/RecommendedProducts"
 import { getCategories } from "@/lib/api/categories"
-import { getProductBySlug } from "@/lib/api/products"
+import { getProductBySlug, getProducts } from "@/lib/api/products"
 import { getProductHeightVariants } from "@/lib/api/product-height-variants"
 import { getProductOptions } from "@/lib/api/product-options"
-import { getProductGalleryImages, getProductMetaDescription } from "@/features/product/product-utils"
-import { shopConfig } from "@/lib/config/shop"
+import { getProductGalleryImages } from "@/features/product/product-utils"
+import { getSeoData } from "@/lib/api/seo"
+import { pageMetadata, productMetadataText } from "@/lib/seo/metadata"
+import { absoluteImage, productGraph, serializeJsonLd } from "@/lib/seo/structured-data"
+import { getGroupVariantMaps, recommendedGroups } from "@/features/catalog/group-products"
 
 interface ProductPageProps {
   params: Promise<{
     slug: string
   }>
-}
-
-async function getSiteOrigin() {
-  const configuredOrigin = process.env.NEXT_PUBLIC_SITE_URL?.trim()
-
-  if (configuredOrigin) {
-    return configuredOrigin.replace(/\/+$/, "")
-  }
-
-  const requestHeaders = await headers()
-  const forwardedHost = requestHeaders.get("x-forwarded-host")
-  const host = (forwardedHost ?? requestHeaders.get("host"))
-    ?.split(",")[0]
-    .trim()
-
-  if (!host) return "http://localhost:3000"
-
-  const forwardedProtocol = requestHeaders.get("x-forwarded-proto")
-    ?.split(",")[0]
-    .trim()
-  const protocol =
-    forwardedProtocol ||
-    (host.startsWith("localhost") || host.startsWith("127.")
-      ? "http"
-      : "https")
-
-  return `${protocol}://${host}`
-}
-
-async function getProductUrl(slug: string) {
-  const origin = await getSiteOrigin()
-  return new URL(`/product/${encodeURIComponent(slug)}`, origin).toString()
-}
-
-function absoluteUrl(value: string, origin: string): string {
-  try {
-    return new URL(value, `${origin}/`).toString()
-  } catch {
-    return ""
-  }
-}
-
-function stripHtml(value: string): string {
-  return value.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
 }
 
 export async function generateMetadata({
@@ -68,39 +30,16 @@ export async function generateMetadata({
   const { slug } = await params
   const product = await getProductBySlug(slug)
 
-  if (!product) notFound()
+  if (!product || product.isActive === false) notFound()
 
-  const title =
-    product.metaTitle?.trim() ||
-    `${product.name} — купити в інтернет-магазині`
-  const description = getProductMetaDescription(product)
-  const productUrl = await getProductUrl(product.slug)
-  const origin = await getSiteOrigin()
-  const images = getProductGalleryImages(product).flatMap((image) => {
-    const url = absoluteUrl(image.src, origin)
-    return url ? [{ url, alt: image.alt }] : []
-  })
-
-  return {
-    title,
-    description,
-    alternates: {
-      canonical: productUrl,
-    },
-    openGraph: {
-      title,
-      description,
-      url: productUrl,
-      type: "website",
-      images,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: images.map((image) => image.url),
-    },
-  }
+  const seo = await getSeoData("product", product.slug)
+  const text = productMetadataText(product, seo)
+  return pageMetadata(
+    `/product/${encodeURIComponent(product.slug)}`,
+    text.title,
+    text.description,
+    getProductGalleryImages(product).map((image) => absoluteImage(image.src)).filter(Boolean),
+  )
 }
 
 export default async function ProductPage({
@@ -109,41 +48,20 @@ export default async function ProductPage({
   const { slug } = await params
   const product = await getProductBySlug(slug)
 
-  if (!product) notFound()
+  if (!product || product.isActive === false) notFound()
 
-  const [categories, heightVariants, productOptions] = await Promise.all([
+  const [categories, heightVariants, productOptions, recommendedCandidates, seo, reviewResult] = await Promise.all([
     getCategories({ onlyActive: true }).catch(() => []),
     getProductHeightVariants(product).catch(() => []),
     getProductOptions(product),
+    getProducts({ inStock: true, includeDetails: true }).catch(() => []),
+    getSeoData("product", product.slug),
+    getProductReviews(product.id).then((summary) => ({ summary, unavailable: false })).catch(() => ({ summary: fallbackReviewSummary(product), unavailable: true })),
   ])
+  const suggestedGroups = recommendedGroups(recommendedCandidates, product, 12)
+  const recommendedVariants = getGroupVariantMaps(suggestedGroups, recommendedCandidates)
   const category = categories.find((item) => item.id === product.categoryId)
-  const productUrl = await getProductUrl(product.slug)
-  const galleryImages = getProductGalleryImages(product)
-  const description =
-    stripHtml(product.description?.trim() || "") || getProductMetaDescription(product)
-  const origin = new URL(productUrl).origin
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: product.name,
-    image: galleryImages
-      .map((image) => absoluteUrl(image.src, origin))
-      .filter(Boolean),
-    description,
-    sku: product.sku,
-    brand: { "@type": "Brand", name: shopConfig.brand },
-    offers: {
-      "@type": "Offer",
-      price: product.price,
-      priceCurrency: "UAH",
-      itemCondition: "https://schema.org/NewCondition",
-      availability:
-        product.stock > 0
-          ? "https://schema.org/InStock"
-          : "https://schema.org/OutOfStock",
-      url: productUrl,
-    },
-  }
+  const jsonLd = productGraph(seo.jsonLd, product, category, reviewResult.summary)
 
   return (
     <div className="bg-background">
@@ -177,10 +95,15 @@ export default async function ProductPage({
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{
-              __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+              __html: serializeJsonLd(jsonLd),
             }}
           />
           <ProductDetails key={product.id} product={product} category={category} heightVariants={heightVariants} productOptions={productOptions} />
+          <ProductReviews summary={reviewResult.summary} unavailable={reviewResult.unavailable} />
+          <RecommendedProducts
+            products={suggestedGroups.map((group) => group.product)}
+            {...recommendedVariants}
+          />
         </div>
       </div>
     </div>

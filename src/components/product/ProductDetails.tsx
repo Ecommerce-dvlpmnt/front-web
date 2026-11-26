@@ -74,49 +74,6 @@ function StructuredDescription({ description }: { description?: string | null })
 
   return (
     <div className="space-y-6">
-      {/* Ключові властивості виробу у витриманому лаконічному форматі */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4 py-3.5 border-y border-border/80 my-2">
-        <div>
-          <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground block">
-            Хвоя
-          </span>
-          <p className="mt-0.5 text-xs sm:text-sm font-semibold text-foreground">
-            100% Лита
-          </p>
-          <p className="text-[11px] text-muted-foreground">Як жива лісова хвоя</p>
-        </div>
-
-        <div>
-          <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground block">
-            Безпека
-          </span>
-          <p className="mt-0.5 text-xs sm:text-sm font-semibold text-foreground">
-            Без запаху
-          </p>
-          <p className="text-[11px] text-muted-foreground">Безпечна для родини</p>
-        </div>
-
-        <div>
-          <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground block">
-            Конструкція
-          </span>
-          <p className="mt-0.5 text-xs sm:text-sm font-semibold text-foreground">
-            Зручне складання
-          </p>
-          <p className="text-[11px] text-muted-foreground">Пишні пружні гілочки</p>
-        </div>
-
-        <div>
-          <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground block">
-            Пакування
-          </span>
-          <p className="mt-0.5 text-xs sm:text-sm font-semibold text-foreground">
-            Фірмова коробка
-          </p>
-          <p className="text-[11px] text-muted-foreground">Зручно зберігати щороку</p>
-        </div>
-      </div>
-
       {/* Контейнер структурованого опису */}
       <div className="relative">
         <div
@@ -140,9 +97,9 @@ function StructuredDescription({ description }: { description?: string | null })
             const isHeading = (para.endsWith(":") || para.length < 50) && !para.includes(".")
             if (isHeading) {
               return (
-                <h4 key={idx} className="pt-2 font-semibold text-foreground text-sm uppercase tracking-wider">
+                <h3 key={idx} className="pt-2 font-semibold text-foreground text-sm uppercase tracking-wider">
                   {para}
-                </h4>
+                </h3>
               )
             }
 
@@ -548,40 +505,15 @@ export function ProductDetails({
           {/* Вкладка 1: Опис товару */}
           {activeTab === "description" && (
             <div className="space-y-10 animate-in fade-in duration-300">
+              <h2 className="sr-only">Опис товару</h2>
               <StructuredDescription description={product.description} />
-
-              {/* 4 картки фабричних переваг виробу */}
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <div className="rounded-2xl border border-border/80 bg-card p-4 shadow-xs">
-                  <ShieldCheck className="size-5 text-[#C8923A] dark:text-[#D4AF37]" />
-                  <p className="mt-2 text-sm font-semibold text-foreground">100% Безпечні матеріали</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Безпечний еко-матеріал, гіпоалергенна хвоя без стороннього запаху.</p>
-                </div>
-
-                <div className="rounded-2xl border border-border/80 bg-card p-4 shadow-xs">
-                  <CheckCircle2 className="size-5 text-[#C8923A] dark:text-[#D4AF37]" />
-                  <p className="mt-2 text-sm font-semibold text-foreground">Пожежобезпечність</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Хвоя не підтримує горіння, а плавиться. Безпечно для дітей та тварин.</p>
-                </div>
-
-                <div className="rounded-2xl border border-border/80 bg-card p-4 shadow-xs">
-                  <RotateCcw className="size-5 text-[#C8923A] dark:text-[#D4AF37]" />
-                  <p className="mt-2 text-sm font-semibold text-foreground">Служба 10+ сезонів</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Гілочки не деформуються, не ламаються і зберігають пишність роками.</p>
-                </div>
-
-                <div className="rounded-2xl border border-border/80 bg-card p-4 shadow-xs">
-                  <Truck className="size-5 text-[#C8923A] dark:text-[#D4AF37]" />
-                  <p className="mt-2 text-sm font-semibold text-foreground">Щільна упаковка</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Постачається у надійній фірмовій коробці, зручній для сезонного зберігання.</p>
-                </div>
-              </div>
             </div>
           )}
 
           {/* Вкладка 2: Характеристики */}
-          {activeTab === "attributes" && attributes.length > 0 && (
-            <div className="overflow-hidden rounded-2xl border border-border/90 bg-card shadow-xs animate-in fade-in duration-300">
+          {attributes.length > 0 && (
+            <div hidden={activeTab !== "attributes"} style={activeTab !== "attributes" ? { display: "none" } : undefined} className="overflow-hidden rounded-2xl border border-border/90 bg-card shadow-xs animate-in fade-in duration-300">
+              <h2 className="sr-only">Характеристики товару</h2>
               <dl className="divide-y divide-border">
                 {attributes.map(([key, value], idx) => (
                   <div
@@ -603,11 +535,11 @@ export function ProductDetails({
           )}
 
           {/* Вкладка 3: Доставка и оплата */}
-          {activeTab === "delivery" && (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 animate-in fade-in duration-300">
+          <div hidden={activeTab !== "delivery"} style={activeTab !== "delivery" ? { display: "none" } : undefined} className="grid grid-cols-1 gap-6 sm:grid-cols-3 animate-in fade-in duration-300">
+              <h2 className="sr-only">Доставка та оплата</h2>
               <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-xs">
                 <Truck className="size-6 text-[#C8923A] dark:text-[#D4AF37]" />
-                <h4 className="mt-3 text-base font-semibold text-foreground">Доставка Новою Поштою</h4>
+                <h3 className="mt-3 text-base font-semibold text-foreground">Доставка Новою Поштою</h3>
                 <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                   Швидка відправка по всій Україні протягом 1–2 робочих днів. Доставка у будь-яке відділення, поштомат або адресна доставка кур&apos;єром.
                 </p>
@@ -618,7 +550,7 @@ export function ProductDetails({
 
               <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-xs">
                 <CreditCard className="size-6 text-[#C8923A] dark:text-[#D4AF37]" />
-                <h4 className="mt-3 text-base font-semibold text-foreground">Зручні способи оплати</h4>
+                <h3 className="mt-3 text-base font-semibold text-foreground">Зручні способи оплати</h3>
                 <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                   • Оплата при отриманні (післяплата) після огляду виробу у відділенні.
                   {shopConfig.payment.iban && <><br />• Оплата за реквізитами IBAN ФОП.</>}
@@ -627,13 +559,12 @@ export function ProductDetails({
 
               <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-xs">
                 <RotateCcw className="size-6 text-[#C8923A] dark:text-[#D4AF37]" />
-                <h4 className="mt-3 text-base font-semibold text-foreground">Гарантія та повернення</h4>
+                <h3 className="mt-3 text-base font-semibold text-foreground">Гарантія та повернення</h3>
                 <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                   14 днів на повернення або обмін відповідно до Закону України «Про захист прав споживачів». Ви можете спокійно перевірити виріб при отриманні.
                 </p>
               </div>
-            </div>
-          )}
+          </div>
         </div>
       </div>
       {lightboxIndex !== null && <ImageLightbox images={galleryImages} initialIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} />}

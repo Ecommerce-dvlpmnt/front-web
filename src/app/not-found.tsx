@@ -1,6 +1,9 @@
 import Link from "next/link"
+import type { Metadata } from "next"
 
 import { Button } from "@/components/ui/button"
+
+export const metadata: Metadata = { title: "Сторінку не знайдено — Jingle Decor", robots: { index: false, follow: true } }
 
 export default function NotFound() {
   return (

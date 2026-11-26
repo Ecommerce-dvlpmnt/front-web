@@ -1,4 +1,5 @@
 import type { Product } from "@/types/product"
+import { cleanText } from "@/lib/seo/text"
 
 export interface ProductGalleryImage {
   src: string
@@ -36,7 +37,7 @@ export function getProductMetaDescription(product: Product): string {
     product.metaDescription?.trim() ||
     product.description?.trim() ||
     product.name
-  const normalized = source.replace(/\s+/g, " ")
+  const normalized = cleanText(source)
 
   if (normalized.length <= 160) return normalized
 
@@ -71,6 +72,15 @@ export function parseProductAttributes(
   } catch {
     return []
   }
+}
+
+export function getProductBrand(product: Product): string {
+  const attributes = Object.fromEntries(parseProductAttributes(product.attributes))
+  for (const key of ["brand", "Brand", "Бренд", "Виробник"]) {
+    const value = attributes[key]
+    if (typeof value === "string" && value.trim()) return value.trim()
+  }
+  return ""
 }
 
 export function formatProductAttributeLabel(key: string): string {

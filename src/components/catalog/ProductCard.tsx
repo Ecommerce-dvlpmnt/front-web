@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { useCart } from "@/components/cart/CartContext"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatPrice } from "@/lib/formatters/price"
-import { selectHeightVariants, type ProductHeightVariant } from "@/features/product/height-variants"
+import { getTreeHeightModel, selectHeightVariants, type ProductHeightVariant } from "@/features/product/height-variants"
 import { ProductOptionControls } from "@/features/product/ProductOptionControls"
 
 interface ProductCardProps {
@@ -19,6 +19,7 @@ interface ProductCardProps {
   heightVariants?: ProductHeightVariant[]
   productOptions?: Product[]
   priority?: boolean
+  prominent?: boolean
 }
 
 const badgeLabels = {
@@ -38,11 +39,13 @@ export function ProductCard({
   heightVariants = [],
   productOptions = [],
   priority = false,
+  prominent = false,
 }: ProductCardProps) {
   const { addItem, items } = useCart()
   const router = useRouter()
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null)
-  const heightOptions = heightVariants.length > 0 ? heightVariants : selectHeightVariants(initialProduct, [])
+  const heightOptions = productOptions.length > 1 && getTreeHeightModel(initialProduct.name)
+    ? [] : heightVariants.length > 0 ? heightVariants : selectHeightVariants(initialProduct, [])
   const product = (selectedVariantId ? [...heightOptions, ...productOptions].find((variant) => variant.id === selectedVariantId) : null) ?? initialProduct
   const [isAdded, setIsAdded] = useState(false)
   const [loadedImageUrl, setLoadedImageUrl] = useState("")
@@ -53,6 +56,7 @@ export function ProductCard({
     (item) => item.product.id === product.id
   )
 
+  const isHit = product.showOnHomepage === true || product.isFeatured === true
   const isOutOfStock = product.stock <= 0
 
   const isMaxQuantityReached =
@@ -65,6 +69,9 @@ export function ProductCard({
     product.oldPrice != null && product.oldPrice > product.price
       ? formatPrice(product.oldPrice)
       : null
+  const discountPercent = formattedOldPrice && product.oldPrice
+    ? Math.round((1 - product.price / product.oldPrice) * 100)
+    : 0
 
   useEffect(() => {
     if (!isAdded) return
@@ -91,7 +98,7 @@ export function ProductCard({
 
   return (
     <article
-      className="group/card relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/80 bg-card shadow-luxury transition-all duration-300 hover:-translate-y-1 hover:border-foreground/25 dark:hover:border-[#d4af37]/50 hover:shadow-luxury-hover"
+      className={`group/card relative flex h-full flex-col overflow-hidden rounded-2xl border bg-card shadow-luxury transition-all duration-300 hover:-translate-y-1 hover:shadow-luxury-hover ${prominent && (isHit || formattedOldPrice) ? "border-[#D4AF37]/60 ring-1 ring-[#D4AF37]/20 hover:border-[#D4AF37]" : "border-border/80 hover:border-foreground/25 dark:hover:border-[#d4af37]/50"}`}
     >
       <Link
         href={`/product/${encodeURIComponent(product.slug)}`}
@@ -125,11 +132,13 @@ export function ProductCard({
           aria-hidden="true"
         />
 
-        {product.badge && (
-          <Badge className={`absolute left-3 top-3 ${badgeVariants[product.badge] || ""}`}>
-            {badgeLabels[product.badge]}
-          </Badge>
-        )}
+        <div className="absolute left-3 top-3 flex flex-col items-start gap-1.5">
+          {isHit && <Badge className={badgeVariants.hit}>Хіт продажу</Badge>}
+          {formattedOldPrice && <Badge className={badgeVariants.sale}>{discountPercent > 0 ? `−${discountPercent}%` : "Знижка"}</Badge>}
+          {product.badge && product.badge !== "sale" && !(isHit && product.badge === "hit") && (
+            <Badge className={badgeVariants[product.badge]}>{badgeLabels[product.badge]}</Badge>
+          )}
+        </div>
       </Link>
 
       <div className="flex flex-1 flex-col p-4 sm:p-5">

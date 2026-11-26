@@ -10,6 +10,7 @@ export async function getProductOptions(product: Product): Promise<Product[]> {
     id: variant.id, name: variant.name, slug: variant.slug, price: variant.price,
     oldPrice: variant.oldPrice, stock: variant.inStock ? 1 : 0,
     mainImageUrl: "", categoryId: product.categoryId, isActive: true,
+    showOnHomepage: variant.showOnHomepage, isRecommended: variant.isRecommended, isFeatured: variant.isFeatured,
   }))
   try {
     // Summary products carry each SKU's image and stock; linked DTOs add siblings

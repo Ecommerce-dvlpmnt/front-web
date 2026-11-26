@@ -1,6 +1,7 @@
 import type { Product, ProductImage, ProductPage } from "@/types/product"
 
 import { ApiError, apiFetch } from "@/lib/api/client"
+import { mapProductFlags, type ProductFlagsDto } from "@/lib/api/product-flags"
 
 interface ProductImageDto extends ProductImage {
   id: string
@@ -9,7 +10,7 @@ interface ProductImageDto extends ProductImage {
   sortOrder: number
 }
 
-interface ProductVariantDto {
+interface ProductVariantDto extends ProductFlagsDto {
   id: string
   name?: string | null
   slug?: string | null
@@ -20,7 +21,9 @@ interface ProductVariantDto {
   isCurrent?: boolean | null
 }
 
-interface ProductDto {
+interface ProductDto extends ProductFlagsDto {
+  reviewCount?: number | null
+  averageRating?: number | null
   id: string
   categoryId?: string | null
   categoryName?: string | null
@@ -223,6 +226,9 @@ function toProduct(product: ProductDto): Product {
     oldPrice,
     stock,
     isActive: product.isActive === true,
+    ...mapProductFlags(product),
+    reviewCount: product.reviewCount ?? 0,
+    averageRating: product.averageRating ?? null,
     updatedAt: product.updatedAt,
     mainImageUrl: product.mainImageUrl?.trim() || PRODUCT_IMAGE_PLACEHOLDER,
     categoryId: String(product.categoryId || ""),
@@ -244,13 +250,14 @@ function toProduct(product: ProductDto): Product {
       height: v.height?.trim() || "",
       inStock: Boolean(v.inStock),
       isCurrent: Boolean(v.isCurrent),
+      ...mapProductFlags(v),
     })),
     badge: oldPrice != null && oldPrice > price ? "sale" : undefined,
   }
 }
 
-// Storefront pages must request only one page. The full-catalog loader below
-// is reserved for exports such as feed.xml and sitemap.xml.
+// Bounded Summary lookup for PDP variants and other single-page consumers.
+// Grouped storefront pagination uses getProducts so its totals count models.
 export async function getCatalogProductsPage(
   options: Omit<GetProductsOptions, "pageSize" | "includeDetails"> & { pageNumber?: number } = {}
 ): Promise<ProductPage> {

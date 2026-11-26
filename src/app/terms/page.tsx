@@ -1,11 +1,8 @@
-import type { Metadata } from "next"
+import { pageMetadata } from "@/lib/seo/metadata"
 
 import { InfoPage } from "@/components/content/InfoPage"
 
-export const metadata: Metadata = {
-  title: "Публічна оферта — Jingle Decor",
-  description: "Умови продажу товарів у магазині Jingle Decor.",
-}
+export const metadata = pageMetadata("/terms", "Публічна оферта — Jingle Decor", "Умови продажу товарів у магазині Jingle Decor.")
 
 export default function TermsPage() {
   return (

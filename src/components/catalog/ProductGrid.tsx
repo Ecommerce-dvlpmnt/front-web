@@ -13,9 +13,10 @@ interface ProductGridProps {
   searchQuery?: string
   itemListName: string
   eagerImages?: boolean
+  prominent?: boolean
 }
 
-export function ProductGrid({ products, heightVariantsByProductId = {}, productOptionsByProductId = {}, searchQuery, itemListName, eagerImages = false }: ProductGridProps) {
+export function ProductGrid({ products, heightVariantsByProductId = {}, productOptionsByProductId = {}, searchQuery, itemListName, eagerImages = false, prominent = false }: ProductGridProps) {
   const reportedProductIds = useRef(new Set<string>())
 
   useEffect(() => {
@@ -49,6 +50,7 @@ export function ProductGrid({ products, heightVariantsByProductId = {}, productO
           heightVariants={heightVariantsByProductId[product.id] ?? []}
           productOptions={productOptionsByProductId[product.id] ?? []}
           priority={eagerImages && index < 4}
+          prominent={prominent}
         />
       ))}
     </div>

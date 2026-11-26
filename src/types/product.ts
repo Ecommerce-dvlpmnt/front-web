@@ -10,6 +10,9 @@ export interface ProductVariant {
   height: string
   inStock: boolean
   isCurrent?: boolean
+  showOnHomepage?: boolean
+  isRecommended?: boolean
+  isFeatured?: boolean
 }
 
 export interface ProductImage {
@@ -20,6 +23,8 @@ export interface ProductImage {
 }
 
 export interface Product {
+  reviewCount?: number
+  averageRating?: number | null
   id: string
   slug: string
   name: string
@@ -38,6 +43,9 @@ export interface Product {
   weightKg?: number | null
   supplierId?: string
   isActive?: boolean
+  showOnHomepage?: boolean
+  isRecommended?: boolean
+  isFeatured?: boolean
   createdAt?: string
   updatedAt?: string
   images?: ProductImage[]
@@ -57,6 +65,7 @@ export interface AdminProduct extends Product {
 export interface ProductPage {
   items: Product[]
   totalCount: number
+  totalSkuCount?: number
   pageNumber: number
   pageSize: number
   totalPages: number

@@ -2,7 +2,7 @@ import type { Product } from "@/types/product"
 
 export interface ProductHeightVariant extends Pick<Product,
   "id" | "name" | "slug" | "price" | "oldPrice" | "stock" | "sku" |
-  "mainImageUrl" | "categoryId" | "categoryName" | "isActive" | "badge"
+  "mainImageUrl" | "categoryId" | "categoryName" | "isActive" | "showOnHomepage" | "isRecommended" | "isFeatured" | "badge"
 > {
   height: string
 }
@@ -10,10 +10,10 @@ export interface ProductHeightVariant extends Pick<Product,
 export function getTreeHeightModel(name: string) {
   // Match whole Ukrainian tree nouns, not decorations such as "ялинкові кулі".
   if (!/(?:^|[^\p{L}])(?:ялинка|ялина|сосна|смерека|туя)(?=$|[^\p{L}])/iu.test(name)) return null
-  const heights = [...name.matchAll(/(?<![\p{L}\p{N}.,])(\d+(?:[.,]\d+)?)\s*(см|м)(?![\p{L}\p{N}])/giu)]
+  const heights = [...name.matchAll(/(?<![\p{L}\p{N}.,])(\d+(?:[.,]\d+)?)\s*(сантиметр(?:ів|и|а)?|метр(?:ів|и|а)?|см|м)(?![\p{L}\p{N}])/giu)]
   if (heights.length !== 1) return null
   const match = heights[0]
-  const meters = Number(match[1].replace(",", ".")) / (match[2].toLowerCase() === "см" ? 100 : 1)
+  const meters = Number(match[1].replace(",", ".")) / (/^(?:см|сантиметр)/iu.test(match[2]) ? 100 : 1)
   if (!Number.isFinite(meters) || meters <= 0) return null
   const before = name.slice(0, match.index)
   const after = name.slice(match.index + match[0].length)
@@ -45,7 +45,9 @@ export function selectHeightVariants(product: Product, candidates: Product[]): P
       price: candidate.price, oldPrice: candidate.oldPrice, stock: candidate.stock,
       sku: candidate.sku, mainImageUrl: candidate.mainImageUrl,
       categoryId: candidate.categoryId, categoryName: candidate.categoryName,
-      isActive: candidate.isActive, badge: candidate.badge, height: heightModel.height,
+      isActive: candidate.isActive, showOnHomepage: candidate.showOnHomepage,
+      isRecommended: candidate.isRecommended, isFeatured: candidate.isFeatured,
+      badge: candidate.badge, height: heightModel.height,
     }]
   }).sort((a, b) => getTreeHeightModel(a.name)!.meters - getTreeHeightModel(b.name)!.meters || a.id.localeCompare(b.id))
 }

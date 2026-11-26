@@ -1,13 +1,10 @@
-import type { Metadata } from "next"
+import { pageMetadata } from "@/lib/seo/metadata"
 import { Mail, MessageCircle, Phone } from "lucide-react"
 
 import { InfoPage } from "@/components/content/InfoPage"
 import { shopConfig } from "@/lib/config/shop"
 
-export const metadata: Metadata = {
-  title: "Контакти — Jingle Decor",
-  description: "Контакти та графік роботи магазину Jingle Decor.",
-}
+export const metadata = pageMetadata("/contacts", "Контакти — Jingle Decor", "Контакти та графік роботи магазину Jingle Decor.")
 
 export default function ContactsPage() {
   return (

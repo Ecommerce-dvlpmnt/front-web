@@ -58,28 +58,38 @@ export function getOptionColorBackground(product: Pick<Product, "name" | "attrib
 
 export function getProductOptionModel(product: Pick<Product, "name" | "attributes">): ProductOptionModel | null {
   const tree = getTreeHeightModel(product.name)
-  if (tree) return { key: tree.key, search: tree.search, dimension: tree.height, dimensionLabel: "Висота", color: null }
-
   const attributes = readAttributes(product.attributes)
   const color = getColor(product.name, attributes)
-  const grid = /(?<![\p{L}\p{N}])\d+(?:[.,]\d+)?\s*[×xх*]\s*\d+(?:[.,]\d+)?\s*(?:м|см)(?![\p{L}\p{N}])/iu
-  const scalar = /(?<![\p{L}\p{N}])\d+(?:[.,]\d+)?\s*(?:м|см)(?![\p{L}\p{N}])/iu
+  if (tree) {
+    // Tree foliage colors are distinct products; only heights share a card.
+    return { key: tree.key, search: tree.search, dimension: tree.height, dimensionLabel: "Висота", color }
+  }
+  const unit = "(?:сантиметр(?:ів|и|а)?|метр(?:ів|и|а)?|см|м)"
+  const grid = new RegExp(`(?<![\\p{L}\\p{N}])\\d+(?:[.,]\\d+)?\\s*[×xх*]\\s*\\d+(?:[.,]\\d+)?\\s*${unit}(?![\\p{L}\\p{N}])`, "iu")
+  const scalar = new RegExp(`(?<![\\p{L}\\p{N}])\\d+(?:[.,]\\d+)?\\s*${unit}(?![\\p{L}\\p{N}])`, "iu")
   const match = product.name.match(grid) ?? product.name.match(scalar)
   const explicit = attribute(attributes, /^(?:довжина|розмір|висота|length|size|height)$/iu)
   const rawDimension = match?.[0] ?? explicit?.match(grid)?.[0] ?? explicit?.match(scalar)?.[0]
   if (!rawDimension && !color) return null
-  const dimension = rawDimension?.replace(/\s*[xх*×]\s*/iu, "×").replace(/\s*(м|см)$/iu, " $1").replace(/\s+/g, " ").trim() ?? null
+  const dimension = rawDimension?.replace(/\s*[xх*×]\s*/iu, "×").replace(/\s*(?:сантиметр(?:ів|и|а)?|см)$/iu, " см").replace(/\s*(?:метр(?:ів|и|а)?|м)$/iu, " м").replace(/\s+/g, " ").trim() ?? null
   const dimensionLabel = grid.test(rawDimension ?? "") ? "Розмір" : /гірлянд/iu.test(product.name) ? "Довжина" : "Розмір"
 
   let base = product.name
   if (match) base = base.replace(match[0], " ")
+  const led = /(?<![\p{L}\p{N}])(\d+)\s*led(?![\p{L}\p{N}])/iu.exec(base)
+  if (led && /гірлянд/iu.test(product.name)) base = base.replace(led[0], " ")
   for (const item of colors) base = base.replace(item.pattern, " ")
-  const key = normalized(base)
+  base = base.replace(/\sна\s+usb(?=\s|$)/iu, " usb")
+  const meters = rawDimension && !grid.test(rawDimension) ? Number(rawDimension.match(/[\d.,]+/)?.[0].replace(",", ".")) : 0
+  const ledDensity = led && meters > 0 ? Number(led[1]) / meters : 0
+  const key = `${normalized(base)}${ledDensity > 0 ? ` led-per-meter-${ledDensity}` : ""}`
   // A targeted API Search needs a contiguous substring from the original title.
-  const search = product.name.split(match?.[0] ?? "\u0000")
+  const fragments = product.name.split(match?.[0] ?? "\u0000")
     .flatMap((part) => colors.reduce((parts, item) => parts.flatMap((value) => value.split(item.pattern)), [part]))
     .map((part) => part.replace(/^[\s,()\-]+|[\s,()\-]+$/g, ""))
-    .sort((a, b) => b.length - a.length)[0] ?? ""
+  const prefix = fragments[0] ?? ""
+  const search = /usb/iu.test(base) ? "Гірлянда" :
+    normalized(prefix).length >= 4 ? prefix : fragments.sort((a, b) => b.length - a.length)[0] ?? ""
   if (!key || !search || normalized(search).length < 4) return null
   return { key, search, dimension, dimensionLabel, color }
 }

@@ -130,9 +130,9 @@ export function HeroBanner({ slides = heroSlides }: { slides?: HeroSlide[] }) {
                   {s.badge}
                 </div>
 
-                <h1 className="mt-5 font-heading text-4xl font-semibold tracking-[-0.02em] text-balance text-[#181512] dark:text-[#FAF8F5] sm:text-5xl lg:text-[3.5rem] leading-[1.12]">
+                <h2 className="mt-5 font-heading text-4xl font-semibold tracking-[-0.02em] text-balance text-[#181512] dark:text-[#FAF8F5] sm:text-5xl lg:text-[3.5rem] leading-[1.12]">
                   {s.title}
-                </h1>
+                </h2>
 
                 <p className="mt-5 max-w-lg text-base leading-relaxed text-[#4A4137] dark:text-[#E8E2D8]/85 sm:text-lg">
                   {s.description}
