@@ -115,9 +115,9 @@ export function generateGoogleFeed(products: Product[], siteOrigin: string, apiU
     const data = attributes(product)
     const v = variant(product, data)
     const title = limited(product.name, 150)
-    // The long API description may contain pasted characteristics from other SKUs.
-    // Prefer the product-specific editorial summary when one exists.
-    const description = limited(product.metaDescription || product.description || title, 5000) || title
+    // Feed copy comes from the full product description; SEO summaries may
+    // contain truncated text or promotional price snippets.
+    const description = limited(product.description || "", 5000) || title
     const { price: current, previous, onSale: sale } = getProductCommerce(product)
     const id = product.sku?.trim() || product.id
     const mainImage = imageUrl(product.mainImageUrl, apiUrl)

@@ -213,19 +213,19 @@ test("feed removes ineligible products and never emits a rounded equal sale pric
   assert.doesNotMatch(xml, /localhost|javascript:/)
 })
 
-test("feed limits clean text, escapes XML and prefers an editorial description", () => {
+test("feed uses the full cleaned API description instead of promotional SEO summaries", () => {
   const generate = sourceLoader()("@/features/catalog/google-feed").generateGoogleFeed
-  const dirty = "Гірлянда 200 м & святкова. Характеристики: 3 м, 100 LED, дерев'яний декор"
+  const fullDescription = "<p>Гірлянда 200 м &amp; святкова.</p><p>Характеристики: 200 м, 2000 LED. Колір &quot;білий&quot;, дріт 'тонкий'.</p>"
   const xml = generate([product(1, {
     name: `<b>${"Я".repeat(160)}</b> &amp; 'дерево'`,
-    description: dirty,
-    metaDescription: "<p>Гірлянда 200 м &amp; святкова.</p>",
+    description: fullDescription,
+    metaDescription: "Скорочений SEO-текст…… Ціна 1999 грн. Доставка по Україні.",
     attributes: JSON.stringify({ brand: "Майстер & Син", identifierExists: false }),
   })], origin)
   const title = xml.match(/<g:title>(.*?)<\/g:title>/)?.[1]
   assert.equal(title, "Я".repeat(150))
-  assert.match(xml, /<g:description>Гірлянда 200 м &amp; святкова\.<\/g:description>/)
-  assert.doesNotMatch(xml, /100 LED|дерев&apos;яний/)
+  assert.match(xml, /<g:description>Гірлянда 200 м &amp; святкова\. Характеристики: 200 м, 2000 LED\. Колір &quot;білий&quot;, дріт &apos;тонкий&apos;\.<\/g:description>/)
+  assert.doesNotMatch(xml, /Скорочений SEO-текст|……|Ціна 1999 грн|<p>/)
   assert.match(xml, /<g:brand>Майстер &amp; Син<\/g:brand>/)
   assert.match(xml, /<g:identifier_exists>no<\/g:identifier_exists>/)
   const noIdentifiers = generate([product(3)], origin)
@@ -238,6 +238,9 @@ test("feed limits clean text, escapes XML and prefers an editorial description",
   }
   const long = generate([product(2, { description: "А".repeat(6000) })], origin)
   assert.equal([...long.match(/<g:description>(.*?)<\/g:description>/)?.[1] ?? ""].length, 5000)
+  const fallback = generate([product(5, { name: "Назва товару", description: "<p> </p>", metaDescription: "Ціна 100 грн……" })], origin)
+  assert.match(fallback, /<g:description>Назва товару<\/g:description>/)
+  assert.doesNotMatch(fallback, /Ціна 100 грн|……/)
 })
 
 test("feed groups tree and garland SKUs and exports galleries and categories", () => {
