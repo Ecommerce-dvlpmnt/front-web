@@ -52,7 +52,7 @@ export default async function Home({ searchParams }: HomeProps) {
 
       <h1 className="sr-only">{shopConfig.seasonal.title} — Jingle Decor</h1>
       <JsonLd data={homeGraph(seo.jsonLd)} />
-      <div className="relative z-10 mx-auto max-w-7xl px-3.5 py-4 sm:px-6 sm:py-7 lg:px-8 lg:py-8">
+      <div className="relative mx-auto max-w-7xl px-3.5 py-4 sm:px-6 sm:py-7 lg:px-8 lg:py-8">
         <Suspense fallback={<HeroBanner />}>
           <HeroSection />
         </Suspense>
