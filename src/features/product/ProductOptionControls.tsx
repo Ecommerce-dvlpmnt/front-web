@@ -17,6 +17,7 @@ export function ProductOptionControls({ product, options, onSelect, compact = fa
 
   const dimensions = [...new Set(options.map((option) => getProductOptionModel(option)?.dimension).filter((value): value is string => Boolean(value)))]
   const colors = [...new Set(options.map((option) => getProductOptionModel(option)?.color).filter((value): value is string => Boolean(value)))]
+  if (dimensions.length <= 1 && colors.length <= 1) return null
   const dimensionLabel = current.dimensionLabel
 
   function optionControl(target: Product, label: string, children: React.ReactNode, className: string) {
@@ -33,7 +34,7 @@ export function ProductOptionControls({ product, options, onSelect, compact = fa
 
   return (
     <div className={cn(compact ? "mt-2.5 space-y-2" : "mt-5 space-y-4 border-t border-border/70 pt-4")}>
-      {dimensions.length > 0 && (
+      {dimensions.length > 1 && (
         <div role="group" aria-label={`Вибір: ${dimensionLabel.toLocaleLowerCase("uk-UA")}`}>
           {!compact && <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-foreground/90">{dimensionLabel}</p>}
           <div className="flex flex-wrap gap-1.5">

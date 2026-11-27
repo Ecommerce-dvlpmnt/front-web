@@ -1413,3 +1413,35 @@ test("review averages preserve .NET rounding and reject inconsistent nonempty su
   assert.equal(approvedReviewSummary({ productId: reviewProductId, totalReviews: 4, averageRating: 4.2, reviews }, reviewProductId).averageRating, 4.2)
   assert.throws(() => approvedReviewSummary({ productId: reviewProductId, totalReviews: 99, averageRating: 5, reviews }, reviewProductId), /Invalid reviews statistics/)
 })
+
+test("single-size products hide redundant option controls without leaving an empty wrapper", () => {
+  const load = sourceLoader({ overrides: { "@/components/cart/CartContext": { useCart: () => ({ addItem() {}, items: [] }) } } })
+  const Controls = load("@/features/product/ProductOptionControls").ProductOptionControls
+  const wreath = product(1, { name: "Литий засніжений вінок 40 см у золотому дизайні", categoryId: "wreaths" })
+  for (const compact of [false, true]) {
+    assert.equal(renderToStaticMarkup(React.createElement(Controls, { product: wreath, options: [wreath], compact })), "")
+  }
+  const Card = load("@/components/catalog/ProductCard").ProductCard
+  const html = renderStorefront(load, Card, { product: wreath, productOptions: [wreath] })
+  assert.doesNotMatch(html, /aria-label="Розмір 40 см"|aria-label="Вибір:/)
+  assert.match(html, /До кошика/)
+  assert.match(html, /Купити зараз/)
+  const tree = product(2, { name: "Лита ялинка Мрія зелена 1.8 м", categoryId: "trees" })
+  const treeHtml = renderStorefront(load, Card, { product: tree })
+  assert.doesNotMatch(treeHtml, /aria-label="Вибір висоти"/)
+})
+
+test("option controls show only dimensions or colors that have an actual choice", () => {
+  const load = sourceLoader()
+  const Controls = load("@/features/product/ProductOptionControls").ProductOptionControls
+  const base = product(1, { name: "Гірлянда USB 5 метрів біла", categoryId: "lights" })
+  const blue = product(2, { name: "Гірлянда USB 5 метрів синя", categoryId: "lights" })
+  const long = product(3, { name: "Гірлянда USB 10 метрів біла", categoryId: "lights" })
+  const colors = renderToStaticMarkup(React.createElement(Controls, { product: base, options: [base, blue], compact: true }))
+  assert.match(colors, /aria-label="Вибір кольору"/)
+  assert.doesNotMatch(colors, /aria-label="Вибір: довжина"/)
+  const lengths = renderToStaticMarkup(React.createElement(Controls, { product: base, options: [base, long], compact: true }))
+  assert.match(lengths, /aria-label="Довжина 5 м"/)
+  assert.match(lengths, /aria-label="Довжина 10 м"/)
+  assert.doesNotMatch(lengths, /aria-label="Вибір кольору"/)
+})

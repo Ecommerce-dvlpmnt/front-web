@@ -156,7 +156,7 @@ export function ProductCard({
 
         {product.sku && <p className="mt-1 text-xs text-muted-foreground">Артикул: {product.sku}</p>}
 
-        {heightOptions.length > 0 && (
+        {heightOptions.length > 1 && (
           <div className="mt-2.5">
             <div className="flex flex-wrap gap-1" role="group" aria-label="Вибір висоти">
               {heightOptions.map((variant) => (
@@ -184,66 +184,68 @@ export function ProductCard({
             onSelect={(option) => { setSelectedVariantId(option.id); setIsAdded(false) }} />
         )}
 
-        <div className="mt-3 flex min-h-7 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-          <p className="whitespace-nowrap text-base font-semibold tracking-tight text-foreground">
-            {formattedPrice}
-          </p>
-
-          {formattedOldPrice && (
-            <p className="whitespace-nowrap text-xs text-muted-foreground line-through">
-              {formattedOldPrice}
+        <div className="mt-auto flex flex-col pt-3">
+          <div className="flex min-h-7 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <p className="whitespace-nowrap text-base font-semibold tracking-tight text-foreground">
+              {formattedPrice}
             </p>
-          )}
-        </div>
 
-        <div className="mt-auto flex items-center gap-1.5 pt-3 text-xs text-muted-foreground">
-          <span
-            className={`size-1.5 shrink-0 rounded-full ${
-              isOutOfStock
-                ? "bg-red-400"
+            {formattedOldPrice && (
+              <p className="whitespace-nowrap text-xs text-muted-foreground line-through">
+                {formattedOldPrice}
+              </p>
+            )}
+          </div>
+
+          <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span
+              className={`size-1.5 shrink-0 rounded-full ${
+                isOutOfStock
+                  ? "bg-red-400"
+                  : product.stock <= 5
+                    ? "bg-amber-500"
+                    : "bg-emerald-500/80"
+              }`}
+              aria-hidden="true"
+            />
+            <p>
+              {isOutOfStock
+                ? "Немає в наявності"
                 : product.stock <= 5
-                  ? "bg-amber-500"
-                  : "bg-emerald-500/80"
+                  ? "Закінчується"
+                  : "В наявності"}
+            </p>
+          </div>
+
+          {/* h-auto + whitespace-normal: длинный текст («Максимум у кошику»)
+              переносится внутри кнопки, а не вылезает за её край. */}
+          <Button
+            className={`mt-3.5 h-auto min-h-8 w-full whitespace-normal rounded-full border-0 py-2 text-center text-xs font-semibold leading-tight tracking-wide uppercase transition-all duration-200 ${
+              isAdded
+                ? "bg-[#1B3527] text-white scale-[1.01]"
+                : "bg-foreground text-background hover:bg-foreground/90 active:scale-[0.98] shadow-xs"
             }`}
-            aria-hidden="true"
-          />
-          <p>
+            disabled={isOutOfStock || isMaxQuantityReached}
+            onClick={handleAddToCart}
+          >
             {isOutOfStock
               ? "Немає в наявності"
-              : product.stock <= 5
-                ? "Закінчується"
-                : "В наявності"}
-          </p>
+              : isMaxQuantityReached
+                ? "Максимум у кошику"
+                : isAdded
+                  ? "Додано до кошика ✓"
+                  : "До кошика"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="mt-2 min-h-9 w-full rounded-full border-border text-xs font-semibold uppercase tracking-wide"
+            disabled={isOutOfStock || isMaxQuantityReached}
+            onClick={handleBuyNow}
+          >
+            Купити зараз
+          </Button>
         </div>
-
-        {/* h-auto + whitespace-normal: длинный текст («Максимум у кошику»)
-            переносится внутри кнопки, а не вылезает за её край. */}
-        <Button
-          className={`mt-3.5 h-auto min-h-8 w-full whitespace-normal rounded-full border-0 py-2 text-center text-xs font-semibold leading-tight tracking-wide uppercase transition-all duration-200 ${
-            isAdded
-              ? "bg-[#1B3527] text-white scale-[1.01]"
-              : "bg-foreground text-background hover:bg-foreground/90 active:scale-[0.98] shadow-xs"
-          }`}
-          disabled={isOutOfStock || isMaxQuantityReached}
-          onClick={handleAddToCart}
-        >
-          {isOutOfStock
-            ? "Немає в наявності"
-            : isMaxQuantityReached
-              ? "Максимум у кошику"
-              : isAdded
-                ? "Додано до кошика ✓"
-                : "До кошика"}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          className="mt-2 min-h-9 w-full rounded-full border-border text-xs font-semibold uppercase tracking-wide"
-          disabled={isOutOfStock || isMaxQuantityReached}
-          onClick={handleBuyNow}
-        >
-          Купити зараз
-        </Button>
       </div>
     </article>
   )
@@ -260,13 +262,15 @@ export function ProductCardSkeleton() {
           <Skeleton className="h-4 w-2/3" />
         </div>
 
-        <div className="mt-3 flex items-center gap-2">
-          <Skeleton className="h-5 w-20" />
-          <Skeleton className="h-4 w-14" />
+        <div className="mt-auto flex flex-col pt-3">
+          <div className="flex min-h-7 items-center gap-2">
+            <Skeleton className="h-5 w-20" />
+            <Skeleton className="h-4 w-14" />
+          </div>
+          <Skeleton className="mt-2 h-4 w-28" />
+          <Skeleton className="mt-3.5 h-8 w-full rounded-full" />
+          <Skeleton className="mt-2 h-9 w-full rounded-full" />
         </div>
-
-        <Skeleton className="mt-auto h-4 w-28" />
-        <Skeleton className="mt-3 h-10 w-full rounded-full" />
       </div>
     </article>
   )
