@@ -114,7 +114,7 @@ export function OrderSuccess() {
         </p>
       </div>
 
-      <div className="mt-10 rounded-2xl border border-border bg-card p-5 sm:p-7">
+      <div className="mt-10 rounded-2xl border border-[#D4AF37]/25 bg-card p-5 sm:p-7 shadow-luxury">
         <div className="flex items-center justify-between gap-4 border-b border-border pb-5">
           <span className="text-muted-foreground">Сума замовлення</span>
           <strong className="text-xl">{formatPrice("totalPrice" in order ? order.totalPrice : order.total)}</strong>
@@ -122,9 +122,9 @@ export function OrderSuccess() {
 
         <div className="mt-5 flex items-start gap-3">
           {isIban ? (
-            <Landmark className="mt-0.5 size-5 text-muted-foreground" aria-hidden="true" />
+            <Landmark className="mt-0.5 size-5 text-[#8C5E14] dark:text-[#F3D078]" aria-hidden="true" />
           ) : (
-            <CreditCard className="mt-0.5 size-5 text-muted-foreground" aria-hidden="true" />
+            <CreditCard className="mt-0.5 size-5 text-[#8C5E14] dark:text-[#F3D078]" aria-hidden="true" />
           )}
           <div>
             <h2 className="font-semibold">
@@ -147,7 +147,7 @@ export function OrderSuccess() {
           />
         )}
         {isMonobank && (
-          <Button asChild className="mt-5">
+          <Button asChild className="mt-5 h-10 rounded-full border-0 bg-[#181512] px-6 text-xs sm:text-sm font-semibold text-[#FAF8F5] hover:bg-[#2A231D] dark:bg-gradient-to-r dark:from-[#E5C158] dark:via-[#F3D078] dark:to-[#D4AF37] dark:text-[#14110C]">
             <Link href={`/payment-result?publicId=${encodeURIComponent(order.publicId)}`}>
               {"paymentStatus" in order && order.paymentStatus === "Paid" ? "Переглянути оплату" : "Перейти до оплати / перевірити статус"}
             </Link>

@@ -27,7 +27,7 @@ const DECOR_PATH = "M205.81 90.8C207.856 90.8 209.624 91.1727 211.114 91.918C212
 export function BrandTreeIcon({
   animated = true,
   label = "Jingle Decor",
-  className = "h-[30px] sm:h-[35px] md:h-[38px] lg:h-[40px] w-auto shrink-0",
+  className = "h-[32px] sm:h-[37px] md:h-[40px] lg:h-[42px] w-auto shrink-0",
   ...props
 }: BrandSvgProps) {
   const rawId = useId()
@@ -37,13 +37,13 @@ export function BrandTreeIcon({
 
   return (
     <svg
-      viewBox="0 0 89 108"
+      viewBox="-10 -10 109 128"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
       aria-label={label}
       className={cn(
-        "drop-shadow-[0_1px_2px_rgba(0,0,0,0.08)] dark:drop-shadow-[0_0_10px_rgba(255,223,133,0.35)] transition-all duration-300",
+        "overflow-visible drop-shadow-[0_1px_1.5px_rgba(24,21,18,0.08)] dark:drop-shadow-[0_0_5px_rgba(243,208,120,0.18)] transition-all duration-300",
         className
       )}
       {...props}
@@ -105,7 +105,7 @@ export function BrandTreeIcon({
 export function BrandNameLogo({
   animated = true,
   label = "Jingle Decor",
-  className = "h-[35px] sm:h-[40px] md:h-[44px] lg:h-[46px] w-auto shrink-0",
+  className = "h-[36px] sm:h-[42px] md:h-[45px] lg:h-[48px] w-auto shrink-0",
   ...props
 }: BrandSvgProps) {
   const rawId = useId()
@@ -116,13 +116,13 @@ export function BrandNameLogo({
 
   return (
     <svg
-      viewBox="0 0 348 114"
+      viewBox="-10 -8 368 130"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
       aria-label={label}
       className={cn(
-        "drop-shadow-[0_1px_2px_rgba(0,0,0,0.06)] dark:drop-shadow-[0_0_10px_rgba(255,223,133,0.35)] transition-all duration-300",
+        "overflow-visible drop-shadow-[0_1px_1.5px_rgba(24,21,18,0.06)] dark:drop-shadow-[0_0_5px_rgba(243,208,120,0.18)] transition-all duration-300",
         className
       )}
       {...props}
@@ -230,8 +230,8 @@ export function BrandLogo({
   label = "Jingle Decor",
   withDivider = true,
   className = "",
-  treeClassName = "h-[30px] sm:h-[35px] md:h-[38px] lg:h-[40px] w-auto shrink-0",
-  textClassName = "h-[35px] sm:h-[40px] md:h-[44px] lg:h-[46px] w-auto shrink-0",
+  treeClassName = "h-[32px] sm:h-[37px] md:h-[40px] lg:h-[42px] w-auto shrink-0",
+  textClassName = "h-[36px] sm:h-[42px] md:h-[45px] lg:h-[48px] w-auto shrink-0",
   ...props
 }: BrandLogoProps) {
   if (variant === "icon") {
@@ -245,8 +245,8 @@ export function BrandLogo({
   return (
     <div
       className={cn(
-        "inline-flex items-center select-none",
-        withDivider ? "gap-2.5 sm:gap-3 md:gap-3.5" : "gap-4 sm:gap-5 md:gap-6",
+        "inline-flex items-center overflow-visible select-none",
+        withDivider ? "gap-2 sm:gap-2.5 md:gap-3" : "gap-3.5 sm:gap-4 md:gap-5",
         className
       )}
       role="img"
@@ -256,7 +256,7 @@ export function BrandLogo({
       <BrandTreeIcon
         animated={animated}
         label=""
-        className={treeClassName}
+        className={cn("-translate-y-[0.5px]", treeClassName)}
         aria-hidden="true"
       />
       {withDivider && (

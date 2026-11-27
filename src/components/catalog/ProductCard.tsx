@@ -141,11 +141,11 @@ export function ProductCard({
         </div>
       </Link>
 
-      <div className="flex flex-1 flex-col p-4 sm:p-5">
+      <div className="flex flex-1 flex-col p-3 sm:p-4 lg:p-5">
         {/* min-h-[2.75em] = ровно 2 строки (2 × leading-snug 1.375em).
             Раньше min-h-12 был выше двух строк, и из-под line-clamp
             выглядывал верх третьей строки. */}
-        <h3 className="min-h-[2.75em] line-clamp-2 break-words font-medium text-[15px] leading-snug text-foreground transition-colors group-hover/card:text-[#8C5E14] dark:group-hover/card:text-[#F3D078]">
+        <h3 className="min-h-[2.75em] line-clamp-2 break-words font-medium text-[13.5px] sm:text-[15px] leading-snug text-foreground transition-colors group-hover/card:text-[#8C5E14] dark:group-hover/card:text-[#F3D078]">
           <Link
             href={`/product/${encodeURIComponent(product.slug)}`}
             className="rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
@@ -154,10 +154,10 @@ export function ProductCard({
           </Link>
         </h3>
 
-        {product.sku && <p className="mt-1 text-xs text-muted-foreground">Артикул: {product.sku}</p>}
+        {product.sku && <p className="mt-1 text-[11px] sm:text-xs text-muted-foreground">Артикул: {product.sku}</p>}
 
         {heightOptions.length > 1 && (
-          <div className="mt-2.5">
+          <div className="mt-2 sm:mt-2.5">
             <div className="flex flex-wrap gap-1" role="group" aria-label="Вибір висоти">
               {heightOptions.map((variant) => (
                 <button
@@ -166,7 +166,7 @@ export function ProductCard({
                   aria-pressed={variant.id === product.id}
                   aria-label={`Висота ${variant.height}${variant.stock <= 0 ? ", немає в наявності" : ""}`}
                   onClick={() => { setSelectedVariantId(variant.id); setIsAdded(false) }}
-                  className={`rounded-md border px-2 py-1 text-xs font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                  className={`min-h-7 rounded-lg border px-2 sm:px-2.5 py-1 text-[11.5px] sm:text-xs font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                     variant.id === product.id
                       ? "border-gold bg-gold/15 font-semibold text-foreground"
                       : "border-border bg-muted/40 text-muted-foreground hover:border-gold/50 hover:text-foreground"
@@ -184,9 +184,9 @@ export function ProductCard({
             onSelect={(option) => { setSelectedVariantId(option.id); setIsAdded(false) }} />
         )}
 
-        <div className="mt-auto flex flex-col pt-3">
+        <div className="mt-auto flex flex-col pt-2.5 sm:pt-3">
           <div className="flex min-h-7 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-            <p className="whitespace-nowrap text-base font-semibold tracking-tight text-foreground">
+            <p className="whitespace-nowrap text-[15px] sm:text-base font-semibold tracking-tight text-foreground">
               {formattedPrice}
             </p>
 
@@ -197,7 +197,7 @@ export function ProductCard({
             )}
           </div>
 
-          <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+          <div className="mt-1.5 sm:mt-2 flex items-center gap-1.5 text-[11px] sm:text-xs text-muted-foreground">
             <span
               className={`size-1.5 shrink-0 rounded-full ${
                 isOutOfStock
@@ -220,10 +220,12 @@ export function ProductCard({
           {/* h-auto + whitespace-normal: длинный текст («Максимум у кошику»)
               переносится внутри кнопки, а не вылезает за её край. */}
           <Button
-            className={`mt-3.5 h-auto min-h-8 w-full whitespace-normal rounded-full border-0 py-2 text-center text-xs font-semibold leading-tight tracking-wide uppercase transition-all duration-200 ${
+            className={`mt-3 sm:mt-3.5 h-auto min-h-9 sm:min-h-10 w-full whitespace-normal rounded-full border-0 px-3 py-2 text-center text-[11px] sm:text-xs font-semibold leading-tight tracking-wide uppercase transition-all duration-200 ${
               isAdded
                 ? "bg-[#1B3527] text-white scale-[1.01]"
-                : "bg-foreground text-background hover:bg-foreground/90 active:scale-[0.98] shadow-xs"
+                : cartItem && !isOutOfStock
+                  ? "bg-[#173628] text-[#FAF8F5] hover:bg-[#1F4735] ring-1 ring-[#D4AF37]/55 dark:bg-[#173326] dark:text-[#F3D078] dark:hover:bg-[#1F4533] active:scale-[0.98] shadow-xs"
+                  : "bg-foreground text-background hover:bg-foreground/90 dark:bg-gradient-to-r dark:from-[#E5C158] dark:via-[#F3D078] dark:to-[#D4AF37] dark:text-[#14110C] dark:hover:brightness-105 active:scale-[0.98] shadow-xs"
             }`}
             disabled={isOutOfStock || isMaxQuantityReached}
             onClick={handleAddToCart}
@@ -234,12 +236,14 @@ export function ProductCard({
                 ? "Максимум у кошику"
                 : isAdded
                   ? "Додано до кошика ✓"
-                  : "До кошика"}
+                  : cartItem
+                    ? `У кошику (${cartItem.quantity}) · +1`
+                    : "До кошика"}
           </Button>
           <Button
             type="button"
             variant="outline"
-            className="mt-2 min-h-9 w-full rounded-full border-border text-xs font-semibold uppercase tracking-wide"
+            className="mt-1.5 sm:mt-2 h-auto min-h-9 sm:min-h-10 w-full whitespace-normal rounded-full border-border/90 hover:border-[#D4AF37]/55 px-3 py-2 text-center text-[11px] sm:text-xs font-semibold leading-tight uppercase tracking-wide"
             disabled={isOutOfStock || isMaxQuantityReached}
             onClick={handleBuyNow}
           >

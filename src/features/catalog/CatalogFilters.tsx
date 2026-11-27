@@ -118,18 +118,18 @@ export function CatalogFilters({ categorySlug, searchQuery = "", filters }: Prop
     ? `Ціна: ${active.minPrice ?? 0} – ${active.maxPrice ?? "∞"} ₴` : "Ціна, ₴"
 
   return (
-    <div className="relative z-20 grid grid-cols-2 gap-2.5 rounded-2xl border border-border/60 bg-card p-3 shadow-sm dark:bg-[#14241D] sm:gap-3 sm:p-4 lg:flex lg:items-center">
+    <div className="relative z-20 grid grid-cols-2 gap-2 rounded-2xl border border-[#D4AF37]/25 dark:border-[#D4AF37]/20 bg-gradient-to-r from-card via-card to-[#F6F1E7]/75 dark:from-[#13201A] dark:via-[#14241D] dark:to-[#182B22] p-2.5 shadow-luxury sm:gap-3 sm:p-3.5 lg:flex lg:items-center">
       <form role="search" className="relative col-span-2 min-w-0 lg:flex-1" onSubmit={(event) => { event.preventDefault(); navigate(searchTerm, active) }}>
         <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-        <Input type="search" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Пошук товарів…" aria-label="Пошук товарів" className="h-11 rounded-full border-border/70 bg-background pl-10 pr-10 text-sm focus-visible:ring-2 focus-visible:ring-[#D4AF37]/60" />
-        {searchTerm && <button type="button" aria-label="Очистити пошук" className="absolute right-3 top-1/2 flex size-6 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={() => { setSearchTerm(""); navigate("", active) }}><X className="size-4" aria-hidden="true" /></button>}
+        <Input type="search" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Пошук товарів…" aria-label="Пошук товарів" className="h-11 rounded-full border-border/75 bg-background/95 pl-10 pr-10 text-sm focus-visible:ring-2 focus-visible:ring-[#D4AF37]/60" />
+        {searchTerm && <button type="button" aria-label="Очистити пошук" className="absolute right-2.5 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={() => { setSearchTerm(""); navigate("", active) }}><X className="size-4" aria-hidden="true" /></button>}
       </form>
 
       <details ref={sortMenu} open={openDropdown === "sort"} className="group relative z-30 min-w-0 lg:w-48 lg:shrink-0">
-        <summary onClick={(event) => { event.preventDefault(); setOpenDropdown((current) => current === "sort" ? null : "sort") }} className="flex h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-full border border-border/70 bg-background px-4 text-xs font-medium text-foreground hover:border-[#D4AF37]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
+        <summary onClick={(event) => { event.preventDefault(); setOpenDropdown((current) => current === "sort" ? null : "sort") }} className="flex h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-full border border-border/75 bg-background/95 px-3.5 sm:px-4 text-xs font-medium text-foreground transition-colors hover:border-[#D4AF37]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
           <span className="truncate">{sortLabel}</span><ChevronDown className="size-4 shrink-0 text-[#8C5E14] transition-transform group-open:rotate-180 dark:text-[#D4AF37]" aria-hidden="true" />
         </summary>
-        <div className="absolute left-0 top-full z-40 mt-2 w-56 rounded-xl border border-border bg-popover p-1.5 shadow-xl">
+        <div className="absolute left-0 top-full z-40 mt-2 w-56 max-w-[calc(100vw-2rem)] rounded-xl border border-border bg-popover p-1.5 shadow-xl">
           {([ ["date_desc", "За замовчуванням"], ["price_asc", "Спочатку дешевші"], ["price_desc", "Спочатку дорожчі"] ] as const).map(([value, label]) => (
             <button key={value} type="button" className="block w-full rounded-lg px-3 py-2 text-left text-sm text-popover-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-current={(active.sortBy ?? "date_desc") === value ? "true" : undefined} onClick={() => { updateFilters({ ...active, sortBy: value === "date_desc" ? undefined : value }); setOpenDropdown(null) }}>{label}</button>
           ))}
@@ -137,7 +137,7 @@ export function CatalogFilters({ categorySlug, searchQuery = "", filters }: Prop
       </details>
 
       <details ref={priceMenu} open={openDropdown === "price"} className="group relative z-30 min-w-0 lg:shrink-0">
-        <summary onClick={(event) => { event.preventDefault(); setOpenDropdown((current) => current === "price" ? null : "price") }} className="flex h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-full border border-border/70 bg-background px-4 text-xs font-medium text-foreground hover:border-[#D4AF37]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
+        <summary onClick={(event) => { event.preventDefault(); setOpenDropdown((current) => current === "price" ? null : "price") }} className="flex h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-full border border-border/75 bg-background/95 px-3.5 sm:px-4 text-xs font-medium text-foreground transition-colors hover:border-[#D4AF37]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
           <span className="truncate">{priceLabel}</span><ChevronDown className="size-4 shrink-0 text-[#8C5E14] transition-transform group-open:rotate-180 dark:text-[#D4AF37]" aria-hidden="true" />
         </summary>
         <form onSubmit={applyPrice} className="absolute right-0 top-full z-40 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-2xl border border-border bg-popover p-4 text-popover-foreground shadow-xl">
@@ -146,7 +146,7 @@ export function CatalogFilters({ categorySlug, searchQuery = "", filters }: Prop
             <label className="grid gap-1 text-xs text-muted-foreground">Від<Input type="number" min="0" max="10000000" step="0.01" value={minDraft} onChange={(event) => { setMinDraft(event.target.value); setPriceError("") }} placeholder="0" className="h-10 bg-background" /></label>
             <label className="grid gap-1 text-xs text-muted-foreground">До<Input type="number" min="0" max="10000000" step="0.01" value={maxDraft} onChange={(event) => { setMaxDraft(event.target.value); setPriceError("") }} placeholder="∞" className="h-10 bg-background" /></label>
           </div>
-          <div className="mt-3 flex flex-wrap gap-1.5">{quickPrices.map((option) => <button key={option.label} type="button" className="rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground hover:border-[#D4AF37]/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={() => { setMinDraft(option.min); setMaxDraft(option.max); setPriceError("") }}>{option.label}</button>)}</div>
+          <div className="mt-3 flex flex-wrap gap-1.5">{quickPrices.map((option) => <button key={option.label} type="button" className="min-h-7 rounded-full border border-border px-3 py-1 text-[11px] text-muted-foreground hover:border-[#D4AF37]/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={() => { setMinDraft(option.min); setMaxDraft(option.max); setPriceError("") }}>{option.label}</button>)}</div>
           {priceError && <p className="mt-2 text-xs text-destructive" role="alert">{priceError}</p>}
           <div className="mt-4 flex items-center justify-between gap-2">
             <button type="button" className="text-xs text-muted-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={() => { setMinDraft(""); setMaxDraft(""); setPriceError(""); updateFilters({ ...active, minPrice: undefined, maxPrice: undefined }); setOpenDropdown(null) }}>Скинути</button>

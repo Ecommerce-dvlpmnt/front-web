@@ -192,8 +192,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
               <p className="text-sm text-muted-foreground">Доставка — за тарифами Нової Пошти.</p>
               <Button
-                className="w-full rounded-full bg-[#181512] text-[#FAF8F5] hover:bg-[#2A231D] dark:bg-gradient-to-r dark:from-[#E5C158] dark:via-[#F3D078] dark:to-[#D4AF37] dark:text-[#14110C] font-semibold tracking-wide"
-                size="lg"
+                className="h-10.5 w-full rounded-full border-0 bg-[#181512] text-[#FAF8F5] hover:bg-[#2A231D] dark:bg-gradient-to-r dark:from-[#E5C158] dark:via-[#F3D078] dark:to-[#D4AF37] dark:text-[#14110C] dark:hover:brightness-105 text-xs sm:text-sm font-semibold tracking-wide shadow-sm"
                 asChild
               >
                 <Link href="/checkout" onClick={onClose}>
@@ -203,7 +202,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
               <Button
                 variant="ghost"
-                className="w-full"
+                className="h-9 w-full rounded-full text-xs text-muted-foreground hover:text-foreground"
                 onClick={clearCart}
               >
                 Очистити кошик

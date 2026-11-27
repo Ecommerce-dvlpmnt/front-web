@@ -180,8 +180,8 @@ export function CartPage() {
           ))}
         </section>
 
-        <aside className="h-fit rounded-2xl border border-border bg-card p-5 lg:sticky lg:top-28">
-          <h2 className="text-lg font-semibold">Підсумок</h2>
+        <aside className="h-fit rounded-2xl border border-[#D4AF37]/25 bg-card p-5 shadow-luxury lg:sticky lg:top-28">
+          <h2 className="font-heading text-lg font-semibold">Підсумок</h2>
           <div className="mt-5 space-y-3 text-sm">
             <div className="flex items-center justify-between text-muted-foreground">
               <span>Товари</span>
@@ -196,7 +196,10 @@ export function CartPage() {
               <span>{formatPrice(totalPrice)}</span>
             </div>
           </div>
-          <Button className="mt-6 w-full rounded-full bg-foreground text-background hover:bg-foreground/90" size="lg" asChild>
+          <Button
+            className="mt-5 h-10.5 w-full rounded-full border-0 bg-[#181512] text-[#FAF8F5] hover:bg-[#2A231D] dark:bg-gradient-to-r dark:from-[#E5C158] dark:via-[#F3D078] dark:to-[#D4AF37] dark:text-[#14110C] dark:hover:brightness-105 text-xs sm:text-sm font-semibold tracking-wide shadow-sm"
+            asChild
+          >
             <Link href="/checkout">Перейти до оформлення</Link>
           </Button>
           <p className="mt-3 text-center text-xs leading-5 text-muted-foreground">

@@ -297,30 +297,30 @@ export function CheckoutForm() {
           </p>
         )}
         {createdMonobankOrder && (
-          <div className="rounded-xl border border-border bg-card px-4 py-3 text-sm">
+          <div className="rounded-2xl border border-[#D4AF37]/35 bg-card px-4 py-3.5 text-sm shadow-xs">
             <p>Замовлення збережено. Можна повторити оплату або перевірити його статус.</p>
-            <div className="mt-3 flex flex-wrap gap-3">
-              <Button type="button" size="sm" disabled={isRetryingPayment} onClick={() => void retryMonobankPayment(createdMonobankOrder)}>
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <Button type="button" className="h-9 rounded-full border-0 bg-[#181512] px-5 text-xs font-semibold text-[#FAF8F5] hover:bg-[#2A231D] dark:bg-gradient-to-r dark:from-[#E5C158] dark:via-[#F3D078] dark:to-[#D4AF37] dark:text-[#14110C]" disabled={isRetryingPayment} onClick={() => void retryMonobankPayment(createdMonobankOrder)}>
                 {isRetryingPayment ? "Переходимо до оплати…" : "Повторити оплату"}
               </Button>
-              <Link className="inline-flex items-center text-sm underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2" href={`/payment-result?publicId=${encodeURIComponent(createdMonobankOrder)}`}>
+              <Link className="inline-flex items-center rounded-md text-xs font-medium underline underline-offset-4 outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/60" href={`/payment-result?publicId=${encodeURIComponent(createdMonobankOrder)}`}>
                 Перевірити статус
               </Link>
             </div>
           </div>
         )}
 
-        <section className="rounded-2xl border border-border bg-card p-5 sm:p-6" aria-labelledby="contact-title">
+        <section className="rounded-2xl border border-border/85 bg-card p-5 sm:p-6 shadow-luxury" aria-labelledby="contact-title">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold tracking-[0.18em] text-muted-foreground uppercase">
+              <p className="text-xs font-semibold tracking-[0.18em] text-[#8C5E14] dark:text-[#F3D078] uppercase">
                 Крок 1
               </p>
-              <h2 id="contact-title" className="mt-2 text-xl font-semibold">
+              <h2 id="contact-title" className="mt-2 font-heading text-xl font-semibold">
                 Контактні дані
               </h2>
             </div>
-            <Badge variant="outline">Гостьове замовлення</Badge>
+            <Badge variant="outline" className="border-[#D4AF37]/35">Гостьове замовлення</Badge>
           </div>
 
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -373,18 +373,18 @@ export function CheckoutForm() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-border bg-card p-5 sm:p-6" aria-labelledby="delivery-title">
+        <section className="rounded-2xl border border-border/85 bg-card p-5 sm:p-6 shadow-luxury" aria-labelledby="delivery-title">
           <div>
-            <p className="text-xs font-semibold tracking-[0.18em] text-muted-foreground uppercase">
+            <p className="text-xs font-semibold tracking-[0.18em] text-[#8C5E14] dark:text-[#F3D078] uppercase">
               Крок 2
             </p>
-            <h2 id="delivery-title" className="mt-2 text-xl font-semibold">
+            <h2 id="delivery-title" className="mt-2 font-heading text-xl font-semibold">
               Доставка Новою Поштою
             </h2>
           </div>
 
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
-            <label className="flex cursor-pointer gap-3 rounded-xl border border-border p-4 has-[:checked]:border-foreground">
+            <label className="flex cursor-pointer gap-3 rounded-xl border border-border p-4 transition-colors hover:border-[#D4AF37]/45 has-[:checked]:border-[#D4AF37] has-[:checked]:bg-[#D4AF37]/8 dark:has-[:checked]:bg-[#D4AF37]/10">
               <input
                 type="radio"
                 value="Warehouse"
@@ -402,7 +402,7 @@ export function CheckoutForm() {
                 </span>
               </span>
             </label>
-            <label className="flex cursor-pointer gap-3 rounded-xl border border-border p-4 has-[:checked]:border-foreground">
+            <label className="flex cursor-pointer gap-3 rounded-xl border border-border p-4 transition-colors hover:border-[#D4AF37]/45 has-[:checked]:border-[#D4AF37] has-[:checked]:bg-[#D4AF37]/8 dark:has-[:checked]:bg-[#D4AF37]/10">
               <input
                 type="radio"
                 value="Postomat"
@@ -420,7 +420,7 @@ export function CheckoutForm() {
                 </span>
               </span>
             </label>
-            <label className="flex cursor-pointer gap-3 rounded-xl border border-border p-4 has-[:checked]:border-foreground">
+            <label className="flex cursor-pointer gap-3 rounded-xl border border-border p-4 transition-colors hover:border-[#D4AF37]/45 has-[:checked]:border-[#D4AF37] has-[:checked]:bg-[#D4AF37]/8 dark:has-[:checked]:bg-[#D4AF37]/10">
               <input type="radio" value="Courier" className="mt-1 accent-primary" {...form.register("deliveryType", { onChange: () => {
                 form.setValue("deliveryWarehouseRef", "", { shouldValidate: true })
                 form.setValue("deliveryWarehouseName", "", { shouldValidate: true })
@@ -566,13 +566,13 @@ export function CheckoutForm() {
                     disabled={!cityRef || isLoadingWarehouses}
                     onClick={() => setIsMapOpen(true)}
                     className={cn(
-                      "w-full cursor-pointer font-medium transition-colors",
+                      "h-10 w-full cursor-pointer rounded-full text-xs font-semibold tracking-wide transition-colors",
                       cityRef
-                        ? "bg-[#181512] text-[#FAF8F5] hover:bg-[#2A231D] dark:bg-[#D4AF37] dark:text-[#181512] dark:hover:bg-[#C59F2D] border-transparent shadow-xs"
+                        ? "bg-[#181512] text-[#FAF8F5] hover:bg-[#2A231D] dark:bg-gradient-to-r dark:from-[#E5C158] dark:via-[#F3D078] dark:to-[#D4AF37] dark:text-[#14110C] dark:hover:brightness-105 border-transparent shadow-xs"
                         : "bg-muted text-muted-foreground border border-border"
                     )}
                   >
-                    <MapPin className={cn("mr-2 size-4 shrink-0", cityRef ? "text-[#D4AF37] dark:text-[#181512]" : "text-muted-foreground")} />
+                    <MapPin className={cn("mr-1.5 size-4 shrink-0", cityRef ? "text-[#F3D078] dark:text-[#14110C]" : "text-muted-foreground")} />
                     <span>{isLoadingWarehouses ? "Завантаження точок…" : "Обрати на мапі"}</span>
                   </Button>
                 </>
@@ -628,25 +628,25 @@ export function CheckoutForm() {
           />}
         </section>
 
-        <section className="rounded-2xl border border-border bg-card p-5 sm:p-6" aria-labelledby="payment-title">
+        <section className="rounded-2xl border border-border/85 bg-card p-5 sm:p-6 shadow-luxury" aria-labelledby="payment-title">
           <div>
-            <p className="text-xs font-semibold tracking-[0.18em] text-muted-foreground uppercase">
+            <p className="text-xs font-semibold tracking-[0.18em] text-[#8C5E14] dark:text-[#F3D078] uppercase">
               Крок 3
             </p>
-            <h2 id="payment-title" className="mt-2 text-xl font-semibold">
+            <h2 id="payment-title" className="mt-2 font-heading text-xl font-semibold">
               Оплата
             </h2>
           </div>
 
           <div className="mt-5 space-y-3">
-            <label className="flex cursor-pointer gap-3 rounded-xl border border-border p-4 has-[:checked]:border-foreground">
+            <label className="flex cursor-pointer gap-3 rounded-xl border border-border p-4 transition-colors hover:border-[#D4AF37]/45 has-[:checked]:border-[#D4AF37] has-[:checked]:bg-[#D4AF37]/8 dark:has-[:checked]:bg-[#D4AF37]/10">
               <input
                 type="radio"
                 value="CashOnDelivery"
                 className="mt-1 accent-primary"
                 {...form.register("paymentMethod")}
               />
-              <CreditCard className="mt-0.5 size-5 text-muted-foreground" aria-hidden="true" />
+              <CreditCard className="mt-0.5 size-5 text-[#8C5E14] dark:text-[#F3D078]" aria-hidden="true" />
               <span>
                 <span className="block text-sm font-medium">Оплата при отриманні</span>
                 <span className="mt-1 block text-xs text-muted-foreground">
@@ -658,14 +658,14 @@ export function CheckoutForm() {
               </span>
             </label>
             {shopConfig.payment.iban && (
-              <label className="flex cursor-pointer gap-3 rounded-xl border border-border p-4 has-[:checked]:border-foreground">
+              <label className="flex cursor-pointer gap-3 rounded-xl border border-border p-4 transition-colors hover:border-[#D4AF37]/45 has-[:checked]:border-[#D4AF37] has-[:checked]:bg-[#D4AF37]/8 dark:has-[:checked]:bg-[#D4AF37]/10">
                 <input
                   type="radio"
                   value="Online"
                   className="mt-1 accent-primary"
                   {...form.register("paymentMethod")}
                 />
-                <Landmark className="mt-0.5 size-5 text-muted-foreground" aria-hidden="true" />
+                <Landmark className="mt-0.5 size-5 text-[#8C5E14] dark:text-[#F3D078]" aria-hidden="true" />
                 <span>
                   <span className="block text-sm font-medium">Оплата за реквізитами IBAN</span>
                   <span className="mt-1 block text-xs text-muted-foreground">
@@ -675,7 +675,7 @@ export function CheckoutForm() {
               </label>
             )}
             {shopConfig.payment.monobankEnabled && (
-              <label className="flex cursor-pointer flex-wrap items-start gap-3 rounded-xl border border-border p-4 has-[:checked]:border-primary has-[:checked]:bg-primary/5 focus-within:ring-2 focus-within:ring-ring">
+              <label className="flex cursor-pointer flex-wrap items-start gap-3 rounded-xl border border-border p-4 transition-colors hover:border-[#D4AF37]/45 has-[:checked]:border-[#D4AF37] has-[:checked]:bg-[#D4AF37]/8 dark:has-[:checked]:bg-[#D4AF37]/10 focus-within:ring-2 focus-within:ring-ring">
                 <input
                   type="radio"
                   value="Monobank"
@@ -696,7 +696,7 @@ export function CheckoutForm() {
           {shopConfig.payment.iban && paymentMethod === "Online" && <IbanPaymentDetails amount={totalPrice} />}
         </section>
 
-        <section className="rounded-2xl border border-border bg-card p-5 sm:p-6" aria-labelledby="comment-title">
+        <section className="rounded-2xl border border-border/85 bg-card p-5 sm:p-6 shadow-luxury" aria-labelledby="comment-title">
           <label htmlFor="checkout-comment" id="comment-title" className="text-sm font-medium">
             Коментар до замовлення <span className="text-muted-foreground">(необов’язково)</span>
           </label>
@@ -704,15 +704,15 @@ export function CheckoutForm() {
             id="checkout-comment"
             rows={4}
             placeholder="Додаткові побажання до замовлення"
-            className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 mt-3 min-h-24 w-full resize-y rounded-lg border bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-3"
+            className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 mt-3 min-h-24 w-full resize-y rounded-xl border bg-transparent px-3.5 py-2.5 text-sm outline-none focus-visible:ring-3"
             {...form.register("customerComment")}
           />
           <FieldError message={form.formState.errors.customerComment?.message} />
         </section>
       </div>
 
-      <aside className="h-fit rounded-2xl border border-border bg-card p-5 lg:sticky lg:top-28">
-        <h2 className="text-lg font-semibold">Ваше замовлення</h2>
+      <aside className="h-fit rounded-2xl border border-[#D4AF37]/25 bg-card p-5 shadow-luxury lg:sticky lg:top-28">
+        <h2 className="font-heading text-lg font-semibold">Ваше замовлення</h2>
         <div className="mt-5 space-y-4">
           {items.map(({ product, quantity }) => (
             <div key={product.id} className="flex items-start justify-between gap-3 text-sm">
@@ -720,7 +720,7 @@ export function CheckoutForm() {
                 <p className="line-clamp-2 font-medium">{product.name}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{quantity} шт.</p>
               </div>
-              <span className="shrink-0">{formatPrice(product.price * quantity)}</span>
+              <span className="shrink-0 font-medium">{formatPrice(product.price * quantity)}</span>
             </div>
           ))}
         </div>
@@ -728,13 +728,17 @@ export function CheckoutForm() {
           <span>Разом</span>
           <span>{formatPrice(totalPrice)}</span>
         </div>
-        <p className="mt-3 text-sm text-muted-foreground">Доставка — за тарифами Нової Пошти, сплачується окремо.</p>
-        <Button className="mt-6 w-full" size="lg" type="submit" disabled={form.formState.isSubmitting || isRetryingPayment}>
+        <p className="mt-3 text-xs sm:text-sm text-muted-foreground">Доставка — за тарифами Нової Пошти, сплачується окремо.</p>
+        <Button
+          className="mt-5 h-10.5 w-full rounded-full border-0 bg-[#181512] text-[#FAF8F5] hover:bg-[#2A231D] dark:bg-gradient-to-r dark:from-[#E5C158] dark:via-[#F3D078] dark:to-[#D4AF37] dark:text-[#14110C] dark:hover:brightness-105 text-xs sm:text-sm font-semibold tracking-wide shadow-sm cursor-pointer"
+          type="submit"
+          disabled={form.formState.isSubmitting || isRetryingPayment}
+        >
           {form.formState.isSubmitting || isRetryingPayment ? "Обробка замовлення…" : paymentMethod === "Monobank" ? "Оплатити карткою" : "Підтвердити замовлення"}
         </Button>
         <Link
           href="/cart"
-          className="mt-4 flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+          className="mt-4 flex items-center justify-center gap-2 rounded-md text-xs sm:text-sm text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-[#D4AF37]/60"
         >
           <ArrowLeft className="size-4" aria-hidden="true" />
           Повернутися до кошика

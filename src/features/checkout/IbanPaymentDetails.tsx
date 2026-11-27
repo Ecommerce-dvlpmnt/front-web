@@ -33,7 +33,7 @@ export function IbanPaymentDetails({ amount, orderNumber }: IbanPaymentDetailsPr
   }
 
   return (
-    <div className="mt-6 rounded-xl border border-border bg-muted/40 p-4 sm:p-5">
+    <div className="mt-6 rounded-2xl border border-[#D4AF37]/25 bg-muted/35 p-4 sm:p-5">
       <dl className="space-y-3 text-sm">
         {ibanRecipient && (
           <div>
@@ -76,7 +76,7 @@ export function IbanPaymentDetails({ amount, orderNumber }: IbanPaymentDetailsPr
           Повні реквізити для оплати уточніть у менеджера перед переказом коштів.
         </p>
       )}
-      <Button className="mt-5 w-full sm:w-auto" type="button" variant="outline" disabled={!hasValidIban} onClick={copyIban}>
+      <Button className="mt-5 h-9.5 w-full sm:w-auto rounded-full border-[#D4AF37]/40 px-5 text-xs font-semibold hover:border-[#D4AF37]" type="button" variant="outline" disabled={!hasValidIban} onClick={copyIban}>
         <Clipboard aria-hidden="true" />
         Скопіювати IBAN
       </Button>

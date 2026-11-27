@@ -57,7 +57,7 @@ export function AdminLoginForm() {
         <Input id="admin-password" type="password" autoComplete="current-password" aria-invalid={Boolean(form.formState.errors.password)} {...form.register("password")} />
         {form.formState.errors.password?.message && <p className="text-sm text-destructive">{form.formState.errors.password.message}</p>}
       </div>
-      <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
+      <Button className="h-10 w-full rounded-full border-0 bg-[#181512] text-xs font-semibold uppercase tracking-wider text-[#FAF8F5] hover:bg-[#2A231D] dark:bg-gradient-to-r dark:from-[#E5C158] dark:via-[#F3D078] dark:to-[#D4AF37] dark:text-[#14110C]" type="submit" disabled={form.formState.isSubmitting}>
         {form.formState.isSubmitting ? "Вхід…" : "Увійти"}
       </Button>
     </form>

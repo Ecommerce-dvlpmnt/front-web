@@ -99,20 +99,26 @@ export function HeroBanner({ slides = heroSlides }: { slides?: HeroSlide[] }) {
         aria-hidden="true"
       />
 
-      {/* М'які теплі розсіяні відблиски гірлянд */}
+      {/* Внутрішня тонка ювелірна рамка вітрини */}
       <div
-        className="pointer-events-none absolute top-10 right-1/3 -z-10 size-72 rounded-full bg-[#D4AF37]/25 dark:bg-[#D4AF37]/15 blur-3xl"
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute bottom-0 right-10 -z-10 size-96 rounded-full bg-[#F3D078]/30 dark:bg-[#F3D078]/12 blur-3xl"
+        className="pointer-events-none absolute inset-2.5 sm:inset-3.5 z-10 rounded-[1.5rem] sm:rounded-[2rem] border border-[#8C5E14]/12 dark:border-[#F3D078]/12"
         aria-hidden="true"
       />
 
-      {/* 2-колонкова сітка банера */}
-      <div className="grid grid-cols-1 items-center gap-10 p-6 sm:p-10 lg:grid-cols-12 lg:gap-12 lg:p-16 min-h-[540px] sm:min-h-[580px]">
+      {/* М'які теплі розсіяні відблиски гірлянд */}
+      <div
+        className="pointer-events-none absolute top-6 right-1/3 -z-10 size-64 rounded-full bg-[#D4AF37]/25 dark:bg-[#D4AF37]/15 blur-3xl"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute bottom-0 right-10 -z-10 size-80 rounded-full bg-[#F3D078]/30 dark:bg-[#F3D078]/12 blur-3xl"
+        aria-hidden="true"
+      />
+
+      {/* 2-колонкова компактна збалансована сітка банера */}
+      <div className="grid grid-cols-1 items-center gap-6 p-5 sm:gap-8 sm:p-8 lg:grid-cols-12 lg:gap-10 lg:px-12 lg:py-9 xl:px-14 xl:py-10 lg:min-h-[420px] xl:min-h-[450px]">
         {/* Ліва колонка — тексти слайдів без багу накладання при крос-фейді */}
-        <div className="relative grid items-center lg:col-span-7 min-h-[360px] sm:min-h-[400px]">
+        <div className="relative grid items-center lg:col-span-7 min-h-[240px] sm:min-h-[270px] lg:min-h-[325px] lg:pb-7">
           {displaySlides.map((s, idx) => {
             const isActive = idx === currentSlide
             return (
@@ -126,28 +132,29 @@ export function HeroBanner({ slides = heroSlides }: { slides?: HeroSlide[] }) {
                     : "duration-150 ease-in opacity-0 -translate-y-1.5 z-0 pointer-events-none select-none"
                 }`}
               >
-                <div className="w-fit rounded-full border border-[#8C5E14]/25 dark:border-[#F3D078]/35 bg-[#D4AF37]/15 px-4 py-1 text-[11px] font-semibold tracking-[0.14em] text-[#7A4F08] dark:text-[#F3D078] backdrop-blur-md uppercase shadow-xs">
-                  {s.badge}
+                <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[#8C5E14]/25 dark:border-[#F3D078]/35 bg-[#D4AF37]/15 px-3.5 py-1 text-[10.5px] sm:text-[11px] font-semibold tracking-[0.14em] text-[#7A4F08] dark:text-[#F3D078] backdrop-blur-md uppercase shadow-xs">
+                  <span className="size-1.5 rounded-full bg-[#9E6B16] dark:bg-[#F3D078]" aria-hidden="true" />
+                  <span>{s.badge}</span>
                 </div>
 
-                <h2 className="mt-5 font-heading text-4xl font-semibold tracking-[-0.02em] text-balance text-[#181512] dark:text-[#FAF8F5] sm:text-5xl lg:text-[3.5rem] leading-[1.12]">
+                <h2 className="mt-3.5 sm:mt-4 font-heading text-[1.68rem] font-semibold tracking-[-0.02em] text-balance text-[#181512] dark:text-[#FAF8F5] sm:text-4xl lg:text-[2.65rem] xl:text-[3.05rem] leading-[1.12]">
                   {s.title}
                 </h2>
 
-                <p className="mt-5 max-w-lg text-base leading-relaxed text-[#4A4137] dark:text-[#E8E2D8]/85 sm:text-lg">
+                <p className="mt-3 sm:mt-4 max-w-lg text-sm leading-relaxed text-[#4A4137] dark:text-[#E8E2D8]/85 sm:text-base">
                   {s.description}
                 </p>
 
-                <div className="mt-8 flex flex-wrap items-center gap-4">
+                <div className="mt-5 sm:mt-6 flex flex-wrap items-center gap-3 sm:gap-4">
                   <Button
                     asChild
                     size="lg"
-                    className="relative group h-12 rounded-full border-0 bg-[#181512] text-[#FAF8F5] hover:bg-[#2A231D] dark:bg-gradient-to-r dark:from-[#E5C158] dark:via-[#F3D078] dark:to-[#D4AF37] dark:text-[#14110C] dark:hover:brightness-105 px-8 text-sm font-bold tracking-wide shadow-[0_10px_28px_-6px_rgba(24,21,18,0.28)] dark:shadow-[0_10px_28px_-6px_rgba(212,175,55,0.45)] transition-all duration-200 hover:scale-[1.015] active:scale-[0.99] cursor-pointer"
+                    className="relative group h-11 sm:h-12 w-full sm:w-auto justify-center rounded-full border-0 bg-[#181512] text-[#FAF8F5] hover:bg-[#2A231D] dark:bg-gradient-to-r dark:from-[#E5C158] dark:via-[#F3D078] dark:to-[#D4AF37] dark:text-[#14110C] dark:hover:brightness-105 px-7 sm:px-8 text-sm font-bold tracking-wide shadow-[0_10px_28px_-6px_rgba(24,21,18,0.28)] dark:shadow-[0_10px_28px_-6px_rgba(212,175,55,0.45)] transition-all duration-200 hover:scale-[1.015] active:scale-[0.99] cursor-pointer"
                   >
                     <Link
                       href={getCatalogHref({ categorySlug: s.categorySlug })}
                       prefetch={false}
-                      className="flex items-center gap-2.5"
+                      className="flex items-center justify-center gap-2.5"
                     >
                       <span>{s.ctaText}</span>
                       <ArrowRight className="size-4 text-[#F3D078] dark:text-[#14110C] transition-transform duration-300 group-hover:translate-x-1" />
@@ -156,10 +163,10 @@ export function HeroBanner({ slides = heroSlides }: { slides?: HeroSlide[] }) {
                 </div>
 
                 {/* Мікро-переваги */}
-                <div className="mt-10 flex flex-wrap items-center gap-3 sm:gap-4 text-xs font-medium text-[#5C5145] dark:text-[#E8E2D8]/75">
+                <div className="mt-5 sm:mt-7 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 sm:gap-3.5 text-[11.5px] sm:text-xs font-medium text-[#5C5145] dark:text-[#E8E2D8]/75">
                   {s.features.map((feature, fIdx) => (
-                    <span key={fIdx} className="flex items-center gap-3">
-                      {fIdx > 0 && <span className="text-[#8C5E14]/50 dark:text-[#F3D078]/45">·</span>}
+                    <span key={fIdx} className="flex items-center gap-2.5 sm:gap-3">
+                      {fIdx > 0 && <span className="text-[#8C5E14]/50 dark:text-[#F3D078]/45" aria-hidden="true">✦</span>}
                       <span>{feature}</span>
                     </span>
                   ))}
@@ -172,11 +179,11 @@ export function HeroBanner({ slides = heroSlides }: { slides?: HeroSlide[] }) {
         {/* Права колонка — Атмосферна картка з фотографією */}
         <div className="relative flex items-center justify-center lg:col-span-5">
           <div
-            className="pointer-events-none absolute -inset-3 rounded-3xl bg-gradient-to-tr from-[#d4af37]/30 via-[#8c5e14]/15 to-white/40 dark:from-[#d4af37]/25 dark:via-[#7a1c24]/18 dark:to-[#122b21]/30 blur-2xl"
+            className="pointer-events-none absolute -inset-2.5 rounded-3xl bg-gradient-to-tr from-[#d4af37]/30 via-[#8c5e14]/15 to-white/40 dark:from-[#d4af37]/25 dark:via-[#7a1c24]/18 dark:to-[#122b21]/30 blur-2xl"
             aria-hidden="true"
           />
 
-          <div className="group relative aspect-[4/5] w-full max-w-sm sm:max-w-md overflow-hidden rounded-3xl border border-white/80 dark:border-[#F3D078]/25 bg-[#121816] shadow-2xl shadow-[#4A3508]/20 dark:shadow-black/60">
+          <div className="group relative aspect-[16/10] sm:aspect-[16/10] lg:aspect-[4/4.2] w-full max-w-full sm:max-w-lg lg:max-w-[23.5rem] xl:max-w-[25rem] overflow-hidden rounded-2xl sm:rounded-3xl border border-white/80 dark:border-[#F3D078]/25 bg-[#121816] shadow-2xl shadow-[#4A3508]/20 dark:shadow-black/60">
             {displaySlides.map((s, index) => (
               <div
                 key={s.id}
@@ -191,16 +198,16 @@ export function HeroBanner({ slides = heroSlides }: { slides?: HeroSlide[] }) {
                   fill
                   loading={index === 0 ? "eager" : "lazy"}
                   fetchPriority={index === 0 ? "high" : "auto"}
-                  sizes="(min-width: 1024px) 45vw, (min-width: 640px) 70vw, 90vw"
-                  className="object-cover transition-transform duration-1000 ease-out group-hover:scale-105"
+                  sizes="(min-width: 1024px) 40vw, (min-width: 640px) 75vw, 92vw"
+                  className="object-cover object-center transition-transform duration-1000 ease-out group-hover:scale-105"
                 />
 
                 <div
-                  className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/5"
+                  className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent"
                   aria-hidden="true"
                 />
                 <div
-                  className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-[#0b1512]/35 via-transparent to-[#d4af37]/15"
+                  className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-[#0b1512]/30 via-transparent to-[#d4af37]/15"
                   aria-hidden="true"
                 />
               </div>
@@ -214,27 +221,27 @@ export function HeroBanner({ slides = heroSlides }: { slides?: HeroSlide[] }) {
                   key={s.id}
                   inert={!isActive}
                   aria-hidden={!isActive}
-                  className={`absolute right-4 bottom-4 left-4 rounded-2xl border border-white/30 dark:border-[#F3D078]/30 bg-[#181512]/80 dark:bg-[#0B1410]/85 p-3.5 sm:p-4 backdrop-blur-md shadow-xl transition-[opacity,transform] ${
+                  className={`absolute right-3 bottom-3 left-3 sm:right-4 sm:bottom-4 sm:left-4 rounded-xl sm:rounded-2xl border border-white/30 dark:border-[#F3D078]/30 bg-[#181512]/80 dark:bg-[#0B1410]/85 p-3 sm:p-3.5 backdrop-blur-md shadow-xl transition-[opacity,transform] ${
                     isActive
                       ? "duration-500 delay-150 ease-out opacity-100 translate-y-0 z-20 pointer-events-auto"
                       : "duration-150 ease-in opacity-0 translate-y-2 z-10 pointer-events-none select-none"
                   }`}
                 >
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center justify-between gap-2.5 sm:gap-3">
                     <div className="min-w-0">
                       <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#F3D078]">
                         {s.card.tag}
                       </span>
-                      <p className="mt-0.5 truncate text-sm font-semibold text-[#FAF8F5]">
+                      <p className="mt-0.5 truncate text-xs sm:text-sm font-semibold text-[#FAF8F5]">
                         {s.card.title}
                       </p>
-                      <p className="text-xs text-[#E8E2D8]/80">
+                      <p className="truncate text-[11px] sm:text-xs text-[#E8E2D8]/80">
                         {s.card.subtitle}
                       </p>
                     </div>
 
                     <div className="shrink-0 text-right">
-                      <span className="block text-base sm:text-lg font-bold tracking-tight text-[#F3D078]">
+                      <span className="block text-sm sm:text-base font-bold tracking-tight text-[#F3D078]">
                         {s.card.price}
                       </span>
                       <Link
@@ -254,9 +261,9 @@ export function HeroBanner({ slides = heroSlides }: { slides?: HeroSlide[] }) {
       </div>
 
       {/* Керування слайдером: Стрілки та крапки навігації */}
-      <div className="relative z-20 flex items-center justify-center gap-4 px-6 pb-6 sm:px-10 sm:pb-8 lg:absolute lg:bottom-5 lg:left-16 lg:justify-start lg:p-0">
+      <div className="relative z-20 flex items-center justify-between sm:justify-center gap-4 px-5 pb-5 sm:px-8 sm:pb-7 lg:absolute lg:bottom-5 lg:left-12 xl:left-14 lg:justify-start lg:p-0">
         {/* Індикатори-крапки */}
-        <div className="flex items-center gap-1.5" role="tablist" aria-label="Слайди банера">
+        <div className="flex items-center gap-2" role="tablist" aria-label="Слайди банера">
           {slides.map((s, idx) => (
             <button
               key={s.id}
@@ -265,22 +272,22 @@ export function HeroBanner({ slides = heroSlides }: { slides?: HeroSlide[] }) {
               aria-selected={idx === currentSlide}
               aria-label={`Перейти до слайду ${idx + 1}`}
               onClick={() => handleSlideSelect(idx)}
-              className={`h-2 rounded-full transition-all duration-300 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-foreground ${
+              className={`relative h-2.5 sm:h-2 rounded-full transition-all duration-300 cursor-pointer after:absolute after:-inset-2 after:content-[''] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-foreground ${
                 idx === currentSlide
-                  ? "w-7 bg-[#181512] dark:bg-white shadow-xs"
-                  : "w-2 bg-[#181512]/25 hover:bg-[#181512]/50 dark:bg-white/35 dark:hover:bg-white/60"
+                  ? "w-7 bg-[#181512] dark:bg-[#F3D078] shadow-xs"
+                  : "w-2.5 sm:w-2 bg-[#181512]/25 hover:bg-[#181512]/50 dark:bg-white/35 dark:hover:bg-white/60"
               }`}
             />
           ))}
         </div>
 
         {/* Стрілки попередня / наступна */}
-        <div className="flex items-center gap-1.5 ml-2 lg:gap-1">
+        <div className="flex items-center gap-2 lg:ml-2 lg:gap-1.5">
           <button
             type="button"
             onClick={handlePrev}
             aria-label="Попередній слайд"
-            className="flex size-9 items-center justify-center rounded-full border border-[#181512]/15 bg-white/75 text-[#181512] hover:bg-white dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground backdrop-blur-sm transition-all active:scale-95 cursor-pointer lg:size-7"
+            className="flex size-10 sm:size-9 items-center justify-center rounded-full border border-[#181512]/15 bg-white/75 text-[#181512] hover:bg-white dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground backdrop-blur-sm transition-all active:scale-95 cursor-pointer lg:size-7.5"
           >
             <ChevronLeft className="size-4" />
           </button>
@@ -288,7 +295,7 @@ export function HeroBanner({ slides = heroSlides }: { slides?: HeroSlide[] }) {
             type="button"
             onClick={handleNext}
             aria-label="Наступний слайд"
-            className="flex size-9 items-center justify-center rounded-full border border-[#181512]/15 bg-white/75 text-[#181512] hover:bg-white dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground backdrop-blur-sm transition-all active:scale-95 cursor-pointer lg:size-7"
+            className="flex size-10 sm:size-9 items-center justify-center rounded-full border border-[#181512]/15 bg-white/75 text-[#181512] hover:bg-white dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground backdrop-blur-sm transition-all active:scale-95 cursor-pointer lg:size-7.5"
           >
             <ChevronRight className="size-4" />
           </button>

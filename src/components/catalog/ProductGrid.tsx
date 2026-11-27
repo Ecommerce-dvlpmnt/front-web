@@ -28,8 +28,8 @@ export function ProductGrid({ products, heightVariantsByProductId = {}, productO
 
   if (products.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-border px-6 py-14 text-center">
-        <p className="font-medium">
+      <div className="rounded-3xl border border-dashed border-[#D4AF37]/35 bg-gradient-to-br from-card to-muted/30 px-6 py-14 text-center shadow-luxury">
+        <p className="font-heading text-base font-semibold text-foreground">
           {searchQuery
             ? `За запитом «${searchQuery}» товарів не знайдено.`
             : "Наразі товарів немає."}
@@ -42,7 +42,7 @@ export function ProductGrid({ products, heightVariantsByProductId = {}, productO
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4 lg:gap-6">
+    <div className="grid grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-3 md:gap-4 lg:grid-cols-4 lg:gap-6">
       {products.map((product, index) => (
         <ProductCard
           key={product.id}
@@ -59,7 +59,7 @@ export function ProductGrid({ products, heightVariantsByProductId = {}, productO
 
 export function ProductGridSkeleton() {
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4 lg:gap-6">
+    <div className="grid grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-3 md:gap-4 lg:grid-cols-4 lg:gap-6">
       {Array.from({ length: 8 }, (_, index) => (
         <ProductCardSkeleton key={index} />
       ))}

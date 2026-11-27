@@ -31,9 +31,13 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const filters = getCatalogFilters(query)
 
   return (
-    <div className="bg-background">
-      <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
-        <div id="catalog" className="scroll-mt-24 pt-8 sm:pt-12">
+    <div className="relative overflow-x-clip bg-background">
+      <div
+        className="pointer-events-none absolute top-16 left-1/2 -z-0 h-[28rem] w-[60rem] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.08),transparent_68%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(24,62,46,0.45),transparent_68%)] blur-2xl"
+        aria-hidden="true"
+      />
+      <div className="relative z-10 mx-auto max-w-7xl px-3.5 py-4 sm:px-6 sm:py-7 lg:px-8 lg:py-8">
+        <div id="catalog" className="scroll-mt-24 pt-3 sm:pt-5">
           <CatalogFilters categorySlug={slug} searchQuery={searchQuery} filters={filters} />
           <div className="min-h-[520px] transition-opacity duration-300">
             <Suspense key={`${slug}:${searchQuery}:${pageNumber}:${JSON.stringify(filters)}`} fallback={<CatalogSkeleton />}>

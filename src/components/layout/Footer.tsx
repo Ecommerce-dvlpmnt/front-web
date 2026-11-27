@@ -6,33 +6,37 @@ import { shopConfig } from "@/lib/config/shop"
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-muted/30">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1.4fr_1fr_1fr] lg:px-8 lg:py-16">
+    <footer className="relative overflow-hidden border-t border-[#D4AF37]/25 dark:border-[#D4AF37]/20 bg-gradient-to-b from-[#F4EFE6]/85 via-[#EDE5D7]/75 to-[#E6DCC8]/70 dark:from-[#0E1814] dark:via-[#0B1310] dark:to-[#080D0B]">
+      <div
+        className="pointer-events-none absolute -top-24 left-1/4 h-56 w-96 rounded-full bg-[#D4AF37]/12 dark:bg-[#D4AF37]/8 blur-3xl"
+        aria-hidden="true"
+      />
+      <div className="relative z-10 mx-auto grid max-w-7xl gap-9 px-4 py-10 sm:px-6 sm:py-12 lg:grid-cols-[1.4fr_1fr_1fr] lg:gap-10 lg:px-8 lg:py-14">
         <div>
           <Link
             href="/"
-            className="inline-flex items-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="inline-flex items-center overflow-visible rounded-xl py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             aria-label={`${shopConfig.name} — на головну`}
           >
             <BrandLogo animated={false} />
           </Link>
-          <p className="mt-4 max-w-xs text-sm leading-6 text-muted-foreground">
+          <p className="mt-3.5 max-w-xs text-sm leading-6 text-muted-foreground">
             {shopConfig.description}. Обирайте деталі, які роблять кожен день
             особливим.
           </p>
-          <p className="mt-8 text-xs text-muted-foreground">
+          <p className="mt-6 sm:mt-8 text-xs text-muted-foreground">
             © {new Date().getFullYear()} {shopConfig.name}. Усі права захищені.
           </p>
         </div>
 
         <div>
-          <h2 className="text-sm font-semibold">Покупцям</h2>
-          <nav className="mt-4 flex flex-col items-start gap-3" aria-label="Посилання для покупців">
+          <h2 className="font-heading text-xs font-bold uppercase tracking-[0.16em] text-[#8C5E14] dark:text-[#F3D078]">Покупцям</h2>
+          <nav className="mt-4 flex flex-col items-start gap-2.5" aria-label="Посилання для покупців">
             {shopConfig.footerLinks.map((item) => (
               <Link
                 key={item.label}
                 href={item.href}
-                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                className="rounded-md py-0.5 text-sm text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-[#D4AF37]/60"
               >
                 {item.label}
               </Link>
@@ -41,26 +45,26 @@ export function Footer() {
         </div>
 
         <div>
-          <h2 className="text-sm font-semibold">Ми на зв’язку</h2>
-          <div className="mt-4 flex items-start gap-2 text-sm text-muted-foreground">
-            <Clock3 className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          <h2 className="font-heading text-xs font-bold uppercase tracking-[0.16em] text-[#8C5E14] dark:text-[#F3D078]">Ми на зв’язку</h2>
+          <div className="mt-4 flex items-start gap-2.5 text-sm text-muted-foreground">
+            <Clock3 className="mt-0.5 size-4 shrink-0 text-[#8C5E14] dark:text-[#F3D078]" aria-hidden="true" />
             <p className="whitespace-pre-line">{shopConfig.contact.hours.replace("; ", "\n")}</p>
           </div>
           {shopConfig.contact.phone ? (
             <a
               href={`tel:${shopConfig.contact.phone.replace(/[^+\d]/g, "")}`}
-              className="mt-3 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+              className="mt-3 flex w-fit items-center gap-2.5 rounded-md text-sm text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-[#D4AF37]/60"
             >
-              <Phone className="size-4" aria-hidden="true" />
+              <Phone className="size-4 text-[#8C5E14] dark:text-[#F3D078]" aria-hidden="true" />
               {shopConfig.contact.phone}
             </a>
           ) : null}
           {shopConfig.contact.email ? (
             <a
               href={`mailto:${shopConfig.contact.email}`}
-              className="mt-3 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+              className="mt-3 flex w-fit items-center gap-2.5 rounded-md text-sm text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-[#D4AF37]/60"
             >
-              <Mail className="size-4" aria-hidden="true" />
+              <Mail className="size-4 text-[#8C5E14] dark:text-[#F3D078]" aria-hidden="true" />
               {shopConfig.contact.email}
             </a>
           ) : null}
@@ -70,7 +74,7 @@ export function Footer() {
                 href={shopConfig.contact.telegram}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-full border border-border p-2 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
+                className="rounded-full border border-[#D4AF37]/35 bg-background/60 p-2.5 text-muted-foreground outline-none transition-colors hover:border-[#D4AF37]/70 hover:bg-background hover:text-foreground focus-visible:ring-2 focus-visible:ring-[#D4AF37]/60"
                 aria-label="Telegram"
               >
                 <svg className="size-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -79,7 +83,7 @@ export function Footer() {
               </a>
             ) : (
               <span
-                className="rounded-full border border-border p-2 text-muted-foreground/50"
+                className="rounded-full border border-border p-2.5 text-muted-foreground/50"
                 aria-hidden="true"
               >
                 <Globe className="size-4" />

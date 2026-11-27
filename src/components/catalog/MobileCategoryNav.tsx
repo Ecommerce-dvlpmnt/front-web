@@ -50,7 +50,7 @@ export function MobileCategoryNav({ categories, activeCategorySlug, searchQuery,
   }, [isOpen])
 
   return (
-    <div ref={rootRef} className="mt-8 space-y-3 md:hidden">
+    <div ref={rootRef} className="mt-5 space-y-2.5 md:hidden">
       <button
         type="button"
         aria-expanded={isOpen}

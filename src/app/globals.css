@@ -152,10 +152,18 @@
 
   body {
     @apply bg-background text-foreground antialiased selection:bg-[#d4af37]/25 selection:text-foreground;
+    background-image:
+      radial-gradient(ellipse at 50% -120px, rgba(212, 175, 55, 0.09) 0%, transparent 62%),
+      radial-gradient(ellipse at 10% 35%, rgba(212, 175, 55, 0.04) 0%, transparent 50%),
+      radial-gradient(ellipse at 90% 70%, rgba(180, 145, 85, 0.045) 0%, transparent 55%);
+    background-repeat: no-repeat;
     transition: background-color 0.2s ease, color 0.15s ease;
   }
   .dark body {
-    background-image: radial-gradient(ellipse at 50% -100px, rgba(212, 175, 55, 0.08) 0%, transparent 65%);
+    background-image:
+      radial-gradient(ellipse at 50% -100px, rgba(212, 175, 55, 0.1) 0%, transparent 62%),
+      radial-gradient(ellipse at 88% 28%, rgba(22, 58, 44, 0.42) 0%, transparent 55%),
+      radial-gradient(ellipse at 12% 72%, rgba(20, 48, 36, 0.35) 0%, transparent 55%);
     background-repeat: no-repeat;
   }
 
@@ -296,6 +304,31 @@ html.lenis, html.lenis body {
   }
 }
 
+.snow-particle-warm {
+  background-color: #CEA246;
+  box-shadow: 0 0 6px 1px rgba(212, 175, 55, 0.36);
+}
+.dark .snow-particle-warm {
+  background-color: #FFF2CF;
+  box-shadow: 0 0 8px 1.5px rgba(243, 208, 120, 0.52);
+}
+
+.snow-particle-cool {
+  background-color: #A8B1BC;
+  box-shadow: 0 0 5px 1px rgba(160, 170, 185, 0.3);
+}
+.dark .snow-particle-cool {
+  background-color: #FFFFFF;
+  box-shadow: 0 0 8px 1.5px rgba(255, 255, 255, 0.6);
+}
+
+@media (max-width: 767px) {
+  .snow-particle-warm,
+  .snow-particle-cool {
+    box-shadow: none;
+  }
+}
+
 @keyframes bannerShimmer {
   0% {
     transform: translateX(-120%);
@@ -310,61 +343,52 @@ html.lenis, html.lenis body {
 }
 
 @keyframes logoShimmerSweep {
-  0%, 60% {
-    transform: translateX(-140%) skewX(-20deg);
+  0%, 48% {
+    transform: translateX(-150%) skewX(-22deg);
     opacity: 0;
   }
-  63% {
-    opacity: 1;
+  55% {
+    transform: translateX(-41%) skewX(-22deg);
+    opacity: 0.72;
   }
-  77% {
-    transform: translateX(350%) skewX(-20deg);
-    opacity: 1;
+  75% {
+    transform: translateX(271%) skewX(-22deg);
+    opacity: 0.72;
   }
-  80%, 100% {
-    transform: translateX(350%) skewX(-20deg);
+  82%, 100% {
+    transform: translateX(380%) skewX(-22deg);
     opacity: 0;
   }
 }
 
-/* Звездочка загорается ровно в момент, когда блик доходит до слова DECOR (74–78%), и затем медленно плавно затухает (78–98%) */
+/* Мягкое ювелирное сияние звездочки у DECOR: бесшовный цикл без скачков, плавный вдох и долгое затухание */
 @keyframes logoStarSparkle {
-  0%, 73% {
-    transform: scale(0.15) rotate(-25deg);
-    opacity: 0;
+  0%, 56% {
+    transform: scale(0.64) rotate(0deg);
+    opacity: 0.12;
+    animation-timing-function: cubic-bezier(0.42, 0, 0.2, 1);
   }
-  77% {
-    transform: scale(1.15) rotate(0deg);
-    opacity: 1;
+  73% {
+    transform: scale(1.06) rotate(8deg);
+    opacity: 0.92;
+    animation-timing-function: cubic-bezier(0.33, 0, 0.2, 1);
   }
-  81% {
-    transform: scale(1.02) rotate(6deg);
-    opacity: 0.95;
-  }
-  88% {
-    transform: scale(0.9) rotate(12deg);
-    opacity: 0.55;
-  }
-  95% {
-    transform: scale(0.75) rotate(18deg);
-    opacity: 0.2;
-  }
-  100% {
-    transform: scale(0.5) rotate(22deg);
-    opacity: 0;
+  96%, 100% {
+    transform: scale(0.64) rotate(0deg);
+    opacity: 0.12;
   }
 }
 
 .animate-logo-shimmer {
   transform-box: fill-box;
   transform-origin: center;
-  animation: logoShimmerSweep 7s cubic-bezier(0.4, 0, 0.2, 1) -4.1s infinite;
+  animation: logoShimmerSweep 8.5s linear -4.2s infinite;
 }
 
 .animate-logo-sparkle {
   transform-box: fill-box;
   transform-origin: center;
-  animation: logoStarSparkle 7s cubic-bezier(0.22, 1, 0.36, 1) -4.1s infinite;
+  animation: logoStarSparkle 8.5s linear -4.2s infinite;
 }
 
 /* Нова Пошта: плавна анімація кластерів та модалки карти */

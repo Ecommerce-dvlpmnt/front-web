@@ -93,20 +93,20 @@ export function PaymentResult() {
 
         {error && <p role="alert" className="mt-5 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">{error}</p>}
 
-        <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <div className="mt-7 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap">
           {isPaid && status?.receiptAvailable && status.invoiceId && (
-            <Button asChild className="gap-2"><a href={fiscalReceiptUrl(status.invoiceId)} target="_blank" rel="noopener noreferrer"><FileDown className="size-4" /> Завантажити фіскальний чек</a></Button>
+            <Button asChild className="h-10 gap-2 rounded-full border-0 bg-[#181512] px-5 text-xs font-semibold text-[#FAF8F5] hover:bg-[#2A231D] dark:bg-gradient-to-r dark:from-[#E5C158] dark:via-[#F3D078] dark:to-[#D4AF37] dark:text-[#14110C]"><a href={fiscalReceiptUrl(status.invoiceId)} target="_blank" rel="noopener noreferrer"><FileDown className="size-4" /> Завантажити фіскальний чек</a></Button>
           )}
           {!isPaid && !checking && status?.canRetryPayment && (
-            <Button disabled={retrying} onClick={() => void retryPayment()}>{retrying ? "Переходимо до оплати…" : "Повторити оплату"}</Button>
+            <Button className="h-10 rounded-full border-0 bg-[#181512] px-5 text-xs font-semibold text-[#FAF8F5] hover:bg-[#2A231D] dark:bg-gradient-to-r dark:from-[#E5C158] dark:via-[#F3D078] dark:to-[#D4AF37] dark:text-[#14110C]" disabled={retrying} onClick={() => void retryPayment()}>{retrying ? "Переходимо до оплати…" : "Повторити оплату"}</Button>
           )}
           {!isPaid && !isFailed && publicId && !checking && (
-            <Button variant="outline" className="gap-2" onClick={() => { setChecking(true); setError(null); setRefreshKey(value => value + 1) }}><RefreshCw className="size-4" /> Перевірити ще раз</Button>
+            <Button variant="outline" className="h-10 gap-2 rounded-full px-5 text-xs font-semibold" onClick={() => { setChecking(true); setError(null); setRefreshKey(value => value + 1) }}><RefreshCw className="size-4" /> Перевірити ще раз</Button>
           )}
           {!isPaid && publicId && (
-            <Button variant="outline" asChild><Link href={`/order/success?publicId=${encodeURIComponent(publicId)}`}>Переглянути замовлення</Link></Button>
+            <Button variant="outline" className="h-10 rounded-full px-5 text-xs font-semibold" asChild><Link href={`/order/success?publicId=${encodeURIComponent(publicId)}`}>Переглянути замовлення</Link></Button>
           )}
-          <Button variant="ghost" asChild><Link href="/#catalog">До каталогу</Link></Button>
+          <Button variant="ghost" className="h-10 rounded-full px-5 text-xs font-medium" asChild><Link href="/#catalog">До каталогу</Link></Button>
         </div>
       </div>
     </div>

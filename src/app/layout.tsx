@@ -3,7 +3,9 @@ import { Suspense } from "react";
 import { Manrope, Onest } from "next/font/google";
 
 import { Footer } from "@/components/layout/Footer";
+import { FloatingContactWidget } from "@/components/layout/FloatingContactWidget";
 import { Header } from "@/components/layout/Header";
+import { FrostTexture } from "@/components/ambient/FrostTexture";
 import { WinterSnow } from "@/components/ambient/WinterSnow";
 import { SmoothScroll } from "@/components/ambient/SmoothScroll";
 import { GoogleTag } from "@/components/analytics/GoogleTag";
@@ -59,11 +61,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <ReferralCapture />
         </Suspense>
         <SmoothScroll />
+        <FrostTexture />
         <WinterSnow />
         <CartProvider>
           <Header categories={categories} />
           <main className="flex-1">{children}</main>
           <Footer />
+          <FloatingContactWidget />
         </CartProvider>
       </body>
     </html>

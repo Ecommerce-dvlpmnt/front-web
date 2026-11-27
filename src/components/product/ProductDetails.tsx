@@ -369,15 +369,21 @@ export function ProductDetails({
           <ProductHeightLinks variants={heightVariants} productId={product.id} />
           {productOptions.length > 0 && <ProductOptionControls product={product} options={productOptions} />}
 
-          {/* Быстрые гарантии магазина */}
-          <div className="mt-6 grid grid-cols-2 gap-3 border-t border-border/80 pt-5 text-xs text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <Truck className="size-4 shrink-0 text-foreground" />
-              <span>Відправка Новою Поштою 1–2 дні</span>
+          {/* Швидкі переваги та гарантії магазину */}
+          <div className="mt-6 grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3 border-t border-border/80 pt-5">
+            <div className="flex items-start gap-2.5 rounded-xl border border-border/60 bg-muted/30 p-2.5 sm:p-3 text-xs text-muted-foreground">
+              <Truck className="size-4 shrink-0 text-[#8C5E14] dark:text-[#F3D078] mt-0.5" />
+              <div>
+                <p className="font-semibold text-foreground">Відправка 1–2 дні</p>
+                <p className="mt-0.5 text-[11px] leading-snug">Швидка доставка Новою Поштою та оплата після огляду у відділенні.</p>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="size-4 shrink-0 text-foreground" />
-              <span>Сертифікована якість виробника</span>
+            <div className="flex items-start gap-2.5 rounded-xl border border-border/60 bg-muted/30 p-2.5 sm:p-3 text-xs text-muted-foreground">
+              <ShieldCheck className="size-4 shrink-0 text-[#8C5E14] dark:text-[#F3D078] mt-0.5" />
+              <div>
+                <p className="font-semibold text-foreground">100% якість виробника</p>
+                <p className="mt-0.5 text-[11px] leading-snug">Безпечні литі гілочки без запаху в міцній фірмовій коробці для зберігання.</p>
+              </div>
             </div>
           </div>
 
@@ -434,7 +440,9 @@ export function ProductDetails({
                 className={`h-11 w-full rounded-full font-semibold uppercase tracking-wider text-xs shadow-sm transition-all duration-200 cursor-pointer sm:flex-1 ${
                   isAdded
                     ? "bg-[#1B3527] text-white"
-                    : "bg-[#181512] text-[#FAF8F5] hover:bg-[#2A231D] dark:bg-gradient-to-r dark:from-[#E5C158] dark:via-[#F3D078] dark:to-[#D4AF37] dark:text-[#14110C] dark:hover:brightness-105"
+                    : cartQuantity > 0 && !isOutOfStock
+                      ? "bg-[#173628] text-[#FAF8F5] hover:bg-[#1F4735] ring-1 ring-[#D4AF37]/55 dark:bg-[#173326] dark:text-[#F3D078] dark:hover:bg-[#1F4533]"
+                      : "bg-[#181512] text-[#FAF8F5] hover:bg-[#2A231D] dark:bg-gradient-to-r dark:from-[#E5C158] dark:via-[#F3D078] dark:to-[#D4AF37] dark:text-[#14110C] dark:hover:brightness-105"
                 }`}
                 disabled={!canAddToCart}
                 onClick={handleAddToCart}
@@ -443,10 +451,12 @@ export function ProductDetails({
                 {isOutOfStock
                   ? "Немає в наявності"
                   : !canAddToCart
-                    ? "Максимальна кількість у кошику"
+                    ? `Максимум у кошику (${cartQuantity} шт.)`
                     : isAdded
                       ? "Додано до кошика ✓"
-                      : "Додати в кошик"}
+                      : cartQuantity > 0
+                        ? `У кошику (${cartQuantity} шт.) · Додати ще`
+                        : "Додати в кошик"}
               </Button>
               <Button
                 type="button"
