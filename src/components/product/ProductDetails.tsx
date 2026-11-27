@@ -418,7 +418,7 @@ export function ProductDetails({
 
               <Button
                 type="button"
-                className={`h-11 flex-1 rounded-full font-semibold uppercase tracking-wider text-xs shadow-sm transition-all duration-200 cursor-pointer ${
+                className={`h-11 w-full rounded-full font-semibold uppercase tracking-wider text-xs shadow-sm transition-all duration-200 cursor-pointer sm:flex-1 ${
                   isAdded
                     ? "bg-[#1B3527] text-white"
                     : "bg-[#181512] text-[#FAF8F5] hover:bg-[#2A231D] dark:bg-gradient-to-r dark:from-[#E5C158] dark:via-[#F3D078] dark:to-[#D4AF37] dark:text-[#14110C] dark:hover:brightness-105"
