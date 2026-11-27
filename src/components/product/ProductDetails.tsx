@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useLayoutEffect, useState } from "react"
+import type Lenis from "lenis"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -171,6 +172,18 @@ export function ProductDetails({
   const canAddToCart =
     !isOutOfStock && cartQuantity + quantity <= product.stock
   const selectedImage = galleryImages[selectedImageIndex] ?? galleryImages[0]
+
+  useLayoutEffect(() => {
+    if (window.location.hash) return
+
+    // Next can retain the catalog's scroll position when this long page is visible.
+    const lenis = (window as Window & { __lenis?: Lenis }).__lenis
+    if (lenis) {
+      lenis.scrollTo(0, { immediate: true, force: true })
+    } else {
+      window.scrollTo({ top: 0, behavior: "instant" })
+    }
+  }, [product.id])
 
   useEffect(() => {
     if (!isAdded) return
